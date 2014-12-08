@@ -29,5 +29,7 @@
     <string name="skip_previous">Skip to previous</string>
     <string name="play_pause">play or pause</string>
     <string name="skip_next">Skip to next</string>
+    <string name="touch_to_cast">Touch to Cast</string>
+    <string name="cast_application_id">8375ADD6</string>
 
 </resources>

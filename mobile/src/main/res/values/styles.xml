@@ -16,11 +16,17 @@
 -->
 <resources>
 
+    <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
+        <!-- colorPrimary is used for Notification icon and bottom facet bar icons
+        and overflow actions -->
+        <item name="android:colorPrimary">#ffff5722</item>
 
-    <style name="AppTheme" parent="AppBaseTheme">
-    </style>
+        <!-- colorPrimaryDark is used for background -->
+        <item name="android:colorPrimaryDark">#ffbf360c</item>
 
-    <style name="AppBaseTheme" parent="android:Theme.Light">
+        <!-- colorAccent is sparingly used for accents, like floating action button highlight,
+        progress on playbar-->
+        <item name="android:colorAccent">#ffff5722</item>
     </style>
 
 </resources>
