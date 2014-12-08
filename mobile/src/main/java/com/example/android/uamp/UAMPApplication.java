@@ -1,0 +1,59 @@
+/*
+ * Copyright (C) 2014 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.example.android.uamp;
+
+import android.app.Application;
+import android.content.Context;
+
+import com.google.sample.castcompanionlibrary.cast.VideoCastManager;
+
+/**
+ * The {@link Application} for the uAmp application.
+ */
+public class UAMPApplication extends Application {
+
+    public static final String CAST_NAMESPACE = "urn:x-cast:com.example.android.uamp.playlist";
+
+    private String applicationId;
+
+    private VideoCastManager mCastManager;
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        applicationId = getResources().getString(R.string.cast_application_id);
+    }
+
+    /**
+     * Get the {@link com.google.sample.castcompanionlibrary.cast.VideoCastManager} for
+     * a particular context
+     * @param context that is set on the castManager
+     * @return VideoCastManager
+     */
+    public VideoCastManager getCastManager(Context context) {
+        synchronized (this) {
+            if (mCastManager == null) {
+                mCastManager =
+                        VideoCastManager.initialize(context, applicationId, null, CAST_NAMESPACE);
+                mCastManager.enableFeatures(
+                        VideoCastManager.FEATURE_WIFI_RECONNECT |
+                        VideoCastManager.FEATURE_DEBUGGING);
+            }
+        }
+        mCastManager.setContext(context);
+        return mCastManager;
+    }
+}
