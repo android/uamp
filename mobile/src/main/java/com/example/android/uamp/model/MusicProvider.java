@@ -32,9 +32,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -63,13 +65,13 @@ public class MusicProvider {
     private final ReentrantLock initializationLock = new ReentrantLock();
 
     // Categorized caches for music track data:
-    private final HashMap<String, List<MediaMetadata>> mMusicListByGenre;
-    private final HashMap<String, MutableMediaMetadata> mMusicListById;
+    private final ConcurrentMap<String, List<MediaMetadata>> mMusicListByGenre;
+    private final ConcurrentMap<String, MutableMediaMetadata> mMusicListById;
 
-    private final HashSet<String> mFavoriteTracks;
+    private final Set<String> mFavoriteTracks;
 
     enum State {
-        NON_INITIALIZED, INITIALIZING, INITIALIZED;
+        NON_INITIALIZED, INITIALIZING, INITIALIZED
     }
 
     private State mCurrentState = State.NON_INITIALIZED;
@@ -80,9 +82,9 @@ public class MusicProvider {
     }
 
     public MusicProvider() {
-        mMusicListByGenre = new HashMap<>();
-        mMusicListById = new HashMap<>();
-        mFavoriteTracks = new HashSet<>();
+        mMusicListByGenre = new ConcurrentHashMap<>();
+        mMusicListById = new ConcurrentHashMap<>();
+        mFavoriteTracks = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
     }
 
     /**
@@ -92,7 +94,7 @@ public class MusicProvider {
      */
     public Iterable<String> getGenres() {
         if (mCurrentState != State.INITIALIZED) {
-            return new ArrayList<String>(0);
+            return Collections.emptyList();
         }
         return mMusicListByGenre.keySet();
     }
@@ -104,7 +106,7 @@ public class MusicProvider {
      */
     public Iterable<MediaMetadata> getMusicsByGenre(String genre) {
         if (mCurrentState != State.INITIALIZED || !mMusicListByGenre.containsKey(genre)) {
-            return new ArrayList<MediaMetadata>();
+            return Collections.emptyList();
         }
         return mMusicListByGenre.get(genre);
     }
@@ -116,10 +118,10 @@ public class MusicProvider {
      * @return
      */
     public Iterable<MediaMetadata> searchMusics(String titleQuery) {
-        ArrayList<MediaMetadata> result = new ArrayList<>();
         if (mCurrentState != State.INITIALIZED) {
-            return result;
+            return Collections.emptyList();
         }
+        ArrayList<MediaMetadata> result = new ArrayList<>();
         titleQuery = titleQuery.toLowerCase();
         for (MutableMediaMetadata track : mMusicListById.values()) {
             if (track.metadata.getString(MediaMetadata.METADATA_KEY_TITLE).toLowerCase()
@@ -134,7 +136,7 @@ public class MusicProvider {
         return mMusicListById.containsKey(mediaId) ? mMusicListById.get(mediaId).metadata : null;
     }
 
-    public void updateMusic(String mediaId, MediaMetadata metadata) {
+    public synchronized void updateMusic(String mediaId, MediaMetadata metadata) {
         MutableMediaMetadata track = mMusicListById.get(mediaId);
         if (track == null) {
             return;
@@ -146,7 +148,7 @@ public class MusicProvider {
         track.metadata = metadata;
 
         // if genre has changed, we need to rebuild the list by genre
-        if (oldGenre.equals(newGenre)) {
+        if (!oldGenre.equals(newGenre)) {
             rebuildListByGenre();
         }
     }
@@ -170,11 +172,9 @@ public class MusicProvider {
     /**
      * Get the list of music tracks from a server and caches the track information
      * for future reference, keying tracks by mediaId and grouping by genre.
-     *
-     * @return
      */
     public void retrieveMedia(final Callback callback) {
-
+        LogHelper.d(TAG, "retrieveMedia called");
         if (mCurrentState == State.INITIALIZED) {
             // Nothing to do, execute callback immediately
             callback.onMusicCatalogReady(true);
@@ -182,9 +182,9 @@ public class MusicProvider {
         }
 
         // Asynchronously load the music catalog in a separate thread
-        new AsyncTask() {
+        new AsyncTask<Void,Void,Void>() {
             @Override
-            protected Object doInBackground(Object[] objects) {
+            protected Void doInBackground(Void... params) {
                 retrieveMediaAsync(callback);
                 return null;
             }
@@ -205,7 +205,6 @@ public class MusicProvider {
 
     private void retrieveMediaAsync(Callback callback) {
         initializationLock.lock();
-
         try {
             if (mCurrentState == State.NON_INITIALIZED) {
                 mCurrentState = State.INITIALIZING;
@@ -288,7 +287,7 @@ public class MusicProvider {
      * object.
      *
      * @param urlString
-     * @return
+     * @return result JSONObject containing the parsed representation.
      */
     private JSONObject parseUrl(String urlString) {
         InputStream is = null;
