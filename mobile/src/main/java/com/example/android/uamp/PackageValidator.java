@@ -159,8 +159,12 @@ public class PackageValidator {
      * @return false if the caller is not authorized to get data from this MediaBrowserService
      */
     public static boolean isCallerAllowed(Context context, String callingPackage, int callingUid) {
-        // Always allow calls from the framework or development environment.
-        if (Process.SYSTEM_UID == callingUid || !"user".equals(Build.TYPE)) {
+        // Always allow calls from the framework, self app or development environment.
+        if (Process.SYSTEM_UID == callingUid || Process.myUid() == callingUid) {
+            return true;
+        }
+        if (BuildConfig.DEBUG) {
+            LogHelper.i(TAG, "Allowing caller '"+callingPackage+" because app was built in debug mode.");
             return true;
         }
         PackageInfo packageInfo;

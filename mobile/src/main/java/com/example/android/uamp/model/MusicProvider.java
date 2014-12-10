@@ -65,7 +65,7 @@ public class MusicProvider {
     private final ReentrantLock initializationLock = new ReentrantLock();
 
     // Categorized caches for music track data:
-    private final ConcurrentMap<String, List<MediaMetadata>> mMusicListByGenre;
+    private ConcurrentMap<String, List<MediaMetadata>> mMusicListByGenre;
     private final ConcurrentMap<String, MutableMediaMetadata> mMusicListById;
 
     private final Set<String> mFavoriteTracks;
@@ -149,7 +149,7 @@ public class MusicProvider {
 
         // if genre has changed, we need to rebuild the list by genre
         if (!oldGenre.equals(newGenre)) {
-            rebuildListByGenre();
+            buildListsByGenre();
         }
     }
 
@@ -182,7 +182,7 @@ public class MusicProvider {
         }
 
         // Asynchronously load the music catalog in a separate thread
-        new AsyncTask<Void,Void,Void>() {
+        new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... params) {
                 retrieveMediaAsync(callback);
@@ -191,16 +191,19 @@ public class MusicProvider {
         }.execute();
     }
 
-    private void rebuildListByGenre() {
+    private void buildListsByGenre() {
+        ConcurrentMap<String, List<MediaMetadata>> newMusicListByGenre = new ConcurrentHashMap<>();
+
         for (MutableMediaMetadata m : mMusicListById.values()) {
             String genre = m.metadata.getString(MediaMetadata.METADATA_KEY_GENRE);
-            List<MediaMetadata> list = mMusicListByGenre.get(genre);
+            List<MediaMetadata> list = newMusicListByGenre.get(genre);
             if (list == null) {
                 list = new ArrayList<>();
-                mMusicListByGenre.put(genre, list);
+                newMusicListByGenre.put(genre, list);
             }
             list.add(m.metadata);
         }
+        mMusicListByGenre = newMusicListByGenre;
     }
 
     private void retrieveMediaAsync(Callback callback) {
@@ -221,7 +224,7 @@ public class MusicProvider {
                         String mediaId = item.getString(MediaMetadata.METADATA_KEY_MEDIA_ID);
                         mMusicListById.put(mediaId, new MutableMediaMetadata(mediaId, item));
                     }
-                    rebuildListByGenre();
+                    buildListsByGenre();
                 }
                 mCurrentState = State.INITIALIZED;
             }
