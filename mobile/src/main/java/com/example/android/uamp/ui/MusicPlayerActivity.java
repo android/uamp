@@ -13,9 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.android.uamp;
+package com.example.android.uamp.ui;
 
+import android.app.FragmentTransaction;
+import android.content.ComponentName;
+import android.content.Intent;
 import android.media.browse.MediaBrowser;
+import android.media.session.MediaController;
+import android.media.session.PlaybackState;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
@@ -27,6 +32,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.example.android.uamp.MusicService;
+import com.example.android.uamp.R;
+import com.example.android.uamp.UAMPApplication;
 import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.PrefUtils;
 import com.github.amlcurran.showcaseview.ShowcaseView;
@@ -36,14 +44,25 @@ import com.google.sample.castcompanionlibrary.cast.callbacks.VideoCastConsumerIm
 
 /**
  * Main activity for the music player.
+ * This class hold the MediaBrowser and the MediaController instances. It will create a MediaBrowser
+ * when it is created and connect/disconnect on start/stop. Thus, a MediaBrowser will be always
+ * connected while this activity is running.
  */
 public class MusicPlayerActivity extends ActionBarActivity
-        implements BrowseFragment.FragmentDataHelper {
+        implements MediaBrowserFragment.MediaFragmentListener {
 
     private static final String TAG = LogHelper.makeLogTag(MusicPlayerActivity.class);
+    public static final String EXTRA_PLAY_QUERY="com.example.android.uamp.PLAY_QUERY";
+//    private static final String SAVED_MEDIA_ID="com.example.android.uamp.MEDIA_ID";
+
     private static final int DELAY_MILLIS = 1000;
     private static final double VOLUME_INCREMENT = 0.05;
 
+    private MediaBrowser mMediaBrowser;
+
+//    private String mMediaId;
+//    private String mSearchQuery;
+//
     private VideoCastManager mCastManager;
     private MenuItem mMediaRouteMenuItem;
     private Toolbar mToolbar;
@@ -86,6 +105,8 @@ public class MusicPlayerActivity extends ActionBarActivity
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        LogHelper.d(TAG, "Activity onCreate");
+
         setContentView(R.layout.activity_player);
 
         // Ensure that Google Play Service is available.
@@ -99,10 +120,40 @@ public class MusicPlayerActivity extends ActionBarActivity
 
         setSupportActionBar(mToolbar);
 
-        if (savedInstanceState == null) {
-            getFragmentManager().beginTransaction()
-                    .add(R.id.container, BrowseFragment.newInstance(null))
-                    .commit();
+        mMediaBrowser = new MediaBrowser(this,
+                new ComponentName(this, MusicService.class),
+                mConnectionCallback, null);
+
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        LogHelper.d(TAG, "Activity onStart");
+        mMediaBrowser.connect();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        LogHelper.d(TAG, "Activity onStop");
+        if (mMediaBrowser != null) {
+            mMediaBrowser.disconnect();
+        }
+    }
+
+    protected void maybePopulateFromIntent() {
+        Intent intent = this.getIntent();
+        if (intent.hasExtra(EXTRA_PLAY_QUERY)) {
+            String query = intent.getStringExtra(EXTRA_PLAY_QUERY);
+            LogHelper.d(TAG, "Play query=", query);
+            getMediaController().getTransportControls().playFromSearch(query, null);
+            navigateToPlayingQueue();
         }
 
         mCastManager.reconnectSessionIfPossible(this, false);
@@ -139,20 +190,47 @@ public class MusicPlayerActivity extends ActionBarActivity
         mCastManager.decrementUiCounter();
     }
 
+    public MediaBrowser getMediaBrowser() {
+        return mMediaBrowser;
+    }
+
+    protected void showPlaybackControls() {
+        LogHelper.d(TAG, "showPlaybackControls");
+        PlaybackControlsFragment fragment = new PlaybackControlsFragment();
+        getFragmentManager().beginTransaction()
+                .replace(R.id.controls, fragment)
+                .commit();
+    }
+
+    protected void navigateToPlayingQueue() {
+        LogHelper.d(TAG, "navigateToPlayingQueue");
+        PlayingQueueFragment fragment = new PlayingQueueFragment();
+        getFragmentManager().beginTransaction()
+                .replace(R.id.container, fragment)
+                .addToBackStack(null)
+                .commit();
+    }
+
+    protected void navigateToBrowser(String mediaId) {
+        LogHelper.d(TAG, "navigateToBrowser, mediaId=" + mediaId);
+        MediaBrowserFragment fragment = new MediaBrowserFragment();
+        fragment.setMediaId(mediaId);
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        transaction.replace(R.id.container, fragment);
+        if (mediaId != null) {
+            transaction.addToBackStack(null);
+        }
+        transaction.commit();
+    }
+
     @Override
     public void onMediaItemSelected(MediaBrowser.MediaItem item) {
+        LogHelper.d(TAG, "onMediaItemSelected, mediaId=" + item.getMediaId());
         if (item.isPlayable()) {
             getMediaController().getTransportControls().playFromMediaId(item.getMediaId(), null);
-            QueueFragment queueFragment = QueueFragment.newInstance();
-            getFragmentManager().beginTransaction()
-                    .replace(R.id.container, queueFragment)
-                    .addToBackStack(null)
-                    .commit();
+            showPlaybackControls();
         } else if (item.isBrowsable()) {
-            getFragmentManager().beginTransaction()
-                    .replace(R.id.container, BrowseFragment.newInstance(item.getMediaId()))
-                    .addToBackStack(null)
-                    .commit();
+            navigateToBrowser(item.getMediaId());
         } else {
             LogHelper.w(TAG, "Ignoring MediaItem that is neither browsable nor playable: ",
                     "mediaId=", item.getMediaId());
@@ -170,4 +248,42 @@ public class MusicPlayerActivity extends ActionBarActivity
                     .build();
         }
     }
+
+    private MediaBrowser.ConnectionCallback mConnectionCallback =
+            new MediaBrowser.ConnectionCallback() {
+                @Override
+                public void onConnected() {
+                    LogHelper.d(TAG, "onConnected: session token " + mMediaBrowser.getSessionToken());
+
+                    if (mMediaBrowser.getSessionToken() == null) {
+                        throw new IllegalArgumentException("No Session token");
+                    }
+
+                    MediaController mediaController = new MediaController(
+                            MusicPlayerActivity.this, mMediaBrowser.getSessionToken());
+                    setMediaController(mediaController);
+
+                    navigateToBrowser(null);
+
+                    // If the service is already active and in a "playback-able" state
+                    // (not NONE and not STOPPED), we need to set the proper playback controls:
+                    PlaybackState state = mediaController.getPlaybackState();
+                    if (state != null && state.getState() != PlaybackState.STATE_NONE &&
+                            state.getState() != PlaybackState.STATE_STOPPED) {
+                        showPlaybackControls();
+                    }
+                }
+
+                @Override
+                public void onConnectionFailed() {
+                    LogHelper.d(TAG, "onConnectionFailed");
+                }
+
+                @Override
+                public void onConnectionSuspended() {
+                    LogHelper.d(TAG, "onConnectionSuspended");
+                    setMediaController(null);
+                }
+            };
+
 }

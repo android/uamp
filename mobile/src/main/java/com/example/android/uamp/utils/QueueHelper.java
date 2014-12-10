@@ -47,7 +47,7 @@ public class QueueHelper {
         }
 
         String categoryValue = category[1];
-        LogHelper.e(TAG, "Creating playing queue for musics of genre ", categoryValue);
+        LogHelper.d(TAG, "Creating playing queue for musics of genre ", categoryValue);
 
         List<MediaSession.QueueItem> queue = convertToQueue(
                 musicProvider.getMusicsByGenre(categoryValue));
@@ -58,7 +58,7 @@ public class QueueHelper {
     public static final List<MediaSession.QueueItem> getPlayingQueueFromSearch(String query,
             MusicProvider musicProvider) {
 
-        LogHelper.e(TAG, "Creating playing queue for musics from search ", query);
+        LogHelper.d(TAG, "Creating playing queue for musics from search ", query);
 
         return convertToQueue(musicProvider.searchMusics(query));
     }

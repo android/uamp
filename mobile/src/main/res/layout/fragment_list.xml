@@ -19,38 +19,6 @@
               android:layout_height="match_parent"
               android:padding="@dimen/fragment_list_padding">
 
-    <LinearLayout
-        android:id="@+id/controls"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <ImageButton
-            android:id="@+id/skip_previous"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:src="@drawable/ic_skip_previous_white_24dp"
-            android:contentDescription="@string/skip_previous"/>
-
-        <ImageButton
-            android:id="@+id/play_pause"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:src="@drawable/ic_play_arrow_white_24dp"
-            android:contentDescription="@string/play_pause"/>
-
-        <ImageButton
-            android:id="@+id/skip_next"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:src="@drawable/ic_skip_next_white_24dp"
-            android:contentDescription="@string/skip_next"/>
-
-    </LinearLayout>
-
     <ListView
         android:id="@+id/list_view"
         android:layout_width="match_parent"

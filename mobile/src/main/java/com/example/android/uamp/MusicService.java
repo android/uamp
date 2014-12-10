@@ -128,7 +128,6 @@ public class MusicService extends MediaBrowserService implements OnPreparedListe
     // The volume we set the media player when we have audio focus.
     public static final float VOLUME_NORMAL = 1.0f;
     public static final String ANDROID_AUTO_PACKAGE_NAME = "com.google.android.projection.gearhead";
-    public static final String ANDROID_AUTO_SIMULATOR_PACKAGE_NAME = "com.google.android.mediasimulator";
 
     // Music catalog manager
     private MusicProvider mMusicProvider;
@@ -355,6 +354,8 @@ public class MusicService extends MediaBrowserService implements OnPreparedListe
         } else {
             LogHelper.w(TAG, "Skipping unmatched parentMediaId: ", parentMediaId);
         }
+        LogHelper.d(TAG, "OnLoadChildren sending ", mediaItems.size(),
+                " results for ", parentMediaId);
         result.sendResult(mediaItems);
     }
 
