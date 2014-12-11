@@ -209,7 +209,8 @@ public class MediaBrowserFragment extends Fragment {
                 }
 
                 String currentPlaying = controller.getMetadata().getDescription().getMediaId();
-                String musicId = MediaIDHelper.extractMusicIDFromMediaID(item.getDescription().getMediaId());
+                String musicId = MediaIDHelper.extractMusicIDFromMediaID(
+                        item.getDescription().getMediaId());
                 if (currentPlaying != null && currentPlaying.equals(musicId)) {
                     holder.mImageView.setImageDrawable(
                             getContext().getDrawable(R.drawable.ic_equalizer_white_24dp));
