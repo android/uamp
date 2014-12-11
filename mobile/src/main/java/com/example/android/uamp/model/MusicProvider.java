@@ -132,12 +132,18 @@ public class MusicProvider {
         return result;
     }
 
-    public MediaMetadata getMusic(String mediaId) {
-        return mMusicListById.containsKey(mediaId) ? mMusicListById.get(mediaId).metadata : null;
+    /**
+     * Return the MediaMetadata for the given musicID.
+     *
+     * @param musicId The unique, non-hierarquical music ID.
+     *
+     */
+    public MediaMetadata getMusic(String musicId) {
+        return mMusicListById.containsKey(musicId) ? mMusicListById.get(musicId).metadata : null;
     }
 
-    public synchronized void updateMusic(String mediaId, MediaMetadata metadata) {
-        MutableMediaMetadata track = mMusicListById.get(mediaId);
+    public synchronized void updateMusic(String musicId, MediaMetadata metadata) {
+        MutableMediaMetadata track = mMusicListById.get(musicId);
         if (track == null) {
             return;
         }
@@ -153,11 +159,11 @@ public class MusicProvider {
         }
     }
 
-    public void setFavorite(String mediaId, boolean favorite) {
+    public void setFavorite(String musicId, boolean favorite) {
         if (favorite) {
-            mFavoriteTracks.add(mediaId);
+            mFavoriteTracks.add(musicId);
         } else {
-            mFavoriteTracks.remove(mediaId);
+            mFavoriteTracks.remove(musicId);
         }
     }
 
@@ -171,7 +177,7 @@ public class MusicProvider {
 
     /**
      * Get the list of music tracks from a server and caches the track information
-     * for future reference, keying tracks by mediaId and grouping by genre.
+     * for future reference, keying tracks by musicId and grouping by genre.
      */
     public void retrieveMedia(final Callback callback) {
         LogHelper.d(TAG, "retrieveMedia called");
@@ -221,8 +227,8 @@ public class MusicProvider {
                     for (int j = 0; j < tracks.length(); j++) {
                         MediaMetadata item = buildFromJSON(tracks.getJSONObject(j), path);
                         String genre = item.getString(MediaMetadata.METADATA_KEY_GENRE);
-                        String mediaId = item.getString(MediaMetadata.METADATA_KEY_MEDIA_ID);
-                        mMusicListById.put(mediaId, new MutableMediaMetadata(mediaId, item));
+                        String musicId = item.getString(MediaMetadata.METADATA_KEY_MEDIA_ID);
+                        mMusicListById.put(musicId, new MutableMediaMetadata(musicId, item));
                     }
                     buildListsByGenre();
                 }

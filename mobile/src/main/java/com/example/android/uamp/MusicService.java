@@ -417,14 +417,16 @@ public class MusicService extends MediaBrowserService implements OnPreparedListe
             mSession.setQueueTitle(queueTitle);
 
             if (mPlayingQueue != null && !mPlayingQueue.isEmpty()) {
-                String uniqueMusicID = MediaIDHelper.extractMusicIDFromMediaID(mediaId);
+                // set the current index on queue from the media Id:
+                mCurrentIndexOnQueue = QueueHelper.getMusicIndexOnQueue(mPlayingQueue, mediaId);
 
-                // set the current index on queue from the music Id:
-                mCurrentIndexOnQueue = QueueHelper.getMusicIndexOnQueue(
-                        mPlayingQueue, uniqueMusicID);
-
-                // play the music
-                handlePlayRequest();
+                if (mCurrentIndexOnQueue < 0) {
+                    LogHelper.e(TAG, "playFromMediaId: media ID ", mediaId,
+                            " could not be found on queue. Ignoring.");
+                } else {
+                    // play the music
+                    handlePlayRequest();
+                }
             }
         }
 
@@ -486,8 +488,8 @@ public class MusicService extends MediaBrowserService implements OnPreparedListe
                 LogHelper.i(TAG, "onCustomAction: favorite for current track");
                 MediaMetadata track = getCurrentPlayingMusic();
                 if (track != null) {
-                    String mediaId = track.getString(MediaMetadata.METADATA_KEY_MEDIA_ID);
-                    mMusicProvider.setFavorite(mediaId, !mMusicProvider.isFavorite(mediaId));
+                    String musicId = track.getString(MediaMetadata.METADATA_KEY_MEDIA_ID);
+                    mMusicProvider.setFavorite(musicId, !mMusicProvider.isFavorite(musicId));
                 }
                 updatePlaybackState(null);
             } else {
@@ -818,14 +820,15 @@ public class MusicService extends MediaBrowserService implements OnPreparedListe
             return;
         }
         MediaSession.QueueItem queueItem = mPlayingQueue.get(mCurrentIndexOnQueue);
-        String mediaId = queueItem.getDescription().getMediaId();
-        MediaMetadata track = mMusicProvider.getMusic(mediaId);
+        String musicId = MediaIDHelper.extractMusicIDFromMediaID(
+                queueItem.getDescription().getMediaId());
+        MediaMetadata track = mMusicProvider.getMusic(musicId);
         final String trackId = track.getString(MediaMetadata.METADATA_KEY_MEDIA_ID);
-        if (!mediaId.equals(trackId)) {
+        if (!musicId.equals(trackId)) {
             throw new IllegalStateException("track ID (" + trackId + ") " +
-                    "should match mediaId (" + mediaId + ")");
+                    "should match musicId (" + musicId + ")");
         }
-        LogHelper.d(TAG, "Updating metadata for MusicID= " + mediaId);
+        LogHelper.d(TAG, "Updating metadata for MusicID= " + musicId);
         mSession.setMetadata(track);
 
         // TODO(mangini):
@@ -838,7 +841,8 @@ public class MusicService extends MediaBrowserService implements OnPreparedListe
                 @Override
                 public void onFetched(String artUrl, Bitmap result) {
                     MediaSession.QueueItem queueItem = mPlayingQueue.get(mCurrentIndexOnQueue);
-                    String currentPlayingId = queueItem.getDescription().getMediaId();
+                    String currentPlayingId = MediaIDHelper.extractMusicIDFromMediaID(
+                            queueItem.getDescription().getMediaId());
                     MediaMetadata track = mMusicProvider.getMusic(currentPlayingId);
                     track = new MediaMetadata.Builder(track)
                             .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, result)
@@ -898,13 +902,13 @@ public class MusicService extends MediaBrowserService implements OnPreparedListe
         MediaMetadata currentMusic = getCurrentPlayingMusic();
         if (currentMusic != null) {
             // Set appropriate "Favorite" icon on Custom action:
-            String mediaId = currentMusic.getString(MediaMetadata.METADATA_KEY_MEDIA_ID);
+            String musicId = currentMusic.getString(MediaMetadata.METADATA_KEY_MEDIA_ID);
             int favoriteIcon = R.drawable.ic_star_off;
-            if (mMusicProvider.isFavorite(mediaId)) {
+            if (mMusicProvider.isFavorite(musicId)) {
                 favoriteIcon = R.drawable.ic_star_on;
             }
             LogHelper.d(TAG, "updatePlaybackState, setting Favorite custom action of music ",
-                    mediaId, " current favorite=", mMusicProvider.isFavorite(mediaId));
+                    musicId, " current favorite=", mMusicProvider.isFavorite(musicId));
             stateBuilder.addCustomAction(CUSTOM_ACTION_THUMBS_UP, getString(R.string.favorite),
                     favoriteIcon);
         }
@@ -934,7 +938,8 @@ public class MusicService extends MediaBrowserService implements OnPreparedListe
             if (item != null) {
                 LogHelper.d(TAG, "getCurrentPlayingMusic for musicId=",
                         item.getDescription().getMediaId());
-                return mMusicProvider.getMusic(item.getDescription().getMediaId());
+                return mMusicProvider.getMusic(
+                        MediaIDHelper.extractMusicIDFromMediaID(item.getDescription().getMediaId()));
             }
         }
         return null;
