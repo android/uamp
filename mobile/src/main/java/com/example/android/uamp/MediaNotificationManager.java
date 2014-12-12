@@ -43,8 +43,8 @@ import com.example.android.uamp.utils.LogHelper;
  * MediaSession. Maintaining a visible notification (usually) guarantees that the music service
  * won't be killed during playback.
  */
-public class MediaNotification extends BroadcastReceiver {
-    private static final String TAG = LogHelper.makeLogTag(MediaNotification.class);
+public class MediaNotificationManager extends BroadcastReceiver {
+    private static final String TAG = LogHelper.makeLogTag(MediaNotificationManager.class);
 
     private static final int NOTIFICATION_ID = 412;
 
@@ -71,7 +71,7 @@ public class MediaNotification extends BroadcastReceiver {
 
     private boolean mStarted = false;
 
-    public MediaNotification(MusicService service) {
+    public MediaNotificationManager(MusicService service) {
         mService = service;
         updateSessionToken();
 
