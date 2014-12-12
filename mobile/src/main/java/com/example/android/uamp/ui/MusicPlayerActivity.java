@@ -18,6 +18,7 @@ package com.example.android.uamp.ui;
 import android.app.FragmentTransaction;
 import android.content.ComponentName;
 import android.content.Intent;
+import android.content.res.TypedArray;
 import android.media.browse.MediaBrowser;
 import android.media.session.MediaController;
 import android.media.session.PlaybackState;
@@ -118,7 +119,7 @@ public class MusicPlayerActivity extends ActionBarActivity
         mCastManager = ((UAMPApplication)getApplication()).getCastManager(this);
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         mToolbar.setTitle(getString(R.string.app_name));
-        mToolbar.setLogo(R.drawable.ic_launcher);
+        mToolbar.setBackgroundColor(getToolbarBackground());
         mToolbar.inflateMenu(R.menu.main);
 
         setSupportActionBar(mToolbar);
@@ -128,6 +129,16 @@ public class MusicPlayerActivity extends ActionBarActivity
                 mConnectionCallback, null);
 
         mCastManager.reconnectSessionIfPossible(this, false);
+    }
+
+    private int getToolbarBackground() {
+        TypedArray ta = getTheme().obtainStyledAttributes(new int[] {
+                android.R.attr.colorPrimary
+        });
+        int defaultColor = getResources().getColor(android.R.color.background_dark);
+        int color = ta.getColor(0, defaultColor);
+        ta.recycle();
+        return color;
     }
 
     @Override
