@@ -158,7 +158,7 @@ public class MediaBrowserFragment extends Fragment {
     public void onStop() {
         super.onStop();
         MediaBrowser mediaBrowser = mSupportActivity.getMediaBrowser();
-        if (mediaBrowser != null ) {
+        if (mediaBrowser != null && mediaBrowser.isConnected() && mMediaId != null) {
             mediaBrowser.unsubscribe(mMediaId);
         }
         if (getActivity().getMediaController() != null) {

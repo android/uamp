@@ -23,6 +23,7 @@ import android.media.session.MediaController;
 import android.media.session.PlaybackState;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.MediaRouteButton;
 import android.support.v7.media.MediaRouter;
@@ -53,16 +54,16 @@ public class MusicPlayerActivity extends ActionBarActivity
 
     private static final String TAG = LogHelper.makeLogTag(MusicPlayerActivity.class);
     public static final String EXTRA_PLAY_QUERY="com.example.android.uamp.PLAY_QUERY";
-//    private static final String SAVED_MEDIA_ID="com.example.android.uamp.MEDIA_ID";
+    private static final String SAVED_MEDIA_ID="com.example.android.uamp.MEDIA_ID";
 
     private static final int DELAY_MILLIS = 1000;
     private static final double VOLUME_INCREMENT = 0.05;
 
     private MediaBrowser mMediaBrowser;
 
-//    private String mMediaId;
-//    private String mSearchQuery;
-//
+    private String mMediaId;
+    private String mSearchQuery;
+
     private VideoCastManager mCastManager;
     private MenuItem mMediaRouteMenuItem;
     private Toolbar mToolbar;
@@ -107,6 +108,8 @@ public class MusicPlayerActivity extends ActionBarActivity
         super.onCreate(savedInstanceState);
         LogHelper.d(TAG, "Activity onCreate");
 
+        bootstrapFromParameters(savedInstanceState);
+
         setContentView(R.layout.activity_player);
 
         // Ensure that Google Play Service is available.
@@ -124,10 +127,14 @@ public class MusicPlayerActivity extends ActionBarActivity
                 new ComponentName(this, MusicService.class),
                 mConnectionCallback, null);
 
+        mCastManager.reconnectSessionIfPossible(this, false);
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
+        if (mMediaId != null) {
+            outState.putString(SAVED_MEDIA_ID, mMediaId);
+        }
         super.onSaveInstanceState(outState);
     }
 
@@ -147,16 +154,19 @@ public class MusicPlayerActivity extends ActionBarActivity
         }
     }
 
-    protected void maybePopulateFromIntent() {
-        Intent intent = this.getIntent();
-        if (intent.hasExtra(EXTRA_PLAY_QUERY)) {
-            String query = intent.getStringExtra(EXTRA_PLAY_QUERY);
-            LogHelper.d(TAG, "Play query=", query);
-            getMediaController().getTransportControls().playFromSearch(query, null);
-            navigateToPlayingQueue();
+    protected void bootstrapFromParameters(Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            // If there is a saved media ID, use it
+            mMediaId = savedInstanceState.getString(SAVED_MEDIA_ID);
+        } else {
+            // Instead, check if we were started from a "Play XYZ" voice search
+            Intent intent = this.getIntent();
+            if (intent.getAction().equals(MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH) &&
+                    intent.hasExtra(EXTRA_PLAY_QUERY)) {
+                LogHelper.d(TAG, "Starting from play query=", mSearchQuery);
+                mSearchQuery = intent.getStringExtra(EXTRA_PLAY_QUERY);
+            }
         }
-
-        mCastManager.reconnectSessionIfPossible(this, false);
     }
 
     @Override
@@ -221,6 +231,7 @@ public class MusicPlayerActivity extends ActionBarActivity
             transaction.addToBackStack(null);
         }
         transaction.commit();
+        this.mMediaId = mediaId;
     }
 
     @Override
@@ -263,7 +274,15 @@ public class MusicPlayerActivity extends ActionBarActivity
                             MusicPlayerActivity.this, mMediaBrowser.getSessionToken());
                     setMediaController(mediaController);
 
-                    navigateToBrowser(null);
+                    navigateToBrowser(mMediaId);
+
+                    if (mSearchQuery != null) {
+                        // If there is a bootstrap parameter to start from a search query, we
+                        // send it to the media session and set it to null, so it won't play again
+                        // when the activity is stopped/started or recreated:
+                        mediaController.getTransportControls().playFromSearch(mSearchQuery, null);
+                        mSearchQuery = null;
+                    }
 
                     // If the service is already active and in a "playback-able" state
                     // (not NONE and not STOPPED), we need to set the proper playback controls:
