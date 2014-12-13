@@ -16,27 +16,18 @@
 
 package com.example.android.uamp;
 
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.media.AudioManager;
 import android.media.MediaDescription;
 import android.media.MediaMetadata;
-import android.media.MediaPlayer;
-import android.media.MediaPlayer.OnCompletionListener;
-import android.media.MediaPlayer.OnErrorListener;
-import android.media.MediaPlayer.OnPreparedListener;
 import android.media.browse.MediaBrowser;
 import android.media.browse.MediaBrowser.MediaItem;
 import android.media.session.MediaSession;
 import android.media.session.PlaybackState;
 import android.net.Uri;
-import android.net.wifi.WifiManager;
-import android.net.wifi.WifiManager.WifiLock;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.os.PowerManager;
 import android.os.SystemClock;
 import android.service.media.MediaBrowserService;
 
@@ -44,8 +35,10 @@ import com.example.android.uamp.model.MusicProvider;
 import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.MediaIDHelper;
 import com.example.android.uamp.utils.QueueHelper;
+import com.google.android.gms.cast.ApplicationMetadata;
+import com.google.sample.castcompanionlibrary.cast.VideoCastManager;
+import com.google.sample.castcompanionlibrary.cast.callbacks.VideoCastConsumerImpl;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -111,8 +104,7 @@ import static com.example.android.uamp.utils.MediaIDHelper.extractBrowseCategory
  *
  */
 
-public class MusicService extends MediaBrowserService implements OnPreparedListener,
-        OnCompletionListener, OnErrorListener, AudioManager.OnAudioFocusChangeListener {
+public class MusicService extends MediaBrowserService implements Playback.Callback {
 
     private static final String TAG = LogHelper.makeLogTag(MusicService.class);
 
@@ -121,19 +113,12 @@ public class MusicService extends MediaBrowserService implements OnPreparedListe
     // Delay stopSelf by using a handler.
     private static final int STOP_DELAY = 30000;
 
-    // The volume we set the media player to when we lose audio focus, but are
-    // allowed to reduce the volume instead of stopping playback.
-    public static final float VOLUME_DUCK = 0.2f;
-
-    // The volume we set the media player when we have audio focus.
-    public static final float VOLUME_NORMAL = 1.0f;
     public static final String ANDROID_AUTO_PACKAGE_NAME = "com.google.android.projection.gearhead";
 
     // Music catalog manager
     private MusicProvider mMusicProvider;
 
     private MediaSession mSession;
-    private MediaPlayer mMediaPlayer;
     private AlbumArtCache mAlbumArtCache;
 
     // "Now playing" queue:
@@ -143,34 +128,15 @@ public class MusicService extends MediaBrowserService implements OnPreparedListe
     // Current local media player state
     private int mState = PlaybackState.STATE_NONE;
 
-    // Wifi lock that we hold when streaming files from the internet, in order
-    // to prevent the device from shutting off the Wifi radio
-    private WifiLock mWifiLock;
-
     private MediaNotificationManager mMediaNotificationManager;
 
     // Indicates whether the service was started.
     private boolean mServiceStarted;
 
-    enum AudioFocus {
-        NoFocusNoDuck, // we don't have audio focus, and can't duck
-        NoFocusCanDuck, // we don't have focus, but can play at a low volume
-                        // ("ducking")
-        Focused // we have full audio focus
-    }
-
-    // Type of audio focus we have:
-    private AudioFocus mAudioFocus = AudioFocus.NoFocusNoDuck;
-    private AudioManager mAudioManager;
-
-    // Indicates if we should start playing immediately after we gain focus.
-    private boolean mPlayOnFocusGain;
-
     private Handler mDelayedStopHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            if ((mMediaPlayer != null && mMediaPlayer.isPlaying()) ||
-                    mPlayOnFocusGain) {
+            if (mPlayback.isPlaying()) {
                 LogHelper.d(TAG, "Ignoring delayed stop since the media player is in use.");
                 return;
             }
@@ -179,6 +145,31 @@ public class MusicService extends MediaBrowserService implements OnPreparedListe
             mServiceStarted = false;
         }
     };
+
+    private Playback mPlayback;
+
+    /**
+     * Consumer responsible for switching the Playback instances depending on whether
+     * it is connected to a remote player.
+     */
+    private final VideoCastConsumerImpl mCastConsumer = new VideoCastConsumerImpl() {
+
+        @Override
+        public void onApplicationConnected(ApplicationMetadata appMetadata, String sessionId,
+                                           boolean wasLaunched) {
+            // Now we can switch to CastPlayback
+            Playback playback = new CastPlayback(MusicService.this, mMusicProvider);
+            switchToPlayer(playback);
+        }
+
+        @Override
+        public void onDisconnected() {
+            LogHelper.d(TAG, "onDisconnected");
+            Playback playback = new LocalPlayback(MusicService.this, mMusicProvider);
+            switchToPlayer(playback);
+        }
+    };
+    private VideoCastManager mCastManager;
 
     /*
      * (non-Javadoc)
@@ -191,11 +182,6 @@ public class MusicService extends MediaBrowserService implements OnPreparedListe
 
         mPlayingQueue = new ArrayList<>();
 
-        // Create the Wifi lock (this does not acquire the lock, this just creates it)
-        mWifiLock = ((WifiManager) getSystemService(Context.WIFI_SERVICE))
-                .createWifiLock(WifiManager.WIFI_MODE_FULL, "MusicDemo_lock");
-
-
         // Create the music catalog metadata provider
         mMusicProvider = new MusicProvider();
         mMusicProvider.retrieveMedia(new MusicProvider.Callback() {
@@ -205,7 +191,6 @@ public class MusicService extends MediaBrowserService implements OnPreparedListe
             }
         });
 
-        mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         mAlbumArtCache = new AlbumArtCache();
 
         // Start a new MediaSession
@@ -234,6 +219,13 @@ public class MusicService extends MediaBrowserService implements OnPreparedListe
         updatePlaybackState(null);
 
         mMediaNotificationManager = new MediaNotificationManager(this);
+        mCastManager = ((UAMPApplication)getApplication()).getCastManager(getApplicationContext());
+
+        mPlayback = new LocalPlayback(this, mMusicProvider);
+        mPlayback.setState(mState);
+        mPlayback.setCallback(this);
+        mPlayback.start();
+        mCastManager.addVideoCastConsumer(mCastConsumer);
     }
 
     /*
@@ -246,6 +238,11 @@ public class MusicService extends MediaBrowserService implements OnPreparedListe
 
         // Service is being killed, so make sure we release our resources
         handleStopRequest(null);
+        if (mPlayback != null) {
+            mPlayback.stop();
+        }
+        mCastManager = ((UAMPApplication)getApplication()).getCastManager(getApplicationContext());
+        mCastManager.removeVideoCastConsumer(mCastConsumer);
 
         mDelayedStopHandler.removeCallbacksAndMessages(null);
         // In particular, always release the MediaSession to clean up resources
@@ -358,8 +355,6 @@ public class MusicService extends MediaBrowserService implements OnPreparedListe
                 " results for ", parentMediaId);
         result.sendResult(mediaItems);
     }
-
-
 
     private final class MediaSessionCallback extends MediaSession.Callback {
         @Override
@@ -519,87 +514,6 @@ public class MusicService extends MediaBrowserService implements OnPreparedListe
         }
     }
 
-
-    /*
-     * Called when media player is done playing current song.
-     * @see android.media.MediaPlayer.OnCompletionListener
-     */
-    @Override
-    public void onCompletion(MediaPlayer player) {
-        LogHelper.d(TAG, "onCompletion from MediaPlayer");
-        // The media player finished playing the current song, so we go ahead
-        // and start the next.
-        if (mPlayingQueue != null && !mPlayingQueue.isEmpty()) {
-            // In this sample, we restart the playing queue when it gets to the end:
-            mCurrentIndexOnQueue++;
-            if (mCurrentIndexOnQueue >= mPlayingQueue.size()) {
-                mCurrentIndexOnQueue = 0;
-            }
-            handlePlayRequest();
-        } else {
-            // If there is nothing to play, we stop and release the resources:
-            handleStopRequest(null);
-        }
-    }
-
-    /*
-     * Called when media player is done preparing.
-     * @see android.media.MediaPlayer.OnPreparedListener
-     */
-    @Override
-    public void onPrepared(MediaPlayer player) {
-        LogHelper.d(TAG, "onPrepared from MediaPlayer");
-        // The media player is done preparing. That means we can start playing if we
-        // have audio focus.
-        configMediaPlayerState();
-    }
-
-    /**
-     * Called when there's an error playing media. When this happens, the media
-     * player goes to the Error state. We warn the user about the error and
-     * reset the media player.
-     *
-     * @see android.media.MediaPlayer.OnErrorListener
-     */
-    @Override
-    public boolean onError(MediaPlayer mp, int what, int extra) {
-        LogHelper.e(TAG, "Media player error: what=" + what + ", extra=" + extra);
-        handleStopRequest("MediaPlayer error " + what + " (" + extra + ")");
-        return true; // true indicates we handled the error
-    }
-
-    /**
-     * Called by AudioManager on audio focus changes.
-     */
-    @Override
-    public void onAudioFocusChange(int focusChange) {
-        LogHelper.d(TAG, "onAudioFocusChange. focusChange=" + focusChange);
-        if (focusChange == AudioManager.AUDIOFOCUS_GAIN) {
-            // We have gained focus:
-            mAudioFocus = AudioFocus.Focused;
-
-        } else if (focusChange == AudioManager.AUDIOFOCUS_LOSS ||
-                focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT ||
-                focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK) {
-            // We have lost focus. If we can duck (low playback volume), we can keep playing.
-            // Otherwise, we need to pause the playback.
-            boolean canDuck = focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK;
-            mAudioFocus = canDuck ? AudioFocus.NoFocusCanDuck : AudioFocus.NoFocusNoDuck;
-
-            // If we are playing, we need to reset media player by calling configMediaPlayerState
-            // with mAudioFocus properly set.
-            if (mState == PlaybackState.STATE_PLAYING && !canDuck) {
-                // If we don't have audio focus and can't duck, we save the information that
-                // we were playing, so that we can resume playback once we get the focus back.
-                mPlayOnFocusGain = true;
-            }
-        } else {
-            LogHelper.e(TAG, "onAudioFocusChange: Ignoring unsupported focusChange: " + focusChange);
-        }
-
-        configMediaPlayerState();
-    }
-
     /**
      * Handle a request to play music
      */
@@ -616,22 +530,13 @@ public class MusicService extends MediaBrowserService implements OnPreparedListe
             mServiceStarted = true;
         }
 
-        mPlayOnFocusGain = true;
-        tryToGetAudioFocus();
-
         if (!mSession.isActive()) {
             mSession.setActive(true);
         }
 
-        // actually play the song
-        if (mState == PlaybackState.STATE_PAUSED) {
-            // If we're paused, just continue playback and restore the
-            // 'foreground service' state.
-            configMediaPlayerState();
-        } else {
-            // If we're stopped or playing a song,
-            // just go ahead to the new song and (re)start playing
-            playCurrentSong();
+        if (QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, mPlayingQueue)) {
+            mPlayback.setState(mState);
+            mPlayback.play(mPlayingQueue.get(mCurrentIndexOnQueue), 0);
         }
     }
 
@@ -640,18 +545,8 @@ public class MusicService extends MediaBrowserService implements OnPreparedListe
      */
     private void handlePauseRequest() {
         LogHelper.d(TAG, "handlePauseRequest: mState=" + mState);
-
-        if (mState == PlaybackState.STATE_PLAYING) {
-            // Pause media player and cancel the 'foreground service' state.
-            mState = PlaybackState.STATE_PAUSED;
-            if (mMediaPlayer.isPlaying()) {
-                mMediaPlayer.pause();
-            }
-            // while paused, retain the MediaPlayer but give up audio focus
-            relaxResources(false);
-            giveUpAudioFocus();
-        }
-        updatePlaybackState(null);
+        mPlayback.setState(mState);
+        mPlayback.pause();
     }
 
     /**
@@ -661,9 +556,13 @@ public class MusicService extends MediaBrowserService implements OnPreparedListe
         LogHelper.d(TAG, "handleStopRequest: mState=" + mState + " error=", withError);
         mState = PlaybackState.STATE_STOPPED;
 
-        // let go of all resources...
-        relaxResources(true);
-        giveUpAudioFocus();
+        if (mPlayback != null) {
+            mPlayback.stop();
+        }
+        // reset the delayed stop handler.
+        mDelayedStopHandler.removeCallbacksAndMessages(null);
+        mDelayedStopHandler.sendEmptyMessageDelayed(0, STOP_DELAY);
+
         updatePlaybackState(withError);
 
         mMediaNotificationManager.stopNotification();
@@ -671,145 +570,6 @@ public class MusicService extends MediaBrowserService implements OnPreparedListe
         // service is no longer necessary. Will be started again if needed.
         stopSelf();
         mServiceStarted = false;
-    }
-
-    /**
-     * Releases resources used by the service for playback. This includes the
-     * "foreground service" status, the wake locks and possibly the MediaPlayer.
-     *
-     * @param releaseMediaPlayer Indicates whether the Media Player should also
-     *            be released or not
-     */
-    private void relaxResources(boolean releaseMediaPlayer) {
-        LogHelper.d(TAG, "relaxResources. releaseMediaPlayer=" + releaseMediaPlayer);
-        // stop being a foreground service
-        stopForeground(true);
-
-        // reset the delayed stop handler.
-        mDelayedStopHandler.removeCallbacksAndMessages(null);
-        mDelayedStopHandler.sendEmptyMessageDelayed(0, STOP_DELAY);
-
-        // stop and release the Media Player, if it's available
-        if (releaseMediaPlayer && mMediaPlayer != null) {
-            mMediaPlayer.reset();
-            mMediaPlayer.release();
-            mMediaPlayer = null;
-        }
-
-        // we can also release the Wifi lock, if we're holding it
-        if (mWifiLock.isHeld()) {
-            mWifiLock.release();
-        }
-    }
-
-    /**
-     * Reconfigures MediaPlayer according to audio focus settings and
-     * starts/restarts it. This method starts/restarts the MediaPlayer
-     * respecting the current audio focus state. So if we have focus, it will
-     * play normally; if we don't have focus, it will either leave the
-     * MediaPlayer paused or set it to a low volume, depending on what is
-     * allowed by the current focus settings. This method assumes mPlayer !=
-     * null, so if you are calling it, you have to do so from a context where
-     * you are sure this is the case.
-     */
-    private void configMediaPlayerState() {
-        LogHelper.d(TAG, "configMediaPlayerState. mAudioFocus=" + mAudioFocus);
-        if (mAudioFocus == AudioFocus.NoFocusNoDuck) {
-            // If we don't have audio focus and can't duck, we have to pause,
-            if (mState == PlaybackState.STATE_PLAYING) {
-                handlePauseRequest();
-            }
-        } else {  // we have audio focus:
-            if (mAudioFocus == AudioFocus.NoFocusCanDuck) {
-                mMediaPlayer.setVolume(VOLUME_DUCK, VOLUME_DUCK); // we'll be relatively quiet
-            } else {
-                mMediaPlayer.setVolume(VOLUME_NORMAL, VOLUME_NORMAL); // we can be loud again
-            }
-            // If we were playing when we lost focus, we need to resume playing.
-            if (mPlayOnFocusGain) {
-                if (!mMediaPlayer.isPlaying()) {
-                    LogHelper.d(TAG, "configMediaPlayerState startMediaPlayer.");
-                    mMediaPlayer.start();
-                }
-                mPlayOnFocusGain = false;
-                mState = PlaybackState.STATE_PLAYING;
-            }
-        }
-        updatePlaybackState(null);
-    }
-
-    /**
-     * Makes sure the media player exists and has been reset. This will create
-     * the media player if needed, or reset the existing media player if one
-     * already exists.
-     */
-    private void createMediaPlayerIfNeeded() {
-        LogHelper.d(TAG, "createMediaPlayerIfNeeded. needed? " + (mMediaPlayer==null));
-        if (mMediaPlayer == null) {
-            mMediaPlayer = new MediaPlayer();
-
-            // Make sure the media player will acquire a wake-lock while
-            // playing. If we don't do that, the CPU might go to sleep while the
-            // song is playing, causing playback to stop.
-            mMediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
-
-            // we want the media player to notify us when it's ready preparing,
-            // and when it's done playing:
-            mMediaPlayer.setOnPreparedListener(this);
-            mMediaPlayer.setOnCompletionListener(this);
-            mMediaPlayer.setOnErrorListener(this);
-        } else {
-            mMediaPlayer.reset();
-        }
-    }
-
-    /**
-     * Starts playing the current song in the playing queue.
-     */
-    void playCurrentSong() {
-        MediaMetadata track = getCurrentPlayingMusic();
-        if (track == null) {
-            LogHelper.e(TAG, "playSong:  ignoring request to play next song, because cannot" +
-                    " find it." +
-                    " currentIndex=" + mCurrentIndexOnQueue +
-                    " playQueue.size=" + (mPlayingQueue==null?"null": mPlayingQueue.size()));
-            return;
-        }
-        String source = track.getString(MusicProvider.CUSTOM_METADATA_TRACK_SOURCE);
-        LogHelper.d(TAG, "playSong:  current (" + mCurrentIndexOnQueue + ") in playingQueue. " +
-                " musicId=" + track.getString(MediaMetadata.METADATA_KEY_MEDIA_ID) +
-                " source=" + source);
-
-        mState = PlaybackState.STATE_STOPPED;
-        relaxResources(false); // release everything except MediaPlayer
-
-        try {
-            createMediaPlayerIfNeeded();
-
-            mState = PlaybackState.STATE_BUFFERING;
-
-            mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            mMediaPlayer.setDataSource(source);
-
-            // Starts preparing the media player in the background. When
-            // it's done, it will call our OnPreparedListener (that is,
-            // the onPrepared() method on this class, since we set the
-            // listener to 'this'). Until the media player is prepared,
-            // we *cannot* call start() on it!
-            mMediaPlayer.prepareAsync();
-
-            // If we are streaming from the internet, we want to hold a
-            // Wifi lock, which prevents the Wifi radio from going to
-            // sleep while the song is playing.
-            mWifiLock.acquire();
-
-            updatePlaybackState(null);
-            updateMetadata();
-
-        } catch (IOException ex) {
-            LogHelper.e(TAG, ex, "IOException playing song");
-            updatePlaybackState(ex.getMessage());
-        }
     }
 
     private void updateMetadata() {
@@ -855,7 +615,6 @@ public class MusicService extends MediaBrowserService implements OnPreparedListe
                 }
             });
         }
-
     }
 
     /**
@@ -868,9 +627,10 @@ public class MusicService extends MediaBrowserService implements OnPreparedListe
 
         LogHelper.d(TAG, "updatePlaybackState, setting session playback state to " + mState);
         long position = PlaybackState.PLAYBACK_POSITION_UNKNOWN;
-        if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
-            position = mMediaPlayer.getCurrentPosition();
+        if (mPlayback != null && mPlayback.isConnected()) {
+            position = mPlayback.getCurrentStreamPosition();
         }
+
         PlaybackState.Builder stateBuilder = new PlaybackState.Builder()
                 .setActions(getAvailableActions());
 
@@ -945,34 +705,64 @@ public class MusicService extends MediaBrowserService implements OnPreparedListe
         return null;
     }
 
-    /**
-     * Try to get the system audio focus.
-     */
-    void tryToGetAudioFocus() {
-        LogHelper.d(TAG, "tryToGetAudioFocus");
-        if (mAudioFocus != AudioFocus.Focused) {
-            int result = mAudioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC,
-                    AudioManager.AUDIOFOCUS_GAIN);
-            if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-                mAudioFocus = AudioFocus.Focused;
-            }
-        }
-    }
-
-    /**
-     * Give up the audio focus.
-     */
-    void giveUpAudioFocus() {
-        LogHelper.d(TAG, "giveUpAudioFocus");
-        if (mAudioFocus == AudioFocus.Focused) {
-            if (mAudioManager.abandonAudioFocus(this) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-                mAudioFocus = AudioFocus.NoFocusNoDuck;
-            }
-        }
-    }
-
     public AlbumArtCache getAlbumArtCache() {
          return mAlbumArtCache;
     }
 
+    /**
+     * Implementation of the Playback.Callback interface
+     */
+    @Override
+    public void onCompletion() {
+        // The media player finished playing the current song, so we go ahead
+        // and start the next.
+        if (mPlayingQueue != null && !mPlayingQueue.isEmpty()) {
+            // In this sample, we restart the playing queue when it gets to the end:
+            mCurrentIndexOnQueue++;
+            if (mCurrentIndexOnQueue >= mPlayingQueue.size()) {
+                mCurrentIndexOnQueue = 0;
+            }
+            handlePlayRequest();
+        } else {
+            // If there is nothing to play, we stop and release the resources:
+            handleStopRequest(null);
+        }
+    }
+
+    @Override
+    public void onPlaybackStatusChanged(int state) {
+        mState = state;
+        updatePlaybackState(null);
+        updateMetadata();
+    }
+
+    @Override
+    public void onError(String error) {
+        mState = mPlayback.getState();
+        updatePlaybackState(error);
+    }
+
+    /**
+     * Helper to switch to a different Playback instance
+     * @param playback
+     */
+    private void switchToPlayer(Playback playback) {
+        // suspend the current one.
+        boolean isPlaying = mPlayback.isPlaying();
+        int pos = (int) mPlayback.getCurrentStreamPosition();
+
+        mPlayback.stop();
+        playback.setCallback(this);
+        playback.start();
+        // finally swap the instance
+        mPlayback = playback;
+        if (isPlaying) {
+            if (pos < 0) {
+                pos = 1;
+            }
+            if (QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, mPlayingQueue)) {
+                mPlayback.play(mPlayingQueue.get(mCurrentIndexOnQueue), pos);
+            }
+        }
+    }
 }

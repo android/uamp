@@ -83,14 +83,14 @@
     <orderEntry type="jdk" jdkName="Android API 21 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" exported="" name="gson-2.3.1" level="project" />
+    <orderEntry type="library" exported="" name="library-5.0.0" level="project" />
+    <orderEntry type="library" exported="" name="mediarouter-v7-21.0.2" level="project" />
+    <orderEntry type="library" exported="" name="support-v4-21.0.2" level="project" />
     <orderEntry type="library" exported="" name="support-annotations-21.0.2" level="project" />
     <orderEntry type="library" exported="" name="CastCompanionLibrary-debug-" level="project" />
-    <orderEntry type="library" exported="" name="support-v4-21.0.2" level="project" />
-    <orderEntry type="library" exported="" name="mediarouter-v7-21.0.2" level="project" />
-    <orderEntry type="library" exported="" name="library-5.0.0" level="project" />
-    <orderEntry type="library" exported="" name="appcompat-v7-21.0.2" level="project" />
     <orderEntry type="library" exported="" name="play-services-6.1.71" level="project" />
     <orderEntry type="library" exported="" name="cardview-v7-21.0.2" level="project" />
+    <orderEntry type="library" exported="" name="appcompat-v7-21.0.2" level="project" />
   </component>
 </module>
 
