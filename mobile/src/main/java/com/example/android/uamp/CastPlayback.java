@@ -1,0 +1,279 @@
+package com.example.android.uamp;
+
+import android.media.session.MediaSession;
+import android.media.session.PlaybackState;
+import android.net.Uri;
+
+import com.example.android.uamp.model.MusicProvider;
+import com.example.android.uamp.utils.LogHelper;
+import com.example.android.uamp.utils.MediaIDHelper;
+import com.google.android.gms.cast.ApplicationMetadata;
+import com.google.android.gms.cast.MediaInfo;
+import com.google.android.gms.cast.MediaMetadata;
+import com.google.android.gms.cast.MediaStatus;
+import com.google.android.gms.common.images.WebImage;
+import com.google.sample.castcompanionlibrary.cast.VideoCastManager;
+import com.google.sample.castcompanionlibrary.cast.callbacks.VideoCastConsumerImpl;
+import com.google.sample.castcompanionlibrary.cast.exceptions.CastException;
+import com.google.sample.castcompanionlibrary.cast.exceptions.NoConnectionException;
+import com.google.sample.castcompanionlibrary.cast.exceptions.TransientNetworkDisconnectionException;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.List;
+
+/**
+ * An implementation of Playback that talks to Chromecast.
+ */
+public class CastPlayback implements Playback {
+
+    private static final String TAG = LogHelper.makeLogTag(CastPlayback.class);
+
+    private static final String MIME_TYPE_AUDIO_MPEG = "audio/mpeg";
+
+    private final MusicProvider mMusicProvider;
+    private final MusicService mService;
+    private final VideoCastConsumerImpl mCastConsumer = new VideoCastConsumerImpl() {
+
+        @Override
+        public void onApplicationConnected(ApplicationMetadata appMetadata, String sessionId,
+                                           boolean wasLaunched) {
+            LogHelper.d(TAG,
+                    "onApplicationConnected called wasLaunched ", wasLaunched, "sessionId ");
+            try {
+                MediaInfo info = mCastManager.getRemoteMediaInformation();
+                if (info != null) {
+                    long currentMediaPos = mCastManager.getCurrentMediaPosition();
+                    LogHelper.d(TAG, "***** MediaInfo onApplicationConnected ", info.getContentId(),
+                            " CurrentMediaPosition ", currentMediaPos);
+
+                }
+            } catch (TransientNetworkDisconnectionException | NoConnectionException e) {
+                LogHelper.e(TAG, e, "Exception getting media information");
+            }
+        }
+
+        @Override
+        public boolean onApplicationConnectionFailed(int errorCode) {
+            LogHelper.d(TAG, "onApplicationConnectionFailed ", errorCode);
+            return true;
+        }
+
+        @Override
+        public void onApplicationDisconnected(int errorCode) {
+            LogHelper.d(TAG, "onApplicationDisconnected ", errorCode);
+        }
+
+        @Override
+        public void onRemoteMediaPlayerMetadataUpdated() {
+            try {
+                LogHelper.d(TAG, "onRemoteMediaPlayerMetadataUpdated ", mCastManager.getRemoteMediaInformation());
+            } catch (TransientNetworkDisconnectionException | NoConnectionException e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        public void onRemoteMediaPlayerStatusUpdated() {
+            int status = mCastManager.getPlaybackStatus();
+            int idleReason = mCastManager.getIdleReason();
+            LogHelper.d(TAG, "onRemoteMediaPlayerStatusUpdated ", status);
+            // Convert the remote playback states to media playback states.
+            switch (status) {
+                case MediaStatus.PLAYER_STATE_IDLE:
+                    if (idleReason == MediaStatus.IDLE_REASON_FINISHED) {
+                        mCallback.onCompletion();
+                    }
+                    break;
+                case MediaStatus.PLAYER_STATE_BUFFERING:
+                    mState = PlaybackState.STATE_BUFFERING;
+                    mCallback.onPlaybackStatusChanged(mState);
+                    break;
+                case MediaStatus.PLAYER_STATE_PLAYING:
+                    mState = PlaybackState.STATE_PLAYING;
+                    mCallback.onPlaybackStatusChanged(mState);
+                    break;
+                case MediaStatus.PLAYER_STATE_PAUSED:
+                    mState = PlaybackState.STATE_PAUSED;
+                    mCallback.onPlaybackStatusChanged(mState);
+                    break;
+                default: // case unknown
+                    break;
+            }
+        }
+
+        @Override
+        public void onDisconnected() {
+            LogHelper.d(TAG, "onDisconnected called on castPlayback");
+        }
+    };
+
+    /** The current PlaybackState*/
+    private int mState;
+    /** Callback for making completion/error calls on */
+    private Callback mCallback;
+    private VideoCastManager mCastManager;
+
+    public CastPlayback(MusicService service, MusicProvider musicProvider) {
+        this.mMusicProvider = musicProvider;
+        this.mService = service;
+    }
+
+    @Override
+    public void start() {
+        this.mCastManager = ((UAMPApplication) mService.getApplication())
+                .getCastManager(mService.getApplicationContext());
+
+        mCastManager.addVideoCastConsumer(mCastConsumer);
+    }
+
+    @Override
+    public void stop() {
+        mCastManager.removeVideoCastConsumer(mCastConsumer);
+        mState = PlaybackState.STATE_STOPPED;
+        mCallback.onPlaybackStatusChanged(mState);
+    }
+
+    @Override
+    public void setState(int state) {
+        this.mState = state;
+    }
+
+    @Override
+    public long getCurrentStreamPosition() {
+        if (!mCastManager.isConnected()) {
+            return -1;
+        }
+        try {
+            return mCastManager.getCurrentMediaPosition();
+        } catch (TransientNetworkDisconnectionException | NoConnectionException e) {
+            LogHelper.e(TAG, e, "Exception getting media position");
+        }
+        return -1;
+    }
+
+    @Override
+    public void play(MediaSession.QueueItem item, int position) {
+        if (!mCastManager.isConnected()) {
+            return;
+        }
+        try {
+            String musicId = MediaIDHelper.extractMusicIDFromMediaID(
+                    item.getDescription().getMediaId());
+            android.media.MediaMetadata track = mMusicProvider.getMusic(musicId);
+            MediaInfo media = toCastMediaMetadata(track);
+            // Don't sent the customData to the default receiver. When the receiver is
+            // changed we can start sending the custom data.
+//            JSONObject customData =
+//                    playlistToCustomData(mPlayingQueue, mCurrentIndexOnQueue /*get current index*/);
+            mCastManager.loadMedia(media, true, position);
+            mState = PlaybackState.STATE_BUFFERING;
+            mCallback.onPlaybackStatusChanged(mState);
+        } catch (TransientNetworkDisconnectionException | NoConnectionException e) {
+            LogHelper.e(TAG, "Exception loading media ", e, null);
+            mCallback.onError(e.getMessage());
+        }
+    }
+
+    @Override
+    public void pause() {
+        if (mCastManager.isConnected()) {
+            try {
+                mCastManager.pause();
+            } catch (CastException | TransientNetworkDisconnectionException | NoConnectionException e) {
+                LogHelper.e(TAG, e, "Exception pausing cast playback");
+            }
+        } else {
+            LogHelper.d(TAG, "mCastManager is not connected");
+        }
+    }
+
+    @Override
+    public void togglePlayback() {
+        if (mCastManager.isConnected()) {
+            try {
+                mCastManager.togglePlayback();
+            } catch (CastException | TransientNetworkDisconnectionException | NoConnectionException e) {
+                LogHelper.e(TAG, e, "Exception resuming playback");
+            }
+        }
+    }
+
+    @Override
+    public void setCallback(Callback callback) {
+        this.mCallback = callback;
+    }
+
+    @Override
+    public boolean isConnected() {
+        return mCastManager.isConnected();
+    }
+
+    @Override
+    public boolean isPlaying() {
+        try {
+            return mCastManager.isConnected() && mCastManager.isRemoteMoviePlaying();
+        } catch (TransientNetworkDisconnectionException | NoConnectionException e) {
+            LogHelper.e(TAG, e, "Exception calling isRemoteMoviePlaying");
+        }
+        return false;
+    }
+
+    @Override
+    public int getState() {
+        return mState;
+    }
+
+    /**
+     * Helper method to convert a {@link android.media.MediaMetadata} to a
+     * {@link com.google.android.gms.cast.MediaInfo} used for sending media to the receiver app.
+     *
+     * @param track {@link com.google.android.gms.cast.MediaMetadata}
+     * @return mediaInfo {@link com.google.android.gms.cast.MediaInfo}
+     */
+    private static MediaInfo toCastMediaMetadata(android.media.MediaMetadata track) {
+        MediaMetadata mediaMetadata = new MediaMetadata(MediaMetadata.MEDIA_TYPE_MUSIC_TRACK);
+        mediaMetadata.putString(MediaMetadata.KEY_TITLE,
+                track.getDescription().getTitle().toString());
+        mediaMetadata.putString(MediaMetadata.KEY_SUBTITLE,
+                track.getDescription().getSubtitle().toString());
+        mediaMetadata.putString(MediaMetadata.KEY_ALBUM_ARTIST,
+                track.getString(android.media.MediaMetadata.METADATA_KEY_ALBUM));
+        mediaMetadata.putString(MediaMetadata.KEY_ALBUM_TITLE,
+                track.getString(android.media.MediaMetadata.METADATA_KEY_ALBUM));
+        mediaMetadata.addImage(new WebImage(
+                new Uri.Builder().encodedPath(
+                        track.getString(android.media.MediaMetadata.METADATA_KEY_ALBUM_ART_URI))
+                        .build()));
+
+        return new MediaInfo.Builder(track.getString(MusicProvider.CUSTOM_METADATA_TRACK_SOURCE))
+                .setContentType(MIME_TYPE_AUDIO_MPEG)
+                .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
+                .setMetadata(mediaMetadata)
+                .build();
+    }
+
+    /**
+     * Convert the playlist to custom data
+     */
+    private JSONObject playlistToCustomData(List<MediaSession.QueueItem> queueItems, int currentIndex)
+            throws JSONException {
+        // Should really send the playlist from current position to the end
+        JSONArray playList = new JSONArray();
+        for (int i = currentIndex; i < queueItems.size(); i++) {
+            MediaSession.QueueItem qItem = queueItems.get(i);
+            JSONObject item = new JSONObject();
+            item.put("title", qItem.getDescription().getTitle().toString());
+            item.put("contentId", mMusicProvider.getMusic(qItem.getDescription().getMediaId()));
+            item.put("image", qItem.getDescription().getIconUri());
+            playList.put(item);
+        }
+        JSONObject customData = new JSONObject();
+        customData.put("playlist", playList);
+        LogHelper.d(TAG, "playlist => ", playList.toString());
+
+        return customData;
+    }
+}

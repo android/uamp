@@ -25,6 +25,8 @@ import com.google.sample.castcompanionlibrary.cast.VideoCastManager;
  */
 public class UAMPApplication extends Application {
 
+    // Not used for now but will be re-instated when we start using a custom
+    // receiver.
     public static final String CAST_NAMESPACE = "urn:x-cast:com.example.android.uamp.playlist";
 
     private String applicationId;
@@ -47,7 +49,7 @@ public class UAMPApplication extends Application {
         synchronized (this) {
             if (mCastManager == null) {
                 mCastManager =
-                        VideoCastManager.initialize(context, applicationId, null, CAST_NAMESPACE);
+                        VideoCastManager.initialize(context, applicationId, null, null);
                 mCastManager.enableFeatures(
                         VideoCastManager.FEATURE_WIFI_RECONNECT |
                         VideoCastManager.FEATURE_DEBUGGING);
