@@ -190,6 +190,15 @@ public class MusicPlayerActivity extends ActionBarActivity
     }
 
     @Override
+    public void onBackPressed() {
+        if (getFragmentManager().getBackStackEntryCount() > 0) {
+            getFragmentManager().popBackStack();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (mCastManager.onDispatchVolumeKeyEvent(event, VOLUME_INCREMENT)) {
             return true;
@@ -209,10 +218,6 @@ public class MusicPlayerActivity extends ActionBarActivity
         super.onPause();
         mCastManager.removeVideoCastConsumer(mCastConsumer);
         mCastManager.decrementUiCounter();
-    }
-
-    public MediaBrowser getMediaBrowser() {
-        return mMediaBrowser;
     }
 
     protected void showPlaybackControls() {
@@ -259,6 +264,11 @@ public class MusicPlayerActivity extends ActionBarActivity
         }
     }
 
+    @Override
+    public MediaBrowser getMediaBrowser() {
+        return mMediaBrowser;
+    }
+
     private void showFtu() {
         Menu menu = mToolbar.getMenu();
         View view = menu.findItem(R.id.media_route_menu_item).getActionView();
@@ -273,47 +283,46 @@ public class MusicPlayerActivity extends ActionBarActivity
 
     private MediaBrowser.ConnectionCallback mConnectionCallback =
             new MediaBrowser.ConnectionCallback() {
-                @Override
-                public void onConnected() {
-                    LogHelper.d(TAG, "onConnected: session token " + mMediaBrowser.getSessionToken());
+        @Override
+        public void onConnected() {
+            LogHelper.d(TAG, "onConnected: session token ", mMediaBrowser.getSessionToken());
 
-                    if (mMediaBrowser.getSessionToken() == null) {
-                        throw new IllegalArgumentException("No Session token");
-                    }
+            if (mMediaBrowser.getSessionToken() == null) {
+                throw new IllegalArgumentException("No Session token");
+            }
 
-                    MediaController mediaController = new MediaController(
-                            MusicPlayerActivity.this, mMediaBrowser.getSessionToken());
-                    setMediaController(mediaController);
+            MediaController mediaController = new MediaController(
+                    MusicPlayerActivity.this, mMediaBrowser.getSessionToken());
+            setMediaController(mediaController);
 
-                    navigateToBrowser(mMediaId);
+            navigateToBrowser(mMediaId);
 
-                    if (mSearchQuery != null) {
-                        // If there is a bootstrap parameter to start from a search query, we
-                        // send it to the media session and set it to null, so it won't play again
-                        // when the activity is stopped/started or recreated:
-                        mediaController.getTransportControls().playFromSearch(mSearchQuery, null);
-                        mSearchQuery = null;
-                    }
+            if (mSearchQuery != null) {
+                // If there is a bootstrap parameter to start from a search query, we
+                // send it to the media session and set it to null, so it won't play again
+                // when the activity is stopped/started or recreated:
+                mediaController.getTransportControls().playFromSearch(mSearchQuery, null);
+                mSearchQuery = null;
+            }
 
-                    // If the service is already active and in a "playback-able" state
-                    // (not NONE and not STOPPED), we need to set the proper playback controls:
-                    PlaybackState state = mediaController.getPlaybackState();
-                    if (state != null && state.getState() != PlaybackState.STATE_NONE &&
-                            state.getState() != PlaybackState.STATE_STOPPED) {
-                        showPlaybackControls();
-                    }
-                }
+            // If the service is already active and in a "playback-able" state
+            // (not NONE and not STOPPED), we need to set the proper playback controls:
+            PlaybackState state = mediaController.getPlaybackState();
+            if (state != null && state.getState() != PlaybackState.STATE_NONE &&
+                    state.getState() != PlaybackState.STATE_STOPPED) {
+                showPlaybackControls();
+            }
+        }
 
-                @Override
-                public void onConnectionFailed() {
-                    LogHelper.d(TAG, "onConnectionFailed");
-                }
+        @Override
+        public void onConnectionFailed() {
+            LogHelper.d(TAG, "onConnectionFailed");
+        }
 
-                @Override
-                public void onConnectionSuspended() {
-                    LogHelper.d(TAG, "onConnectionSuspended");
-                    setMediaController(null);
-                }
-            };
-
+        @Override
+        public void onConnectionSuspended() {
+            LogHelper.d(TAG, "onConnectionSuspended");
+            setMediaController(null);
+        }
+    };
 }
