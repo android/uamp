@@ -13,16 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.android.uamp;
+package com.example.android.uamp.ui.tv;
 
-import android.app.Application;
-import android.test.ApplicationTestCase;
+import android.app.Activity;
+import android.os.Bundle;
 
-/**
- * <a href="http://d.android.com/tools/testing/testing_android.html">Testing Fundamentals</a>
- */
-public class ApplicationTest extends ApplicationTestCase<Application> {
-    public ApplicationTest() {
-        super(Application.class);
+import com.example.android.uamp.R;
+import com.example.android.uamp.utils.LogHelper;
+
+public class MediaDetailsActivity extends Activity {
+
+    /**
+     * Called when the activity is first created.
+     */
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.media_details_activity);
     }
 }

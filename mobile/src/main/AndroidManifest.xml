@@ -13,7 +13,7 @@
   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   See the License for the specific language governing permissions and
   limitations under the License.
--->
+  -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.android.uamp" >
 
@@ -21,13 +21,19 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 
+    <uses-feature
+        android:name="android.software.leanback"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="false" />
+
     <application
+        android:name=".UAMPApplication"
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme"
-        android:name="com.example.android.uamp.UAMPApplication">
-
+        android:theme="@style/AppTheme" >
         <meta-data
             android:name="com.google.android.gms.car.application"
             android:resource="@xml/automotive_app_desc" />
@@ -45,7 +51,35 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.example.android.uamp.voiceaction.VoiceActionsActivity"
+            android:name=".ui.tv.TvBrowseActivity"
+            android:label="@string/app_name"
+            android:theme="@style/TvTheme" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ui.tv.MediaDetailsActivity"
+            android:label="@string/app_name"
+            android:theme="@style/TvTheme" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:label="NowPlayingActivity"
+            android:name=".ui.NowPlayingActivity" >
+        </activity>
+        <activity
+            android:name=".ui.tv.TvNowPlayingActivity"
+            android:theme="@style/TvTheme" >
+        </activity>
+        <activity
+            android:name=".voiceaction.VoiceActionsActivity"
             android:exported="true"
             android:launchMode="singleTask" >
 
@@ -67,7 +101,7 @@
             android:resource="@drawable/ic_notification" />
 
         <service
-            android:name="com.example.android.uamp.MusicService"
+            android:name=".MusicService"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService" />
