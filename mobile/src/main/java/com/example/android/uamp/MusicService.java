@@ -16,6 +16,8 @@
 
 package com.example.android.uamp;
 
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.media.MediaDescription;
@@ -32,6 +34,7 @@ import android.os.SystemClock;
 import android.service.media.MediaBrowserService;
 
 import com.example.android.uamp.model.MusicProvider;
+import com.example.android.uamp.ui.NowPlayingActivity;
 import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.MediaIDHelper;
 import com.example.android.uamp.utils.QueueHelper;
@@ -198,6 +201,12 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
         mSession.setCallback(new MediaSessionCallback());
         mSession.setFlags(MediaSession.FLAG_HANDLES_MEDIA_BUTTONS |
                 MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS);
+
+        Context context = getApplicationContext();
+        Intent intent = new Intent(context, NowPlayingActivity.class);
+        PendingIntent pi = PendingIntent.getActivity(context, 99 /*request code*/,
+                intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        mSession.setSessionActivity(pi);
 
         // Use these extras to reserve space for the corresponding actions, even when they are disabled
         // in the playbackstate, so the custom actions don't reflow.

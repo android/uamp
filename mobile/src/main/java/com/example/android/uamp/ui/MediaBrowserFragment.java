@@ -285,5 +285,4 @@ public class MediaBrowserFragment extends Fragment {
         void setToolbarTitle(CharSequence title);
     }
 
-
 }
