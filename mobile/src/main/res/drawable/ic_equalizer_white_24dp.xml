@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animation-list xmlns:android="http://schemas.android.com/apk/res/android" android:oneshot="false">
+    <item android:drawable="@drawable/ic_equalizer1_white_24dp" android:duration="200"/>
+    <item android:drawable="@drawable/ic_equalizer2_white_24dp" android:duration="200"/>
+    <item android:drawable="@drawable/ic_equalizer3_white_24dp" android:duration="200"/>
+</animation-list>

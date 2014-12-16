@@ -24,6 +24,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class BitmapHelper {
+    private static final String TAG = LogHelper.makeLogTag(BitmapHelper.class);
 
     // Bitmap size for album art in media notifications when there are more than 3 playback actions
     public static final int MEDIA_ART_SMALL_WIDTH=64;
@@ -65,7 +66,8 @@ public class BitmapHelper {
         httpConnection.connect();
         InputStream inputStream = httpConnection.getInputStream();
         int scaleFactor = findScaleFactor(width, height, inputStream);
-
+        LogHelper.d(TAG, "Scaling bitmap ", uri, " by factor ", scaleFactor, " to support ",
+                width, "x", height, "requested dimension");
         httpConnection = (HttpURLConnection) url.openConnection();
         httpConnection.setDoInput(true);
         httpConnection.connect();

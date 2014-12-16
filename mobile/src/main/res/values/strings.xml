@@ -25,6 +25,8 @@
     <string name="random_queue_title">Random music</string>
     <string name="error_cannot_skip">Cannot skip</string>
     <string name="error_loading_media">Error Loading Media</string>
+    <string name="currently_playing_song">Song currently playing</string>
+    <string name="currently_playing_artist">Artist of currently playing song</string>
     <string name="play_item">Play item</string>
     <string name="skip_previous">Skip to previous</string>
     <string name="play_pause">play or pause</string>

@@ -130,29 +130,22 @@ public class PlayingQueueFragment extends Fragment {
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             MediaSession.QueueItem item = getItem(position);
-            View view = MediaItemViewHolder.setupView(
-                    (Activity) getContext(), convertView, parent,
-                    item.getDescription());
-            MediaItemViewHolder holder = (MediaItemViewHolder) view.getTag();
 
+            int state = MediaItemViewHolder.STATE_NONE;
             MediaController controller = ((Activity) getContext()).getMediaController();
-            if (controller == null || controller.getMetadata() == null) {
-                return view;
+            if (controller != null && controller.getMetadata() != null) {
+                String currentPlaying = controller.getMetadata().getDescription().getMediaId();
+                if (currentPlaying != null && currentPlaying.equals(
+                        item.getDescription().getMediaId())) {
+                    if (controller.getPlaybackState().getState() == PlaybackState.STATE_PLAYING) {
+                        state = MediaItemViewHolder.STATE_PLAYING;
+                    } else {
+                        state = MediaItemViewHolder.STATE_PAUSED;
+                    }
+                }
             }
-
-            String currentPlaying = controller.getMetadata().getDescription().getMediaId();
-
-            holder.mImageView.setVisibility(View.VISIBLE);
-
-            if (currentPlaying != null && currentPlaying.equals(
-                    item.getDescription().getMediaId())) {
-                holder.mImageView.setImageDrawable(
-                        getContext().getDrawable(R.drawable.ic_equalizer_white_24dp));
-            } else {
-                holder.mImageView.setImageDrawable(
-                        getContext().getDrawable(R.drawable.ic_play_arrow_white_24dp));
-            }
-            return view;
+            return MediaItemViewHolder.setupView((Activity) getContext(), convertView, parent,
+                    item.getDescription(), state);
         }
     }
 
