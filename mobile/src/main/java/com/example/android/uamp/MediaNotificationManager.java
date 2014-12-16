@@ -117,6 +117,9 @@ public class MediaNotificationManager extends BroadcastReceiver {
      */
     public void startNotification() {
         if (!mStarted) {
+            mMetadata = mController.getMetadata();
+            mPlaybackState = mController.getPlaybackState();
+
             mController.registerCallback(mCb);
             IntentFilter filter = new IntentFilter();
             filter.addAction(ACTION_NEXT);
@@ -124,9 +127,6 @@ public class MediaNotificationManager extends BroadcastReceiver {
             filter.addAction(ACTION_PLAY);
             filter.addAction(ACTION_PREV);
             mService.registerReceiver(this, filter);
-
-            mMetadata = mController.getMetadata();
-            mPlaybackState = mController.getPlaybackState();
 
             mStarted = true;
             // The notification must be updated after setting started to true
@@ -191,6 +191,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
             mPlaybackState = state;
             LogHelper.d(TAG, "Received new playback state", state);
             updateNotificationPlaybackState();
+            mNotificationManager.notify(NOTIFICATION_ID, mNotificationBuilder.build());
         }
 
         @Override
@@ -265,8 +266,8 @@ public class MediaNotificationManager extends BroadcastReceiver {
                 .setLargeIcon(art);
 
         updateNotificationPlaybackState();
-
         mService.startForeground(NOTIFICATION_ID, mNotificationBuilder.build());
+
         if (fetchArtUrl != null) {
             fetchBitmapFromURLAsync(fetchArtUrl);
         }
@@ -306,7 +307,8 @@ public class MediaNotificationManager extends BroadcastReceiver {
             LogHelper.d(TAG, "updateNotificationPlaybackState. there is no notificationBuilder. Ignoring request to update state!");
             return;
         }
-        if (mPlaybackState.getPosition() >= 0) {
+        if (mPlaybackState.getState() == PlaybackState.STATE_PLAYING
+                && mPlaybackState.getPosition() >= 0) {
             LogHelper.d(TAG, "updateNotificationPlaybackState. updating playback position to ",
                     (System.currentTimeMillis() - mPlaybackState.getPosition()) / 1000, " seconds");
             mNotificationBuilder
@@ -326,10 +328,9 @@ public class MediaNotificationManager extends BroadcastReceiver {
         // Make sure that the notification can be dismissed by the user when we are not playing:
         mNotificationBuilder.setOngoing(mPlaybackState.getState() == PlaybackState.STATE_PLAYING);
 
-        mNotificationManager.notify(NOTIFICATION_ID, mNotificationBuilder.build());
     }
 
-    public void fetchBitmapFromURLAsync(final String source) {
+    private void fetchBitmapFromURLAsync(final String source) {
         mService.getAlbumArtCache().fetch(source, new AlbumArtCache.FetchListener() {
             @Override
             public void onFetched(String artUrl, Bitmap bitmap) {

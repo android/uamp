@@ -17,9 +17,11 @@ package com.example.android.uamp.ui;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.graphics.drawable.AnimationDrawable;
 import android.media.MediaMetadata;
 import android.media.browse.MediaBrowser;
 import android.media.session.MediaController;
+import android.media.session.PlaybackState;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -53,6 +55,8 @@ public class MediaBrowserFragment extends Fragment {
     private BrowseAdapter mBrowserAdapter;
     private String mMediaId;
     private MediaFragmentListener mSupportActivity;
+
+    private AnimationDrawable mEqualizer;
 
     // Receive callbacks from the MediaController. Here we update our state such as which queue
     // is being shown, the current title and description and the PlaybackState.
@@ -196,31 +200,25 @@ public class MediaBrowserFragment extends Fragment {
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             MediaBrowser.MediaItem item = getItem(position);
-            View view = MediaItemViewHolder.setupView((Activity) getContext(),
-                    convertView, parent, item.getDescription());
-            MediaItemViewHolder holder = (MediaItemViewHolder) view.getTag();
-
+            int state = MediaItemViewHolder.STATE_NONE;
             if (item.isPlayable()) {
-                holder.mImageView.setVisibility(View.VISIBLE);
-
+                state = MediaItemViewHolder.STATE_PLAYABLE;
                 MediaController controller = ((Activity) getContext()).getMediaController();
-                if (controller == null || controller.getMetadata() == null) {
-                    return view;
+                if (controller != null && controller.getMetadata() != null) {
+                    String currentPlaying = controller.getMetadata().getDescription().getMediaId();
+                    String musicId = MediaIDHelper.extractMusicIDFromMediaID(
+                            item.getDescription().getMediaId());
+                    if (currentPlaying != null && currentPlaying.equals(musicId)) {
+                        if (controller.getPlaybackState().getState() == PlaybackState.STATE_PLAYING) {
+                            state = MediaItemViewHolder.STATE_PLAYING;
+                        } else {
+                            state = MediaItemViewHolder.STATE_PAUSED;
+                        }
+                    }
                 }
-
-                String currentPlaying = controller.getMetadata().getDescription().getMediaId();
-                String musicId = MediaIDHelper.extractMusicIDFromMediaID(
-                        item.getDescription().getMediaId());
-                if (currentPlaying != null && currentPlaying.equals(musicId)) {
-                    holder.mImageView.setImageDrawable(
-                            getContext().getDrawable(R.drawable.ic_equalizer_white_24dp));
-                } else {
-                    holder.mImageView.setImageDrawable(
-                            getContext().getDrawable(R.drawable.ic_play_arrow_white_24dp));
-                }
-
             }
-            return view;
+            return MediaItemViewHolder.setupView((Activity) getContext(), convertView, parent,
+                item.getDescription(), state);
         }
     }
 

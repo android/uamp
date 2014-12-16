@@ -591,7 +591,6 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
         LogHelper.d(TAG, "Updating metadata for MusicID= " + musicId);
         mSession.setMetadata(track);
 
-        // TODO(mangini):
         // Set the proper album artwork on the media session, so it can be shown in the
         // locked screen and in other places.
         if (track.getDescription().getIconBitmap() == null &&

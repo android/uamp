@@ -18,4 +18,6 @@
     <dimen name="fragment_list_padding">16dp</dimen>
     <dimen name="list_item_padding">4dp</dimen>
     <dimen name="margin_text_view">6dp</dimen>
+    <dimen name="horizontal_padding_around_albumart">8dp</dimen>
+    <dimen name="max_height_albumart">72dp</dimen>
 </resources>

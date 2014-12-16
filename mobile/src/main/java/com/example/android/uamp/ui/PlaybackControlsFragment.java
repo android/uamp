@@ -16,6 +16,8 @@
 package com.example.android.uamp.ui;
 
 import android.app.Fragment;
+import android.graphics.Bitmap;
+import android.media.MediaMetadata;
 import android.media.session.MediaController;
 import android.media.session.PlaybackState;
 import android.os.Bundle;
@@ -23,6 +25,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.example.android.uamp.R;
 import com.example.android.uamp.utils.LogHelper;
@@ -37,6 +41,9 @@ public class PlaybackControlsFragment extends Fragment {
     private ImageButton mSkipNext;
     private ImageButton mSkipPrevious;
     private ImageButton mPlayPause;
+    private TextView mTitle;
+    private TextView mSubtitle;
+    private ImageView mAlbumArt;
 
     // Receive callbacks from the MediaController. Here we update our state such as which queue
     // is being shown, the current title and description and the PlaybackState.
@@ -48,6 +55,17 @@ public class PlaybackControlsFragment extends Fragment {
             }
             LogHelper.d(TAG, "Received playback state change to state ", state.getState());
             PlaybackControlsFragment.this.onPlaybackStateChanged(state);
+        }
+
+        @Override
+        public void onMetadataChanged(MediaMetadata metadata) {
+            if (metadata == null) {
+                return;
+            }
+            LogHelper.d(TAG, "Received metadata state change to mediaId=",
+                    metadata.getDescription().getMediaId(),
+                    " song=", metadata.getDescription().getTitle());
+            PlaybackControlsFragment.this.onMetadataChanged(metadata);
         }
     };
 
@@ -68,6 +86,10 @@ public class PlaybackControlsFragment extends Fragment {
         mPlayPause.setEnabled(true);
         mPlayPause.setOnClickListener(mButtonListener);
 
+        mTitle = (TextView) rootView.findViewById(R.id.title);
+        mSubtitle = (TextView) rootView.findViewById(R.id.artist);
+        mAlbumArt = (ImageView) rootView.findViewById(R.id.album_art);
+
         return rootView;
     }
 
@@ -77,6 +99,7 @@ public class PlaybackControlsFragment extends Fragment {
         LogHelper.d(TAG, "fragment.onStart");
         MediaController controller = getActivity().getMediaController();
         if (controller != null) {
+            onMetadataChanged(controller.getMetadata());
             onPlaybackStateChanged(controller.getPlaybackState());
             controller.registerCallback(mCallback);
         }
@@ -91,6 +114,24 @@ public class PlaybackControlsFragment extends Fragment {
         }
     }
 
+    private void onMetadataChanged(MediaMetadata metadata) {
+        LogHelper.d(TAG, "onMetadataChanged ", metadata);
+        if (getActivity() == null) {
+            LogHelper.w(TAG, "onMetadataChanged called when getActivity null," +
+                    "this should not happen if the callback was properly unregistered. Ignoring.");
+            return;
+        }
+        if (metadata == null) {
+            return;
+        }
+        mTitle.setText(metadata.getDescription().getTitle());
+        mSubtitle.setText(metadata.getDescription().getSubtitle());
+        Bitmap albumArt = metadata.getDescription().getIconBitmap();
+        if (albumArt != null) {
+            LogHelper.d(TAG, "album art of w=", albumArt.getWidth(), " h=", albumArt.getHeight());
+        }
+        mAlbumArt.setImageBitmap(albumArt);
+    }
 
     private void onPlaybackStateChanged(PlaybackState state) {
         LogHelper.d(TAG, "onPlaybackStateChanged ", state);
