@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2014 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,6 @@ package com.example.android.uamp.ui;
 import android.app.FragmentTransaction;
 import android.content.ComponentName;
 import android.content.Intent;
-import android.content.res.TypedArray;
 import android.media.browse.MediaBrowser;
 import android.media.session.MediaController;
 import android.media.session.PlaybackState;
@@ -118,8 +117,6 @@ public class MusicPlayerActivity extends ActionBarActivity
 
         mCastManager = ((UAMPApplication)getApplication()).getCastManager(this);
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
-        mToolbar.setTitle(getString(R.string.app_name));
-        mToolbar.setBackgroundColor(getToolbarBackground());
         mToolbar.inflateMenu(R.menu.main);
 
         setSupportActionBar(mToolbar);
@@ -129,16 +126,6 @@ public class MusicPlayerActivity extends ActionBarActivity
                 mConnectionCallback, null);
 
         mCastManager.reconnectSessionIfPossible(this, false);
-    }
-
-    private int getToolbarBackground() {
-        TypedArray ta = getTheme().obtainStyledAttributes(new int[] {
-                android.R.attr.colorPrimary
-        });
-        int defaultColor = getResources().getColor(android.R.color.background_dark);
-        int color = ta.getColor(0, defaultColor);
-        ta.recycle();
-        return color;
     }
 
     @Override
@@ -229,17 +216,9 @@ public class MusicPlayerActivity extends ActionBarActivity
                 .commit();
     }
 
-    protected void navigateToPlayingQueue() {
-        LogHelper.d(TAG, "navigateToPlayingQueue");
-        PlayingQueueFragment fragment = new PlayingQueueFragment();
-        getFragmentManager().beginTransaction()
-                .replace(R.id.container, fragment)
-                .addToBackStack(null)
-                .commit();
-    }
-
     protected void navigateToBrowser(String mediaId) {
         LogHelper.d(TAG, "navigateToBrowser, mediaId=" + mediaId);
+        this.mMediaId = mediaId;
         MediaBrowserFragment fragment = new MediaBrowserFragment();
         fragment.setMediaId(mediaId);
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
@@ -248,7 +227,6 @@ public class MusicPlayerActivity extends ActionBarActivity
             transaction.addToBackStack(null);
         }
         transaction.commit();
-        this.mMediaId = mediaId;
     }
 
     @Override
@@ -268,6 +246,17 @@ public class MusicPlayerActivity extends ActionBarActivity
     @Override
     public MediaBrowser getMediaBrowser() {
         return mMediaBrowser;
+    }
+
+    @Override
+    public void setToolbarTitle(CharSequence title) {
+        LogHelper.d(TAG, "Setting toolbar title to ", title);
+        if (mToolbar != null) {
+            if (title == null) {
+                title = getString(R.string.app_name);
+            }
+            mToolbar.setTitle(title);
+        }
     }
 
     private void showFtu() {

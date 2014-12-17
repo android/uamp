@@ -45,7 +45,6 @@ import java.util.List;
 import static com.example.android.uamp.utils.MediaIDHelper.MEDIA_ID_MUSICS_BY_GENRE;
 import static com.example.android.uamp.utils.MediaIDHelper.MEDIA_ID_ROOT;
 import static com.example.android.uamp.utils.MediaIDHelper.createBrowseCategoryMediaID;
-import static com.example.android.uamp.utils.MediaIDHelper.extractBrowseCategoryFromMediaID;
 
 /**
  * This class provides a MediaBrowser through a service. It exposes the media library to a browsing
@@ -332,15 +331,15 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
             }
 
         } else if (parentMediaId.startsWith(MEDIA_ID_MUSICS_BY_GENRE)) {
-            String genre = extractBrowseCategoryFromMediaID(parentMediaId)[1];
+            String genre = MediaIDHelper.getHierarchy(parentMediaId)[1];
             LogHelper.d(TAG, "OnLoadChildren.SONGS_BY_GENRE  genre=", genre);
             for (MediaMetadata track : mMusicProvider.getMusicsByGenre(genre)) {
                 // Since mediaMetadata fields are immutable, we need to create a copy, so we
                 // can set a hierarchy-aware mediaID. We will need to know the media hierarchy
                 // when we get a onPlayFromMusicID call, so we can create the proper queue based
                 // on where the music was selected from (by artist, by genre, random, etc)
-                String hierarchyAwareMediaID = MediaIDHelper.createTrackMediaID(
-                        MEDIA_ID_MUSICS_BY_GENRE, genre, track);
+                String hierarchyAwareMediaID = MediaIDHelper.createMediaID(
+                        track.getDescription().getMediaId(), MEDIA_ID_MUSICS_BY_GENRE, genre);
                 MediaMetadata trackCopy = new MediaMetadata.Builder(track)
                         .putString(MediaMetadata.METADATA_KEY_MEDIA_ID, hierarchyAwareMediaID)
                         .build();

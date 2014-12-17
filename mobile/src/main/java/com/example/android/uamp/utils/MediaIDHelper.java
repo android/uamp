@@ -16,7 +16,9 @@
 
 package com.example.android.uamp.utils;
 
-import android.media.MediaMetadata;
+import android.text.TextUtils;
+
+import java.util.Arrays;
 
 /**
  * Utility class to help on queue related tasks.
@@ -30,19 +32,30 @@ public class MediaIDHelper {
     public static final String MEDIA_ID_MUSICS_BY_GENRE = "__BY_GENRE__";
     public static final String MEDIA_ID_MUSICS_BY_SEARCH = "__BY_SEARCH__";
 
-    public static final String createTrackMediaID(String categoryType, String categoryValue,
-              MediaMetadata track) {
-        // MediaIDs are of the form <categoryType>/<categoryValue>|<musicUniqueId>, to make it easy to
-        // find the category (like genre) that a music was selected from, so we
+    private static final char CATEGORY_SEPARATOR = '/';
+    private static final char LEAF_SEPARATOR = '|';
+
+    public static final String createMediaID(String musicID, String... categories) {
+        // MediaIDs are of the form <categoryType>/<categoryValue>|<musicUniqueId>, to make it easy
+        // to find the category (like genre) that a music was selected from, so we
         // can correctly build the playing queue. This is specially useful when
         // one music can appear in more than one list, like "by genre -> genre_1"
         // and "by artist -> artist_1".
-        return categoryType + "/" + categoryValue + "|" +
-                track.getString(MediaMetadata.METADATA_KEY_MEDIA_ID);
+        StringBuilder sb = new StringBuilder();
+        if (categories != null && categories.length > 0) {
+            sb.append(categories[0]);
+            for (int i=1; i < categories.length; i++) {
+                sb.append(CATEGORY_SEPARATOR).append(categories[i]);
+            }
+        }
+        if (musicID != null) {
+            sb.append(LEAF_SEPARATOR).append(musicID);
+        }
+        return sb.toString();
     }
 
     public static final String createBrowseCategoryMediaID(String categoryType, String categoryValue) {
-        return categoryType + "/" + categoryValue;
+        return categoryType + CATEGORY_SEPARATOR + categoryValue;
     }
 
     /**
@@ -51,12 +64,15 @@ public class MediaIDHelper {
      * musicID. This is necessary so we know where the user selected the music from, when the music
      * exists in more than one music list, and thus we are able to correctly build the playing queue.
      *
-     * @param musicID
+     * @param mediaID
      * @return
      */
-    public static final String extractMusicIDFromMediaID(String musicID) {
-        String[] segments = musicID.split("\\|", 2);
-        return segments.length == 2 ? segments[1] : null;
+    public static final String extractMusicIDFromMediaID(String mediaID) {
+        int pos = mediaID.indexOf(LEAF_SEPARATOR);
+        if (pos >= 0) {
+            return mediaID.substring(pos+1);
+        }
+        return null;
     }
 
     /**
@@ -68,22 +84,35 @@ public class MediaIDHelper {
      * @param mediaID
      * @return
      */
-    public static final String[] extractBrowseCategoryFromMediaID(String mediaID) {
-        if (mediaID.indexOf('|') >= 0) {
-            mediaID = mediaID.split("\\|")[0];
+    public static final String[] getHierarchy(String mediaID) {
+        int pos = mediaID.indexOf(LEAF_SEPARATOR);
+        if (pos >= 0) {
+            mediaID = mediaID.substring(0, pos);
         }
-        if (mediaID.indexOf('/') == 0) {
-            return new String[]{mediaID, null};
-        } else {
-            return mediaID.split("/", 2);
-        }
+        return mediaID.split(String.valueOf(CATEGORY_SEPARATOR));
     }
 
     public static final String extractBrowseCategoryValueFromMediaID(String mediaID) {
-        String[] categoryAndValue = extractBrowseCategoryFromMediaID(mediaID);
-        if (categoryAndValue != null && categoryAndValue.length == 2) {
-            return categoryAndValue[1];
+        String[] hierarchy = getHierarchy(mediaID);
+        if (hierarchy != null && hierarchy.length == 2) {
+            return hierarchy[1];
         }
         return null;
+    }
+
+    private static boolean isBrowseable(String mediaID) {
+        return mediaID.indexOf(LEAF_SEPARATOR) < 0;
+    }
+
+    public static final String getParentMediaID(String mediaID) {
+        String[] hierarchy = getHierarchy(mediaID);
+        if (!isBrowseable(mediaID)) {
+            return createMediaID(null, hierarchy);
+        }
+        if (hierarchy == null || hierarchy.length <= 1) {
+            return MEDIA_ID_ROOT;
+        }
+        String[] parentHierarchy = Arrays.copyOf(hierarchy, hierarchy.length-1);
+        return createMediaID(null, parentHierarchy);
     }
 }

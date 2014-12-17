@@ -17,7 +17,6 @@ package com.example.android.uamp.ui;
 
 import android.app.Activity;
 import android.app.Fragment;
-import android.graphics.drawable.AnimationDrawable;
 import android.media.MediaMetadata;
 import android.media.browse.MediaBrowser;
 import android.media.session.MediaController;
@@ -55,8 +54,6 @@ public class MediaBrowserFragment extends Fragment {
     private BrowseAdapter mBrowserAdapter;
     private String mMediaId;
     private MediaFragmentListener mSupportActivity;
-
-    private AnimationDrawable mEqualizer;
 
     // Receive callbacks from the MediaController. Here we update our state such as which queue
     // is being shown, the current title and description and the PlaybackState.
@@ -99,11 +96,9 @@ public class MediaBrowserFragment extends Fragment {
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        try {
-            mSupportActivity = (MediaFragmentListener) activity;
-        } catch (ClassCastException ex) {
-            LogHelper.e(TAG, "Exception trying to cast to MediaFragmentSupportActivity", ex);
-        }
+        // If used on an activity that doesn't implement MediaFragmentListener, it
+        // will throw an exception as expected:
+        mSupportActivity = (MediaFragmentListener) activity;
     }
 
     @Override
@@ -142,7 +137,8 @@ public class MediaBrowserFragment extends Fragment {
         if (mMediaId == null) {
             mMediaId = mediaBrowser.getRoot();
         }
-        LogHelper.d(TAG, "fragment.onStart, mediaId=" + mMediaId +
+        updateTitle();
+        LogHelper.d(TAG, "fragment.onStart, mediaId=", mMediaId,
                 "  onConnected=" + mediaBrowser.isConnected());
 
         // Unsubscribing before subscribing is required if this mediaId already has a subscriber
@@ -190,6 +186,66 @@ public class MediaBrowserFragment extends Fragment {
         setArguments(args);
     }
 
+    private void updateTitle() {
+        if (MediaIDHelper.MEDIA_ID_ROOT.equals(mMediaId)) {
+            mSupportActivity.setToolbarTitle(null);
+            return;
+        }
+
+        final String parentId = MediaIDHelper.getParentMediaID(mMediaId);
+
+        // MediaBrowser doesn't provide metadata for a given mediaID, only for its children. Since
+        // the mediaId contains the item's hierarchy, we know the item parent mediaId and we can
+        // fetch and iterate over them and find the proper MediaItem, from which we get the title,
+
+        // TODO(mangini): replace the code below by a better solution, based on b/18778785 BEFORE
+        // PUBLISHING! The current API doesn't have a get(mediaID) method,
+        // as described on the bug. The issue is: even if I save the entire MediaDescription when
+        // navigating downwards, navigation upwards will be a problem if the content of that
+        // item changes. Example: user navigates to
+        //      Root -> item1 -> item1.4 -> item 1.4.2 -> item 1.4.2.3
+        // then navigates back:
+        //      item 1.4.2.3 -> item 1.4.2 -> item1.4
+        // MediaDescription for item1.4 was saved on the navigation downwards and is restored from
+        // a Bundle on navigation upwards. However, in the meantime it has changed (for example,
+        // the category icon bitmap was still being downloaded async'y on the downwards navigation).
+        // The fragment showing item1.4 was detached before MediaBrowser notifying it of the new
+        // data. Currently, the only way to request a fresh MediaItem of a given mediaID is by
+        // requesting its parent's children, like the code below.
+        LogHelper.d(TAG, "on updateTitle: mediaId=", mMediaId, " parentID=", parentId);
+        if (parentId != null) {
+            MediaBrowser mediaBrowser = mSupportActivity.getMediaBrowser();
+            LogHelper.d(TAG, "on updateTitle: mediaBrowser is ",
+                    mediaBrowser==null?"null":("not null, connected="+mediaBrowser.isConnected()));
+            if (mediaBrowser != null && mediaBrowser.isConnected()) {
+                // Unsubscribing is required to guarantee that we will get the initial values.
+                // Otherwise, if there is another callback subscribed to this mediaID, mediaBrowser
+                // will only call this callback when the media content change.
+                mediaBrowser.unsubscribe(parentId);
+                mediaBrowser.subscribe(parentId, new MediaBrowser.SubscriptionCallback() {
+                    @Override
+                    public void onChildrenLoaded(String parentId, List<MediaBrowser.MediaItem> children) {
+                        LogHelper.d(TAG, "Got ", children.size(), " children for ", parentId, ". Looking for ", mMediaId);
+                        for (MediaBrowser.MediaItem item: children) {
+                            LogHelper.d(TAG, "child ", item.getMediaId());
+                            if (item.getMediaId().equals(mMediaId)) {
+                                mSupportActivity.setToolbarTitle(item.getDescription().getTitle());
+                                return;
+                            }
+                        }
+                        mSupportActivity.getMediaBrowser().unsubscribe(parentId);
+                    }
+
+                    @Override
+                    public void onError(String id) {
+                        super.onError(id);
+                        LogHelper.d(TAG, "subscribe error: id=", id);
+                    }
+                });
+            }
+        }
+    }
+
     // An adapter for showing the list of browsed MediaItem's
     private static class BrowseAdapter extends ArrayAdapter<MediaBrowser.MediaItem> {
 
@@ -209,7 +265,8 @@ public class MediaBrowserFragment extends Fragment {
                     String musicId = MediaIDHelper.extractMusicIDFromMediaID(
                             item.getDescription().getMediaId());
                     if (currentPlaying != null && currentPlaying.equals(musicId)) {
-                        if (controller.getPlaybackState().getState() == PlaybackState.STATE_PLAYING) {
+                        if (controller.getPlaybackState().getState() ==
+                                PlaybackState.STATE_PLAYING) {
                             state = MediaItemViewHolder.STATE_PLAYING;
                         } else {
                             state = MediaItemViewHolder.STATE_PAUSED;
@@ -225,6 +282,7 @@ public class MediaBrowserFragment extends Fragment {
     public static interface MediaFragmentListener {
         void onMediaItemSelected(MediaBrowser.MediaItem item);
         MediaBrowser getMediaBrowser();
+        void setToolbarTitle(CharSequence title);
     }
 
 

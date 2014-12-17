@@ -39,16 +39,16 @@ public class QueueHelper {
     public static final List<MediaSession.QueueItem> getPlayingQueue(String mediaId,
             MusicProvider musicProvider) {
 
-        // extract the category type and category value from the media ID:
-        String[] category = MediaIDHelper.extractBrowseCategoryFromMediaID(mediaId);
+        // extract the browsing hierarchy from the media ID:
+        String[] hierarchy = MediaIDHelper.getHierarchy(mediaId);
 
-        if (category.length != 2) {
+        if (hierarchy.length != 2) {
             LogHelper.e(TAG, "Could not build a playing queue for this mediaId: ", mediaId);
             return null;
         }
 
-        String categoryType = category[0];
-        String categoryValue = category[1];
+        String categoryType = hierarchy[0];
+        String categoryValue = hierarchy[1];
         LogHelper.d(TAG, "Creating playing queue for ", categoryType, ",  ", categoryValue);
 
         Iterable<MediaMetadata> tracks = null;
@@ -63,7 +63,7 @@ public class QueueHelper {
             LogHelper.e(TAG, "Unrecognized category type: ", categoryType, " for mediaId ", mediaId);
             return null;
         }
-        List<MediaSession.QueueItem> queue = convertToQueue(category[0], category[1], tracks);
+        List<MediaSession.QueueItem> queue = convertToQueue(tracks, hierarchy[0], hierarchy[1]);
 
         return queue;
     }
@@ -73,7 +73,7 @@ public class QueueHelper {
 
         LogHelper.d(TAG, "Creating playing queue for musics from search ", query);
 
-        return convertToQueue(MEDIA_ID_MUSICS_BY_SEARCH, query, musicProvider.searchMusics(query));
+        return convertToQueue(musicProvider.searchMusics(query), MEDIA_ID_MUSICS_BY_SEARCH, query);
     }
 
 
@@ -101,16 +101,16 @@ public class QueueHelper {
         return -1;
     }
 
-    private static final List<MediaSession.QueueItem> convertToQueue(String categoryType,
-            String categoryValue, Iterable<MediaMetadata> tracks) {
+    private static final List<MediaSession.QueueItem> convertToQueue(
+            Iterable<MediaMetadata> tracks, String... categories) {
         List<MediaSession.QueueItem> queue = new ArrayList<>();
         int count = 0;
         for (MediaMetadata track : tracks) {
 
             // We create a hierarchy-aware mediaID, so we know what the queue is about by looking
             // at the QueueItem media IDs.
-            String hierarchyAwareMediaID = MediaIDHelper.createTrackMediaID(
-                    categoryType, categoryValue, track);
+            String hierarchyAwareMediaID = MediaIDHelper.createMediaID(
+                    track.getDescription().getMediaId(), categories);
 
             MediaMetadata trackCopy = new MediaMetadata.Builder(track)
                     .putString(MediaMetadata.METADATA_KEY_MEDIA_ID, hierarchyAwareMediaID)
@@ -141,7 +141,7 @@ public class QueueHelper {
         String genre = genres.next();
         Iterable<MediaMetadata> tracks = musicProvider.getMusicsByGenre(genre);
 
-        return convertToQueue(MEDIA_ID_MUSICS_BY_GENRE, genre, tracks);
+        return convertToQueue(tracks, MEDIA_ID_MUSICS_BY_GENRE, genre);
     }
 
 
