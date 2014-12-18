@@ -126,6 +126,10 @@ public class MusicPlayerActivity extends ActionBarActivity
                 mConnectionCallback, null);
 
         mCastManager.reconnectSessionIfPossible(this, false);
+
+        if (savedInstanceState == null) {
+            navigateToBrowser(mMediaId);
+        }
     }
 
     @Override
@@ -285,7 +289,10 @@ public class MusicPlayerActivity extends ActionBarActivity
                     MusicPlayerActivity.this, mMediaBrowser.getSessionToken());
             setMediaController(mediaController);
 
-            navigateToBrowser(mMediaId);
+            // Fire the onConnected() callback on the fragment.
+            MediaBrowserFragment fragment =
+                    (MediaBrowserFragment) getFragmentManager().findFragmentById(R.id.container);
+            fragment.onConnected();
 
             if (mSearchQuery != null) {
                 // If there is a bootstrap parameter to start from a search query, we

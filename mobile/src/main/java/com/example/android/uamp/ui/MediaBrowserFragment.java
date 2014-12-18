@@ -136,28 +136,11 @@ public class MediaBrowserFragment extends Fragment {
         // fetch browsing information to fill the listview:
         MediaBrowser mediaBrowser = mSupportActivity.getMediaBrowser();
 
-        if (mediaBrowser == null || !mediaBrowser.isConnected()) {
-            return;
-        }
-
-        mMediaId = getMediaId();
-        if (mMediaId == null) {
-            mMediaId = mediaBrowser.getRoot();
-        }
-        updateTitle();
         LogHelper.d(TAG, "fragment.onStart, mediaId=", mMediaId,
                 "  onConnected=" + mediaBrowser.isConnected());
 
-        // Unsubscribing before subscribing is required if this mediaId already has a subscriber
-        // on this MediaBrowser instance. Subscribing to an already subscribed mediaId will replace
-        // the callback, but won't trigger the initial callback.onChildrenLoaded.
-        mediaBrowser.unsubscribe(mMediaId);
-
-        mediaBrowser.subscribe(mMediaId, mSubscriptionCallback);
-
-        // Add MediaController callback so we can redraw the list when metadata changes:
-        if (getActivity().getMediaController() != null) {
-            getActivity().getMediaController().registerCallback(mMediaControllerCallback);
+        if (mediaBrowser.isConnected()) {
+            onConnected();
         }
     }
 
@@ -191,6 +174,32 @@ public class MediaBrowserFragment extends Fragment {
         Bundle args = new Bundle(1);
         args.putString(MediaBrowserFragment.ARG_MEDIA_ID, mediaId);
         setArguments(args);
+    }
+
+    // Called when the MediaBrowser is connected. This method is either called by the
+    // fragment.onStart() or explicitly by the activity in the case where the connection
+    // completes after the onStart()
+    public void onConnected() {
+        if (isDetached()) {
+            return;
+        }
+        mMediaId = getMediaId();
+        if (mMediaId == null) {
+            mMediaId = mSupportActivity.getMediaBrowser().getRoot();
+        }
+        updateTitle();
+
+        // Unsubscribing before subscribing is required if this mediaId already has a subscriber
+        // on this MediaBrowser instance. Subscribing to an already subscribed mediaId will replace
+        // the callback, but won't trigger the initial callback.onChildrenLoaded.
+        mSupportActivity.getMediaBrowser().unsubscribe(mMediaId);
+
+        mSupportActivity.getMediaBrowser().subscribe(mMediaId, mSubscriptionCallback);
+
+        // Add MediaController callback so we can redraw the list when metadata changes:
+        if (getActivity().getMediaController() != null) {
+            getActivity().getMediaController().registerCallback(mMediaControllerCallback);
+        }
     }
 
     private void updateTitle() {
