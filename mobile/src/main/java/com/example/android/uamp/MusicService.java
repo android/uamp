@@ -35,6 +35,7 @@ import android.service.media.MediaBrowserService;
 
 import com.example.android.uamp.model.MusicProvider;
 import com.example.android.uamp.ui.NowPlayingActivity;
+import com.example.android.uamp.utils.CarHelper;
 import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.MediaIDHelper;
 import com.example.android.uamp.utils.QueueHelper;
@@ -114,8 +115,6 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
     private static final String CUSTOM_ACTION_THUMBS_UP = "thumbs_up";
     // Delay stopSelf by using a handler.
     private static final int STOP_DELAY = 30000;
-
-    public static final String ANDROID_AUTO_PACKAGE_NAME = "com.google.android.projection.gearhead";
 
     // Music catalog manager
     private MusicProvider mMusicProvider;
@@ -208,20 +207,8 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
                 intent, PendingIntent.FLAG_UPDATE_CURRENT);
         mSession.setSessionActivity(pi);
 
-        // Use these extras to reserve space for the corresponding actions, even when they are disabled
-        // in the playbackstate, so the custom actions don't reflow.
         Bundle extras = new Bundle();
-        extras.putBoolean(
-            "com.google.android.gms.car.media.ALWAYS_RESERVE_SPACE_FOR.ACTION_SKIP_TO_NEXT",
-            true);
-        extras.putBoolean(
-            "com.google.android.gms.car.media.ALWAYS_RESERVE_SPACE_FOR.ACTION_SKIP_TO_PREVIOUS",
-            true);
-        // If you want to reserve the Queue slot when there is no queue
-        // (mSession.setQueue(emptylist)), uncomment the lines below:
-        // extras.putBoolean(
-        //   "com.google.android.gms.car.media.ALWAYS_RESERVE_SPACE_FOR.ACTION_QUEUE",
-        //   true);
+        CarHelper.setSlotReservationFlags(extras, true, true, true);
         mSession.setExtras(extras);
 
         updatePlaybackState(null);
@@ -272,7 +259,7 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
                     + clientPackageName);
             return null;
         }
-        if (ANDROID_AUTO_PACKAGE_NAME.equals(clientPackageName)) {
+        if (CarHelper.isValidCarPackage(clientPackageName)) {
             // Optional: if your app needs to adapt ads, music library or anything else that
             // needs to run differently when connected to the car, this is where you should handle
             // it.
@@ -494,6 +481,8 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
                     String musicId = track.getString(MediaMetadata.METADATA_KEY_MEDIA_ID);
                     mMusicProvider.setFavorite(musicId, !mMusicProvider.isFavorite(musicId));
                 }
+                // playback state needs to be updated because the "Favorite" icon on the
+                // custom action will change to reflect the new favorite state.
                 updatePlaybackState(null);
             } else {
                 LogHelper.e(TAG, "Unsupported action: ", action);
@@ -544,6 +533,7 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
 
         if (QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, mPlayingQueue)) {
             mPlayback.setState(mState);
+            updateMetadata();
             mPlayback.play(mPlayingQueue.get(mCurrentIndexOnQueue), 0);
         }
     }
@@ -740,7 +730,6 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
     public void onPlaybackStatusChanged(int state) {
         mState = state;
         updatePlaybackState(null);
-        updateMetadata();
     }
 
     @Override

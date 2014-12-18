@@ -68,6 +68,13 @@ public class MediaBrowserFragment extends Fragment {
                     metadata.getDescription().getMediaId());
             mBrowserAdapter.notifyDataSetChanged();
         }
+
+        @Override
+        public void onPlaybackStateChanged(PlaybackState state) {
+            super.onPlaybackStateChanged(state);
+            LogHelper.d(TAG, "Received state change: ", state);
+            mBrowserAdapter.notifyDataSetChanged();
+        }
     };
 
     private MediaBrowser.SubscriptionCallback mSubscriptionCallback = new MediaBrowser.SubscriptionCallback() {
