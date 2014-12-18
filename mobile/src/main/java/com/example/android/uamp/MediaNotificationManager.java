@@ -136,6 +136,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
             mStarted = true;
             // The notification must be updated after setting started to true
             updateNotificationMetadata();
+            mService.startForeground(NOTIFICATION_ID, mNotificationBuilder.build());
         }
     }
 
@@ -204,6 +205,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
             mMetadata = metadata;
             LogHelper.d(TAG, "Received new metadata ", metadata);
             updateNotificationMetadata();
+            mNotificationManager.notify(NOTIFICATION_ID, mNotificationBuilder.build());
         }
 
         @Override
@@ -272,7 +274,6 @@ public class MediaNotificationManager extends BroadcastReceiver {
                 .setLargeIcon(art);
 
         updateNotificationPlaybackState();
-        mService.startForeground(NOTIFICATION_ID, mNotificationBuilder.build());
 
         if (fetchArtUrl != null) {
             fetchBitmapFromURLAsync(fetchArtUrl);
