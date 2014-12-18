@@ -36,6 +36,7 @@ import android.media.session.MediaController;
 import android.media.session.MediaSession;
 import android.media.session.PlaybackState;
 
+import com.example.android.uamp.ui.MusicPlayerActivity;
 import com.example.android.uamp.utils.LogHelper;
 
 /**
@@ -65,7 +66,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
     private NotificationManager mNotificationManager;
     private Notification.Action mPlayPauseAction;
 
-    private PendingIntent mPauseIntent, mPlayIntent, mPreviousIntent, mNextIntent;
+    private PendingIntent mPauseIntent, mPlayIntent, mPreviousIntent, mNextIntent, mContentIntent;
 
     private int mNotificationColor;
 
@@ -89,6 +90,10 @@ public class MediaNotificationManager extends BroadcastReceiver {
                 new Intent(ACTION_PREV).setPackage(pkg), PendingIntent.FLAG_CANCEL_CURRENT);
         mNextIntent = PendingIntent.getBroadcast(mService, 100,
                 new Intent(ACTION_NEXT).setPackage(pkg), PendingIntent.FLAG_CANCEL_CURRENT);
+        Intent openUI = new Intent(mService, MusicPlayerActivity.class);
+        openUI.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        mContentIntent = PendingIntent.getActivity(mService, 100, openUI,
+                PendingIntent.FLAG_CANCEL_CURRENT);
     }
 
     protected int getNotificationColor() {
@@ -261,6 +266,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
                 .setSmallIcon(R.drawable.ic_notification)
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
                 .setUsesChronometer(true)
+                .setContentIntent(mContentIntent)
                 .setContentTitle(description.getTitle())
                 .setContentText(description.getSubtitle())
                 .setLargeIcon(art);

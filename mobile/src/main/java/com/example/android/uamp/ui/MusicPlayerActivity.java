@@ -172,8 +172,9 @@ public class MusicPlayerActivity extends ActionBarActivity
         } else {
             // Instead, check if we were started from a "Play XYZ" voice search
             Intent intent = this.getIntent();
-            if (intent.getAction().equals(MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH) &&
-                    intent.hasExtra(EXTRA_PLAY_QUERY)) {
+            if (intent.getAction() != null
+                    && intent.getAction().equals(MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH)
+                    && intent.hasExtra(EXTRA_PLAY_QUERY)) {
                 LogHelper.d(TAG, "Starting from play query=", mSearchQuery);
                 mSearchQuery = intent.getStringExtra(EXTRA_PLAY_QUERY);
             }
