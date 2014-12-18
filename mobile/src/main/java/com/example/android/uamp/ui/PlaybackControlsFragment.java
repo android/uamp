@@ -38,8 +38,6 @@ public class PlaybackControlsFragment extends Fragment {
 
     private static final String TAG = LogHelper.makeLogTag(PlaybackControlsFragment.class);
 
-    private ImageButton mSkipNext;
-    private ImageButton mSkipPrevious;
     private ImageButton mPlayPause;
     private TextView mTitle;
     private TextView mSubtitle;
@@ -73,14 +71,6 @@ public class PlaybackControlsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_playback_controls, container, false);
-
-        mSkipPrevious = (ImageButton) rootView.findViewById(R.id.skip_previous);
-        mSkipPrevious.setEnabled(false);
-        mSkipPrevious.setOnClickListener(mButtonListener);
-
-        mSkipNext = (ImageButton) rootView.findViewById(R.id.skip_next);
-        mSkipNext.setEnabled(false);
-        mSkipNext.setOnClickListener(mButtonListener);
 
         mPlayPause = (ImageButton) rootView.findViewById(R.id.play_pause);
         mPlayPause.setEnabled(true);
@@ -161,10 +151,6 @@ public class PlaybackControlsFragment extends Fragment {
         } else {
             mPlayPause.setImageDrawable(getActivity().getDrawable(R.drawable.ic_pause_white_24dp));
         }
-
-        mSkipPrevious.setEnabled((state.getActions() & PlaybackState.ACTION_SKIP_TO_PREVIOUS) != 0);
-        mSkipNext.setEnabled((state.getActions() & PlaybackState.ACTION_SKIP_TO_NEXT) != 0);
-
     }
 
     private View.OnClickListener mButtonListener = new View.OnClickListener() {
@@ -185,13 +171,6 @@ public class PlaybackControlsFragment extends Fragment {
                         pauseMedia();
                     }
                     break;
-                case R.id.skip_previous:
-                    LogHelper.d(TAG, "Start button pressed, in state " + state);
-                    skipToPrevious();
-                    break;
-                case R.id.skip_next:
-                    skipToNext();
-                    break;
             }
         }
     };
@@ -207,20 +186,6 @@ public class PlaybackControlsFragment extends Fragment {
         MediaController controller = getActivity().getMediaController();
         if (controller != null) {
             controller.getTransportControls().pause();
-        }
-    }
-
-    private void skipToPrevious() {
-        MediaController controller = getActivity().getMediaController();
-        if (controller != null) {
-            controller.getTransportControls().skipToPrevious();
-        }
-    }
-
-    private void skipToNext() {
-        MediaController controller = getActivity().getMediaController();
-        if (controller != null) {
-            controller.getTransportControls().skipToNext();
         }
     }
 }
