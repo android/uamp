@@ -54,7 +54,7 @@ public class TvNowPlayingActivity extends Activity {
                 mConnectionCallback, null);
 
         mImageView = (ImageView) findViewById(R.id.now_playing_image);
-        mImageView.setImageDrawable(getDrawable(R.drawable.ic_star_on));
+        mImageView.setImageDrawable(getDrawable(R.drawable.banner_tv));
 
         mFragment = (MusicPlaybackOverlayFragment)
                 getFragmentManager().findFragmentById(R.id.playback_controls_fragment);

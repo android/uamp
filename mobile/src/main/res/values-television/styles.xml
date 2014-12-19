@@ -16,6 +16,10 @@
   -->
 <resources>
 
-    <style name="TvTheme" parent="Theme.Leanback">TvTheme</style>
+    <style name="TvTheme" parent="Theme.Leanback">
+        <item name="colorPrimary">#ffff5722</item>
+        <item name="colorPrimaryDark">#ffbf360c</item>
+        <item name="colorAccent">#ffff5722</item>
+    </style>
 
 </resources>

@@ -33,6 +33,9 @@ import android.support.v17.leanback.widget.HeaderItem;
 import android.support.v17.leanback.widget.ListRow;
 import android.support.v17.leanback.widget.ListRowPresenter;
 import android.support.v17.leanback.widget.OnActionClickedListener;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.example.android.uamp.R;
@@ -57,7 +60,6 @@ public class MediaDetailsFragment extends DetailsFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mMediaItem = mActivity.getIntent().getParcelableExtra(MediaDetailsFragment.MEDIA_ITEM_EXTRA);
-
         buildDetails();
         updateBackground();
     }
@@ -93,8 +95,11 @@ public class MediaDetailsFragment extends DetailsFragment {
 
     private void updateBackground() {
         Bitmap bitmap = mMediaItem.getDescription().getIconBitmap();
-        BackgroundManager backgroundManager = BackgroundManager.getInstance(mActivity);
-        backgroundManager.setBitmap(bitmap);
+        if (bitmap != null) {
+            BackgroundManager backgroundManager = BackgroundManager.getInstance(mActivity);
+            backgroundManager.attach(getActivity().getWindow());
+            backgroundManager.setBitmap(bitmap);
+        }
     }
 
     private DetailsOverviewRowPresenter createDorPresenter() {

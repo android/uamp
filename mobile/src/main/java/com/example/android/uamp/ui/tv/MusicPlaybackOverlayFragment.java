@@ -16,6 +16,7 @@
 package com.example.android.uamp.ui.tv;
 
 import android.app.Activity;
+import android.content.Context;
 import android.media.MediaMetadata;
 import android.media.session.MediaController;
 import android.media.session.PlaybackState;
@@ -26,46 +27,38 @@ import android.support.v17.leanback.widget.Action;
 import android.support.v17.leanback.widget.ArrayObjectAdapter;
 import android.support.v17.leanback.widget.ClassPresenterSelector;
 import android.support.v17.leanback.widget.ControlButtonPresenterSelector;
-import android.support.v17.leanback.widget.HeaderItem;
 import android.support.v17.leanback.widget.ListRow;
 import android.support.v17.leanback.widget.ListRowPresenter;
 import android.support.v17.leanback.widget.OnActionClickedListener;
 import android.support.v17.leanback.widget.PlaybackControlsRow;
 import android.support.v17.leanback.widget.PlaybackControlsRowPresenter;
+import android.support.v17.leanback.widget.RowHeaderPresenter;
 import android.util.Log;
 
-import com.example.android.uamp.R;
 import com.example.android.uamp.utils.LogHelper;
+
+import java.util.Collections;
+import java.util.List;
 
 public class MusicPlaybackOverlayFragment extends PlaybackOverlayFragment {
 
     private static final String TAG = LogHelper.makeLogTag(MusicPlaybackOverlayFragment.class);
 
-    private Activity mActivity;
-
     private static final int DEFAULT_UPDATE_PERIOD = 1000;
     private static final int MIN_UPDATE_PERIOD = 16;
     private static final int SIMULATED_BUFFERED_TIME = 10000;
-    private static final int FF_RW_SPEED_MS = 5000;
+
+    private static final int STANDARD_ACTIONS = 3;
 
     private ArrayObjectAdapter mRowsAdapter;
-    private ArrayObjectAdapter mRelatedAdapter;
 
     private ArrayObjectAdapter mPrimaryActionsAdapter;
     private PlaybackControlsRow.PlayPauseAction mPlayPauseAction;
-    private PlaybackControlsRow.FastForwardAction mFastForwardAction;
-    private PlaybackControlsRow.RewindAction mRewindAction;
     private PlaybackControlsRow.SkipNextAction mSkipNextAction;
     private PlaybackControlsRow.SkipPreviousAction mSkipPreviousAction;
     private PlaybackControlsRow mPlaybackControlsRow;
 
-    private ArrayObjectAdapter mSecondaryActionsAdapter;
-    private PlaybackControlsRow.ThumbsUpAction mThumbsUpAction;
-    private PlaybackControlsRow.ThumbsDownAction mThumbsDownAction;
-    private PlaybackControlsRow.RepeatAction mRepeatAction;
-    private PlaybackControlsRow.ShuffleAction mShuffleAction;
-    private PlaybackControlsRow.HighQualityAction mHighQualityAction;
-    private PlaybackControlsRow.ClosedCaptioningAction mClosedCaptioningAction;
+    private List<PlaybackState.CustomAction> mCustomActions = Collections.emptyList();
 
     private Handler mHandler = new Handler();
     private Runnable mRunnable;
@@ -74,10 +67,10 @@ public class MusicPlaybackOverlayFragment extends PlaybackOverlayFragment {
     private long mDuration;
     private long mPosition;
 
+
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        mActivity = activity;
     }
 
     @Override
@@ -85,27 +78,22 @@ public class MusicPlaybackOverlayFragment extends PlaybackOverlayFragment {
         Log.i(TAG, "onCreate");
         super.onCreate(savedInstanceState);
 
-        // Keep controls visible all the time.
-        setFadingEnabled(false);
+        setFadingEnabled(true);
         setupRows();
     }
 
     private void setupRows() {
         ClassPresenterSelector ps = new ClassPresenterSelector();
-
         // Add presenter for playback controls.
         PlaybackControlsRowPresenter playbackControlsRowPresenter =
                 new PlaybackControlsRowPresenter();
         playbackControlsRowPresenter.setOnActionClickedListener(mOnActionListener);
         playbackControlsRowPresenter.setSecondaryActionsHidden(false);
         ps.addClassPresenter(PlaybackControlsRow.class, playbackControlsRowPresenter);
-        // Add presenter for related content cards.
-        ps.addClassPresenter(ListRow.class, new ListRowPresenter());
 
         mRowsAdapter = new ArrayObjectAdapter(ps);
 
         addPlaybackControlsRow();
-        addRelatedContentRow();
 
         setAdapter(mRowsAdapter);
     }
@@ -117,39 +105,12 @@ public class MusicPlaybackOverlayFragment extends PlaybackOverlayFragment {
         ControlButtonPresenterSelector presenterSelector = new ControlButtonPresenterSelector();
         mPrimaryActionsAdapter = new ArrayObjectAdapter(presenterSelector);
         mPlaybackControlsRow.setPrimaryActionsAdapter(mPrimaryActionsAdapter);
-        mPlayPauseAction = new PlaybackControlsRow.PlayPauseAction(mActivity);
-        mSkipNextAction = new PlaybackControlsRow.SkipNextAction(mActivity);
-        mSkipPreviousAction = new PlaybackControlsRow.SkipPreviousAction(mActivity);
-        mFastForwardAction = new PlaybackControlsRow.FastForwardAction(mActivity);
-        mRewindAction = new PlaybackControlsRow.RewindAction(mActivity);
+        mPlayPauseAction = new PlaybackControlsRow.PlayPauseAction(getActivity());
+        mSkipNextAction = new PlaybackControlsRow.SkipNextAction(getActivity());
+        mSkipPreviousAction = new PlaybackControlsRow.SkipPreviousAction(getActivity());
         mPrimaryActionsAdapter.add(mSkipPreviousAction);
-        mPrimaryActionsAdapter.add(mRewindAction);
         mPrimaryActionsAdapter.add(mPlayPauseAction);
-        mPrimaryActionsAdapter.add(mFastForwardAction);
         mPrimaryActionsAdapter.add(mSkipNextAction);
-
-        mSecondaryActionsAdapter = new ArrayObjectAdapter(presenterSelector);
-        mPlaybackControlsRow.setSecondaryActionsAdapter(mSecondaryActionsAdapter);
-        mRepeatAction = new PlaybackControlsRow.RepeatAction(mActivity);
-        mThumbsUpAction = new PlaybackControlsRow.ThumbsUpAction(mActivity);
-        mThumbsDownAction = new PlaybackControlsRow.ThumbsDownAction(mActivity);
-        mShuffleAction = new PlaybackControlsRow.ShuffleAction(mActivity);
-        mHighQualityAction = new PlaybackControlsRow.HighQualityAction(mActivity);
-        mClosedCaptioningAction = new PlaybackControlsRow.ClosedCaptioningAction(mActivity);
-
-        mSecondaryActionsAdapter.add(mThumbsUpAction);
-        mSecondaryActionsAdapter.add(mThumbsDownAction);
-        mSecondaryActionsAdapter.add(mRepeatAction);
-        mSecondaryActionsAdapter.add(mShuffleAction);
-        mSecondaryActionsAdapter.add(mHighQualityAction);
-        mSecondaryActionsAdapter.add(mClosedCaptioningAction);
-    }
-
-    private void addRelatedContentRow() {
-        mRelatedAdapter = new ArrayObjectAdapter(new CardPresenter());
-        HeaderItem headerItem = new HeaderItem(0, getString(R.string.related_content_header), null);
-        ListRow relatedContentRow = new ListRow(headerItem, mRelatedAdapter);
-        mRowsAdapter.add(relatedContentRow);
     }
 
     @Override
@@ -178,7 +139,7 @@ public class MusicPlaybackOverlayFragment extends PlaybackOverlayFragment {
                 int totalTime = mPlaybackControlsRow.getTotalTime();
 
                 if (totalTime > 0 && totalTime <= currentTime) {
-                    return; //TODO(cartland): Make sure playback skips to next.
+                    return;
                 }
 
                 mDuration = totalTime;
@@ -237,6 +198,7 @@ public class MusicPlaybackOverlayFragment extends PlaybackOverlayFragment {
 
         mPosition = state.getPosition();
         updatePlaybackRow();
+        updateCustomActions(state.getCustomActions());
     }
 
     public void onMetadataChanged(MediaMetadata metadata) {
@@ -263,31 +225,43 @@ public class MusicPlaybackOverlayFragment extends PlaybackOverlayFragment {
         mPlaybackControlsRow.setBufferedProgress((int) (mPosition + SIMULATED_BUFFERED_TIME));
     }
 
-    /**
-     * Callback for user initiated button clicks.
-     */
-    private class OnActionListener implements OnActionClickedListener {
-        public void onActionClicked(Action action) {
-            if (action.getId() == mPlayPauseAction.getId()) {
-                if (mPlayPauseAction.getIndex() == PlaybackControlsRow.PlayPauseAction.PLAY) {
-                    play();
-                } else {
-                    pause();
-                }
-            } else if (action.getId() == mSkipNextAction.getId()) {
-                next();
-            } else if (action.getId() == mSkipPreviousAction.getId()) {
-                previous();
-            } else if (action.getId() == mFastForwardAction.getId()) {
-                fastForward();
-            } else if (action.getId() == mRewindAction.getId()) {
-                fastRewind();
-            }
-            if (action instanceof PlaybackControlsRow.MultiAction) {
-                ((PlaybackControlsRow.MultiAction) action).nextIndex();
-                notifyChanged(action);
+    private boolean equalsCustomActionLists(List<PlaybackState.CustomAction> list1,
+                                            List<PlaybackState.CustomAction> list2) {
+        // check if customActions list has changed:
+        if (list1.size() != list2.size()) {
+            return false;
+        }
+
+        boolean equals = true;
+        for (int i=0; equals && i<list1.size(); i++) {
+            PlaybackState.CustomAction a1 = list1.get(i);
+            PlaybackState.CustomAction a2 = list2.get(i);
+            if (!a1.getAction().equals(a2.getAction()) ||
+                a1.getIcon() != a2.getIcon() ||
+                a1.getName().equals(a2.getName())) {
+                equals = false;
             }
         }
+        return equals;
+    }
+
+    private synchronized void updateCustomActions(List<PlaybackState.CustomAction> customActions) {
+        if (customActions == null) {
+            customActions = Collections.emptyList();
+        }
+        if (equalsCustomActionLists(customActions, mCustomActions)) {
+            // don't do anything if actions have not changed
+            return;
+        }
+        int toRemove = mPrimaryActionsAdapter.size() - STANDARD_ACTIONS;
+        if (toRemove > 0) {
+            mPrimaryActionsAdapter.removeItems(STANDARD_ACTIONS, toRemove);
+        }
+        for (int i=0; i<customActions.size(); i++) {
+            mPrimaryActionsAdapter.add(new CustomActionWidget(i, getActivity(),
+                customActions.get(i)));
+        }
+        mCustomActions = customActions;
     }
 
     private void play() {
@@ -318,40 +292,48 @@ public class MusicPlaybackOverlayFragment extends PlaybackOverlayFragment {
         }
     }
 
-    private void fastForward() {
-        Log.d(TAG, "current time: " + mPlaybackControlsRow.getCurrentTime());
-        long currentTime = mPlaybackControlsRow.getCurrentTime() + FF_RW_SPEED_MS;
+    private void sendCustomAction(PlaybackState.CustomAction customAction) {
         MediaController controller = getActivity().getMediaController();
         if (controller != null) {
-            if (currentTime > (int) mDuration) {
-                currentTime = (int) mDuration;
-            }
-            controller.getTransportControls().seekTo(currentTime);
+            controller.getTransportControls().sendCustomAction(customAction, null);
         }
     }
 
-    private void fastRewind() {
-        Log.d(TAG, "current time: " + mPlaybackControlsRow.getCurrentTime());
-        int currentTime = mPlaybackControlsRow.getCurrentTime() - FF_RW_SPEED_MS;
-        MediaController controller = getActivity().getMediaController();
-        if (controller != null) {
-            if (currentTime < 0 || currentTime > (int) mDuration) {
-                currentTime = 0;
+    /**
+     * Callback for user initiated button clicks.
+     */
+    private class OnActionListener implements OnActionClickedListener {
+        public void onActionClicked(Action action) {
+            if (action.getId() == mPlayPauseAction.getId()) {
+                if (mPlayPauseAction.getIndex() == PlaybackControlsRow.PlayPauseAction.PLAY) {
+                    play();
+                } else {
+                    pause();
+                }
+            } else if (action.getId() == mSkipNextAction.getId()) {
+                next();
+            } else if (action.getId() == mSkipPreviousAction.getId()) {
+                previous();
             }
-            controller.getTransportControls().seekTo(currentTime);
+            if (action instanceof CustomActionWidget) {
+                sendCustomAction(((CustomActionWidget) action).getCustomAction());
+            }
         }
     }
 
-    private void notifyChanged(Action action) {
-        ArrayObjectAdapter adapter = mPrimaryActionsAdapter;
-        if (adapter.indexOf(action) >= 0) {
-            adapter.notifyArrayItemRangeChanged(adapter.indexOf(action), 1);
-            return;
+    /**
+     * An action widget displaying an icon for a media session custom action.
+     */
+    private static class CustomActionWidget extends Action {
+        PlaybackState.CustomAction customAction;
+        public CustomActionWidget(int id, Context context,
+              PlaybackState.CustomAction customAction) {
+            super(id, customAction.getName(), null, context.getDrawable(customAction.getIcon()));
+            this.customAction = customAction;
         }
-        adapter = mSecondaryActionsAdapter;
-        if (adapter.indexOf(action) >= 0) {
-            adapter.notifyArrayItemRangeChanged(adapter.indexOf(action), 1);
-            return;
+
+        public PlaybackState.CustomAction getCustomAction() {
+            return customAction;
         }
     }
 }
