@@ -86,7 +86,7 @@ public class CastPlayback implements Playback {
             try {
                 LogHelper.d(TAG, "onRemoteMediaPlayerMetadataUpdated ", mCastManager.getRemoteMediaInformation());
             } catch (TransientNetworkDisconnectionException | NoConnectionException e) {
-                e.printStackTrace();
+                LogHelper.e(TAG, e, "getRemoteMediaInformation exception");
             }
         }
 
@@ -130,6 +130,7 @@ public class CastPlayback implements Playback {
     /** Callback for making completion/error calls on */
     private Callback mCallback;
     private VideoCastManager mCastManager;
+    private long mCurrentPosition;
 
     public CastPlayback(MusicService service, MusicProvider musicProvider) {
         this.mMusicProvider = musicProvider;
@@ -171,6 +172,7 @@ public class CastPlayback implements Playback {
 
     @Override
     public void play(MediaSession.QueueItem item, int position) {
+        LogHelper.d(TAG, "play postion:", position);
         if (!mCastManager.isConnected()) {
             return;
         }
@@ -214,6 +216,11 @@ public class CastPlayback implements Playback {
                 LogHelper.e(TAG, e, "Exception resuming playback");
             }
         }
+    }
+
+    @Override
+    public void setCurrentPosition(long pos) {
+        this.mCurrentPosition = pos;
     }
 
     @Override
