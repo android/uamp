@@ -78,6 +78,14 @@ public interface Playback {
      */
     void togglePlayback();
 
+    /**
+     * Set the current position. Typically used when switching players that are in
+     * paused state.
+     *
+     * @param pos position in the stream
+     */
+    void setCurrentPosition(long pos);
+
     interface Callback {
         /**
          * On current music completed.

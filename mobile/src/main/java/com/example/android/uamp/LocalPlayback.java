@@ -30,13 +30,16 @@ import com.example.android.uamp.utils.MediaIDHelper;
 
 import java.io.IOException;
 
+import static android.media.MediaPlayer.OnCompletionListener;
+import static android.media.MediaPlayer.OnErrorListener;
 import static android.media.MediaPlayer.OnPreparedListener;
+import static android.media.MediaPlayer.OnSeekCompleteListener;
 
 /**
  * A class that implements local media playback using {@link android.media.MediaPlayer}
  */
 public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeListener,
-        MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener, OnPreparedListener {
+        OnCompletionListener, OnErrorListener, OnPreparedListener, OnSeekCompleteListener {
 
     private static final String TAG = LogHelper.makeLogTag(LocalPlayback.class);
 
@@ -52,6 +55,7 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
     private boolean mPlayOnFocusGain;
     private Callback mCallback;
     private MusicProvider mMusicProvider;
+    private int mCurrentPosition;
 
     enum AudioFocus {
         NoFocusNoDuck, // we don't have audio focus, and can't duck
@@ -115,15 +119,16 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
     @Override
     public long getCurrentStreamPosition() {
         return mMediaPlayer != null ?
-                mMediaPlayer.getCurrentPosition() : -1;
+                mMediaPlayer.getCurrentPosition() : mCurrentPosition;
     }
 
     @Override
     public void play(MediaSession.QueueItem item, int position) {
         mPlayOnFocusGain = true;
         tryToGetAudioFocus();
+
         if (mState == PlaybackState.STATE_PAUSED) {
-            configMediaPlayerState();
+            configMediaPlayerState(position);
         } else {
             mState = PlaybackState.STATE_STOPPED;
             relaxResources(false); // release everything except MediaPlayer
@@ -133,6 +138,7 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
             String source = track.getString(MusicProvider.CUSTOM_METADATA_TRACK_SOURCE);
 
             try {
+                mCurrentPosition = position;
                 createMediaPlayerIfNeeded();
 
                 mState = PlaybackState.STATE_BUFFERING;
@@ -168,6 +174,7 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
             mState = PlaybackState.STATE_PAUSED;
             if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
                 mMediaPlayer.pause();
+                mCurrentPosition = mMediaPlayer.getCurrentPosition();
             }
             // while paused, retain the MediaPlayer but give up audio focus
             relaxResources(false);
@@ -180,13 +187,21 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
     public void togglePlayback() {
         tryToGetAudioFocus();
         if (mState == PlaybackState.STATE_PAUSED) {
-            configMediaPlayerState();
+            configMediaPlayerState(0);
         }
     }
 
     @Override
     public void setCallback(Callback callback) {
         this.mCallback = callback;
+    }
+
+    @Override
+    public void setCurrentPosition(long pos) {
+        // The cast API accepts a long wheras the MediaPlayer api only accepts an int in millis
+        // to indicate the time location of the task. Since we are dealing with media streams,
+        // we make the assumption that they can fit in an int.
+        this.mCurrentPosition = (int) pos;
     }
 
     /**
@@ -226,7 +241,7 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
      * null, so if you are calling it, you have to do so from a context where
      * you are sure this is the case.
      */
-    private void configMediaPlayerState() {
+    private void configMediaPlayerState(int position) {
         LogHelper.d(TAG, "configMediaPlayerState. mAudioFocus=" + mAudioFocus);
         if (mAudioFocus == AudioFocus.NoFocusNoDuck) {
             // If we don't have audio focus and can't duck, we have to pause,
@@ -244,8 +259,15 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
             // If we were playing when we lost focus, we need to resume playing.
             if (mPlayOnFocusGain) {
                 if (mMediaPlayer != null && !mMediaPlayer.isPlaying()) {
-                    LogHelper.d(TAG, "configMediaPlayerState startMediaPlayer.");
-                    mMediaPlayer.start();
+                    LogHelper.d(TAG, "configMediaPlayerState startMediaPlayer. seeking to ", position);
+                    // TODO(nageshs): Ideally only a seekTo(pos) should've worked but for some
+                    // reason calling seekTo(X) on an existing mediaPlayer instance that has not
+                    // been reset causes the stream to play from somewhere in the begining!
+                    if (position == mMediaPlayer.getCurrentPosition()) {
+                        mMediaPlayer.start();
+                    } else {
+                        mMediaPlayer.seekTo(position);
+                    }
                 }
                 mPlayOnFocusGain = false;
                 mState = PlaybackState.STATE_PLAYING;
@@ -283,13 +305,25 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
         } else {
             LogHelper.e(TAG, "onAudioFocusChange: Ignoring unsupported focusChange: " + focusChange);
         }
-        configMediaPlayerState();
+        configMediaPlayerState(0);
+    }
+
+    /**
+     * Called when MediaPlayer has completed a seek
+     *
+     * @see OnSeekCompleteListener
+     */
+    @Override
+    public void onSeekComplete(MediaPlayer mp) {
+        LogHelper.d(TAG, "onSeekComplete from MediaPlayer", mp.getCurrentPosition());
+        mCurrentPosition = mp.getCurrentPosition();
+        mMediaPlayer.start();
     }
 
     /**
      * Called when media player is done playing current song.
      *
-     * @see android.media.MediaPlayer.OnCompletionListener
+     * @see OnCompletionListener
      */
     @Override
     public void onCompletion(MediaPlayer player) {
@@ -309,7 +343,7 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
         LogHelper.d(TAG, "onPrepared from MediaPlayer");
         // The media player is done preparing. That means we can start playing if we
         // have audio focus.
-        configMediaPlayerState();
+        configMediaPlayerState(mCurrentPosition);
     }
 
     /**
@@ -317,7 +351,7 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
      * player goes to the Error state. We warn the user about the error and
      * reset the media player.
      *
-     * @see android.media.MediaPlayer.OnErrorListener
+     * @see OnErrorListener
      */
     @Override
     public boolean onError(MediaPlayer mp, int what, int extra) {
@@ -339,13 +373,15 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
             // Make sure the media player will acquire a wake-lock while
             // playing. If we don't do that, the CPU might go to sleep while the
             // song is playing, causing playback to stop.
-            mMediaPlayer.setWakeMode(mService.getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
+            mMediaPlayer.setWakeMode(mService.getApplicationContext(),
+                    PowerManager.PARTIAL_WAKE_LOCK);
 
             // we want the media player to notify us when it's ready preparing,
             // and when it's done playing:
             mMediaPlayer.setOnPreparedListener(this);
             mMediaPlayer.setOnCompletionListener(this);
             mMediaPlayer.setOnErrorListener(this);
+            mMediaPlayer.setOnSeekCompleteListener(this);
         } else {
             mMediaPlayer.reset();
         }
@@ -362,6 +398,11 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
         LogHelper.d(TAG, "relaxResources. releaseMediaPlayer=" + releaseMediaPlayer);
 
         mService.stopForeground(true);
+
+        if (mMediaPlayer != null) {
+            mCurrentPosition = mMediaPlayer.getCurrentPosition();
+        }
+
         // stop and release the Media Player, if it's available
         if (releaseMediaPlayer && mMediaPlayer != null) {
             mMediaPlayer.reset();

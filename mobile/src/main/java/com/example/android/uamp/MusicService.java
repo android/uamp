@@ -221,6 +221,16 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
         mPlayback.setCallback(this);
         mPlayback.start();
         mCastManager.addVideoCastConsumer(mCastConsumer);
+        // TODO(nageshs): This is very helpful in debugging current position when playing
+        // over multiple devices. See if there is a way to generalize and add it as a debugging
+        // snippet (OR remove it)
+//        mDebugHandler.postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                LogHelper.d(TAG, "playback: ", mPlayback, " pos: " + mPlayback.getCurrentStreamPosition());
+//                mDebugHandler.postDelayed(this, 1000);
+//            }
+//        }, 1000);
     }
 
     /*
@@ -534,7 +544,8 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
         if (QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, mPlayingQueue)) {
             mPlayback.setState(mState);
             updateMetadata();
-            mPlayback.play(mPlayingQueue.get(mCurrentIndexOnQueue), 0);
+            mPlayback.play(mPlayingQueue.get(mCurrentIndexOnQueue),
+                    (int) mPlayback.getCurrentStreamPosition());
         }
     }
 
@@ -746,16 +757,20 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
         // suspend the current one.
         boolean isPlaying = mPlayback.isPlaying();
         int pos = (int) mPlayback.getCurrentStreamPosition();
-
+        LogHelper.d(TAG, "Current position from " + playback + " is ", pos);
         mPlayback.stop();
         playback.setCallback(this);
         playback.start();
         // finally swap the instance
         mPlayback = playback;
+        if (pos < 0) {
+            pos = 0;
+        }
+        // TODO(nageshs): Also find the current track playing and change to that
+        // queue and update metadata.
+        mPlayback.setCurrentPosition(pos);
+
         if (isPlaying) {
-            if (pos < 0) {
-                pos = 1;
-            }
             if (QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, mPlayingQueue)) {
                 mPlayback.play(mPlayingQueue.get(mCurrentIndexOnQueue), pos);
             }
