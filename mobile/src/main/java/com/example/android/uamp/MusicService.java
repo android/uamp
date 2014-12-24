@@ -32,6 +32,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
 import android.service.media.MediaBrowserService;
+import android.support.v7.media.MediaRouter;
 
 import com.example.android.uamp.model.MusicProvider;
 import com.example.android.uamp.ui.NowPlayingActivity;
@@ -160,6 +161,7 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
                                            boolean wasLaunched) {
             // Now we can switch to CastPlayback
             Playback playback = new CastPlayback(MusicService.this, mMusicProvider);
+            MediaRouter.getInstance(getApplicationContext()).setMediaSession(mSession);
             switchToPlayer(playback);
         }
 
@@ -167,6 +169,7 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
         public void onDisconnected() {
             LogHelper.d(TAG, "onDisconnected");
             Playback playback = new LocalPlayback(MusicService.this, mMusicProvider);
+            MediaRouter.getInstance(getApplicationContext()).setMediaSession(null);
             switchToPlayer(playback);
         }
     };
