@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <!--
   Copyright (C) 2014 The Android Open Source Project
 
@@ -14,15 +13,14 @@
   See the License for the specific language governing permissions and
   limitations under the License.
   -->
-<resources>
-
-    <dimen name="list_item_padding">4dp</dimen>
-    <dimen name="drawer_item_padding">4dp</dimen>
-    <dimen name="drawer_item_min_height">20dp</dimen>
-    <dimen name="drawer_item_icon_horizontal_padding">8dp</dimen>
-    <dimen name="margin_text_view">6dp</dimen>
-    <dimen name="horizontal_padding_around_albumart">8dp</dimen>
-    <dimen name="max_height_albumart">72dp</dimen>
-    <dimen name="playback_controls_padding">8dp</dimen>
-
-</resources>
+<ListView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="240dp"
+    android:layout_height="match_parent"
+    android:layout_gravity="left"
+    android:background="@android:color/white"
+    android:divider="@android:color/white"
+    android:dividerHeight="8dp"
+    android:drawSelectorOnTop="true"
+    android:headerDividersEnabled="true">
+</ListView>

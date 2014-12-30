@@ -32,10 +32,12 @@
     <string name="play_pause">play or pause</string>
     <string name="skip_next">Skip to next</string>
     <string name="touch_to_cast">Touch to Cast</string>
-    <string name="cast_application_id">C326D7BC</string>
+    <string name="cast_application_id">C326D7BC</string>  <!-- use CC1AD845 for default receiver -->
     <string name="home_title">Home</string>
     <string name="action_settings">Settings</string>
     <string name="related_content_header">You may also like</string>
     <string name="action_listen">Listen</string>
+    <string name="open_content_drawer">Open the main menu</string>
+    <string name="close_content_drawer">Close the main menu</string>
 
 </resources>
