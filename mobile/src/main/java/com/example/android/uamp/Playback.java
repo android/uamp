@@ -59,13 +59,20 @@ public interface Playback {
     /**
      * @return pos if currently playing an item
      */
-    long getCurrentStreamPosition();
+    int getCurrentStreamPosition();
+
+    /**
+     * Set the current position. Typically used when switching players that are in
+     * paused state.
+     *
+     * @param pos position in the stream
+     */
+    void setCurrentStreamPosition(int pos);
 
     /**
      * @param item to play
-     * @param position
      */
-    void play(MediaSession.QueueItem item, int position);
+    void play(MediaSession.QueueItem item);
 
     /**
      * Pause the current playing item
@@ -79,12 +86,18 @@ public interface Playback {
     void togglePlayback();
 
     /**
-     * Set the current position. Typically used when switching players that are in
-     * paused state.
+     * Set the current mediaId. This is only used when switching from one
+     * playback to another.
      *
-     * @param pos position in the stream
+     * @param mediaId to be set as the current.
      */
-    void setCurrentPosition(long pos);
+    void setCurrentMediaId(String mediaId);
+
+    /**
+     *
+     * @return the current media Id being processed in any state or null.
+     */
+    String getCurrentMediaId();
 
     interface Callback {
         /**
@@ -102,6 +115,11 @@ public interface Playback {
          * @param error to be added to the PlaybackState
          */
         void onError(String error);
+
+        /**
+         * @param mediaId being currently played
+         */
+        void onMetadataChanged(String mediaId);
     }
 
     /**

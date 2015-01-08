@@ -15,9 +15,11 @@
  */
 package com.example.android.uamp.ui;
 
+import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.ComponentName;
 import android.content.Intent;
+import android.media.MediaMetadata;
 import android.media.browse.MediaBrowser;
 import android.media.session.MediaController;
 import android.media.session.PlaybackState;
@@ -25,6 +27,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 
 import com.example.android.uamp.MusicService;
+import com.example.android.uamp.Playback;
 import com.example.android.uamp.R;
 import com.example.android.uamp.utils.LogHelper;
 
@@ -88,6 +91,9 @@ public class MusicPlayerActivity extends ActionBarCastActivity
         if (mMediaBrowser != null) {
             mMediaBrowser.disconnect();
         }
+        if (getMediaController() != null) {
+            getMediaController().unregisterCallback(mMediaControllerCallback);
+        }
     }
 
     protected void bootstrapFromParameters(Bundle savedInstanceState) {
@@ -108,10 +114,14 @@ public class MusicPlayerActivity extends ActionBarCastActivity
 
     protected void showPlaybackControls() {
         LogHelper.d(TAG, "showPlaybackControls");
-        PlaybackControlsFragment fragment = new PlaybackControlsFragment();
-        getFragmentManager().beginTransaction()
-                .replace(R.id.controls, fragment)
-                .commit();
+        PlaybackControlsFragment controlsFragment = (PlaybackControlsFragment)
+                getFragmentManager().findFragmentById(R.id.controls);
+        if (controlsFragment == null) {
+            PlaybackControlsFragment fragment = new PlaybackControlsFragment();
+            getFragmentManager().beginTransaction()
+                    .replace(R.id.controls, fragment)
+                    .commit();
+        }
     }
 
     protected void navigateToBrowser(String mediaId) {
@@ -169,11 +179,17 @@ public class MusicPlayerActivity extends ActionBarCastActivity
             MediaController mediaController = new MediaController(
                     MusicPlayerActivity.this, mMediaBrowser.getSessionToken());
             setMediaController(mediaController);
-
+            mediaController.registerCallback(mMediaControllerCallback);
             // Fire the onConnected() callback on the fragment.
             MediaBrowserFragment fragment =
                     (MediaBrowserFragment) getFragmentManager().findFragmentById(R.id.container);
             fragment.onConnected();
+
+            PlaybackControlsFragment playbackFragment = (PlaybackControlsFragment)
+                    getFragmentManager().findFragmentById(R.id.controls);
+            if (playbackFragment != null) {
+                playbackFragment.onConnected();
+            }
 
             if (mSearchQuery != null) {
                 // If there is a bootstrap parameter to start from a search query, we
@@ -181,14 +197,6 @@ public class MusicPlayerActivity extends ActionBarCastActivity
                 // when the activity is stopped/started or recreated:
                 mediaController.getTransportControls().playFromSearch(mSearchQuery, null);
                 mSearchQuery = null;
-            }
-
-            // If the service is already active and in a "playback-able" state
-            // (not NONE and not STOPPED), we need to set the proper playback controls:
-            PlaybackState state = mediaController.getPlaybackState();
-            if (state != null && state.getState() != PlaybackState.STATE_NONE &&
-                    state.getState() != PlaybackState.STATE_STOPPED) {
-                showPlaybackControls();
             }
         }
 
@@ -200,7 +208,27 @@ public class MusicPlayerActivity extends ActionBarCastActivity
         @Override
         public void onConnectionSuspended() {
             LogHelper.d(TAG, "onConnectionSuspended");
+            getMediaController().unregisterCallback(mMediaControllerCallback);
             setMediaController(null);
+        }
+    };
+
+    // Callback that ensures that we are showing the controls
+    private final MediaController.Callback mMediaControllerCallback =
+            new MediaController.Callback() {
+        @Override
+        public void onPlaybackStateChanged(PlaybackState state) {
+            // If the service is already active and in a "playback-able" state
+            // (not NONE and not STOPPED), we need to set the proper playback controls:
+            if (state != null && state.getState() != PlaybackState.STATE_NONE &&
+                    state.getState() != PlaybackState.STATE_STOPPED) {
+                showPlaybackControls();
+            }
+        }
+
+        @Override
+        public void onMetadataChanged(MediaMetadata metadata) {
+            showPlaybackControls();
         }
     };
 }

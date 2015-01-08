@@ -150,6 +150,8 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
 
     private Playback mPlayback;
 
+    private MediaRouter mMediaRouter;
+
     /**
      * Consumer responsible for switching the Playback instances depending on whether
      * it is connected to a remote player.
@@ -161,7 +163,7 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
                                            boolean wasLaunched) {
             // Now we can switch to CastPlayback
             Playback playback = new CastPlayback(MusicService.this, mMusicProvider);
-            MediaRouter.getInstance(getApplicationContext()).setMediaSession(mSession);
+            mMediaRouter.setMediaSession(mSession);
             switchToPlayer(playback);
         }
 
@@ -169,10 +171,11 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
         public void onDisconnected() {
             LogHelper.d(TAG, "onDisconnected");
             Playback playback = new LocalPlayback(MusicService.this, mMusicProvider);
-            MediaRouter.getInstance(getApplicationContext()).setMediaSession(null);
+            mMediaRouter.setMediaSession(null);
             switchToPlayer(playback);
         }
     };
+
     private VideoCastManager mCastManager;
 
     /*
@@ -234,6 +237,7 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
 //                mDebugHandler.postDelayed(this, 1000);
 //            }
 //        }, 1000);
+        mMediaRouter = MediaRouter.getInstance(getApplicationContext());
     }
 
     /*
@@ -547,8 +551,7 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
         if (QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, mPlayingQueue)) {
             mPlayback.setState(mState);
             updateMetadata();
-            mPlayback.play(mPlayingQueue.get(mCurrentIndexOnQueue),
-                    (int) mPlayback.getCurrentStreamPosition());
+            mPlayback.play(mPlayingQueue.get(mCurrentIndexOnQueue));
         }
     }
 
@@ -752,6 +755,18 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
         updatePlaybackState(error);
     }
 
+    @Override
+    public void onMetadataChanged(String mediaId) {
+        LogHelper.d(TAG, "onMetadataChanged", mediaId);
+        List<MediaSession.QueueItem> queue = QueueHelper.getPlayingQueue(mediaId, mMusicProvider);
+        int index = QueueHelper.getMusicIndexOnQueue(queue, mediaId);
+        if (index > -1) {
+            mCurrentIndexOnQueue = index;
+            mPlayingQueue = queue;
+            updateMetadata();
+        }
+    }
+
     /**
      * Helper to switch to a different Playback instance
      * @param playback
@@ -760,6 +775,7 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
         // suspend the current one.
         boolean isPlaying = mPlayback.isPlaying();
         int pos = (int) mPlayback.getCurrentStreamPosition();
+        String currentMediaId = mPlayback.getCurrentMediaId();
         LogHelper.d(TAG, "Current position from " + playback + " is ", pos);
         mPlayback.stop();
         playback.setCallback(this);
@@ -769,13 +785,13 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
         if (pos < 0) {
             pos = 0;
         }
-        // TODO(nageshs): Also find the current track playing and change to that
-        // queue and update metadata.
-        mPlayback.setCurrentPosition(pos);
-
+        mPlayback.setCurrentStreamPosition(pos);
+        mPlayback.setCurrentMediaId(currentMediaId);
+        // TODO(nageshs)-- Handle joining of cast session here. We should not
+        // play if we are joining a session. Instead simply pause locally
         if (isPlaying) {
             if (QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, mPlayingQueue)) {
-                mPlayback.play(mPlayingQueue.get(mCurrentIndexOnQueue), pos);
+                mPlayback.play(mPlayingQueue.get(mCurrentIndexOnQueue));
             }
         }
     }

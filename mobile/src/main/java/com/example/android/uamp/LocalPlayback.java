@@ -23,6 +23,7 @@ import android.media.session.MediaSession;
 import android.media.session.PlaybackState;
 import android.net.wifi.WifiManager;
 import android.os.PowerManager;
+import android.text.TextUtils;
 
 import com.example.android.uamp.model.MusicProvider;
 import com.example.android.uamp.utils.LogHelper;
@@ -55,7 +56,9 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
     private boolean mPlayOnFocusGain;
     private Callback mCallback;
     private MusicProvider mMusicProvider;
-    private int mCurrentPosition;
+
+    private volatile int mCurrentPosition;
+    private volatile String mCurrentMediaId;
 
     enum AudioFocus {
         NoFocusNoDuck, // we don't have audio focus, and can't duck
@@ -87,6 +90,7 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
     public void stop() {
         mState = PlaybackState.STATE_STOPPED;
         mCallback.onPlaybackStatusChanged(mState);
+        mCurrentPosition = (int) getCurrentStreamPosition();
         // Give up Audio focus
         giveUpAudioFocus();
         // Relax all resources
@@ -117,18 +121,24 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
     }
 
     @Override
-    public long getCurrentStreamPosition() {
+    public int getCurrentStreamPosition() {
         return mMediaPlayer != null ?
                 mMediaPlayer.getCurrentPosition() : mCurrentPosition;
     }
 
     @Override
-    public void play(MediaSession.QueueItem item, int position) {
+    public void play(MediaSession.QueueItem item) {
         mPlayOnFocusGain = true;
         tryToGetAudioFocus();
 
+        String mediaId = item.getDescription().getMediaId();
+        if (!TextUtils.equals(mediaId, mCurrentMediaId)) {
+            mCurrentPosition = 0;
+            mCurrentMediaId = mediaId;
+        }
+
         if (mState == PlaybackState.STATE_PAUSED) {
-            configMediaPlayerState(position);
+            configMediaPlayerState();
         } else {
             mState = PlaybackState.STATE_STOPPED;
             relaxResources(false); // release everything except MediaPlayer
@@ -138,7 +148,6 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
             String source = track.getString(MusicProvider.CUSTOM_METADATA_TRACK_SOURCE);
 
             try {
-                mCurrentPosition = position;
                 createMediaPlayerIfNeeded();
 
                 mState = PlaybackState.STATE_BUFFERING;
@@ -187,7 +196,7 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
     public void togglePlayback() {
         tryToGetAudioFocus();
         if (mState == PlaybackState.STATE_PAUSED) {
-            configMediaPlayerState(0);
+            configMediaPlayerState();
         }
     }
 
@@ -197,11 +206,18 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
     }
 
     @Override
-    public void setCurrentPosition(long pos) {
-        // The cast API accepts a long wheras the MediaPlayer api only accepts an int in millis
-        // to indicate the time location of the task. Since we are dealing with media streams,
-        // we make the assumption that they can fit in an int.
-        this.mCurrentPosition = (int) pos;
+    public void setCurrentStreamPosition(int pos) {
+        this.mCurrentPosition = pos;
+    }
+
+    @Override
+    public void setCurrentMediaId(String mediaId) {
+        this.mCurrentMediaId = mediaId;
+    }
+
+    @Override
+    public String getCurrentMediaId() {
+        return mCurrentMediaId;
     }
 
     /**
@@ -241,7 +257,7 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
      * null, so if you are calling it, you have to do so from a context where
      * you are sure this is the case.
      */
-    private void configMediaPlayerState(int position) {
+    private void configMediaPlayerState() {
         LogHelper.d(TAG, "configMediaPlayerState. mAudioFocus=" + mAudioFocus);
         if (mAudioFocus == AudioFocus.NoFocusNoDuck) {
             // If we don't have audio focus and can't duck, we have to pause,
@@ -259,14 +275,14 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
             // If we were playing when we lost focus, we need to resume playing.
             if (mPlayOnFocusGain) {
                 if (mMediaPlayer != null && !mMediaPlayer.isPlaying()) {
-                    LogHelper.d(TAG, "configMediaPlayerState startMediaPlayer. seeking to ", position);
+                    LogHelper.d(TAG, "configMediaPlayerState startMediaPlayer. seeking to ", mCurrentPosition);
                     // TODO(nageshs): Ideally only a seekTo(pos) should've worked but for some
                     // reason calling seekTo(X) on an existing mediaPlayer instance that has not
                     // been reset causes the stream to play from somewhere in the begining!
-                    if (position == mMediaPlayer.getCurrentPosition()) {
+                    if (mCurrentPosition == mMediaPlayer.getCurrentPosition()) {
                         mMediaPlayer.start();
                     } else {
-                        mMediaPlayer.seekTo(position);
+                        mMediaPlayer.seekTo(mCurrentPosition);
                     }
                 }
                 mPlayOnFocusGain = false;
@@ -305,7 +321,7 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
         } else {
             LogHelper.e(TAG, "onAudioFocusChange: Ignoring unsupported focusChange: " + focusChange);
         }
-        configMediaPlayerState(0);
+        configMediaPlayerState();
     }
 
     /**
@@ -343,7 +359,7 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
         LogHelper.d(TAG, "onPrepared from MediaPlayer");
         // The media player is done preparing. That means we can start playing if we
         // have audio focus.
-        configMediaPlayerState(mCurrentPosition);
+        configMediaPlayerState();
     }
 
     /**
@@ -398,10 +414,6 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
         LogHelper.d(TAG, "relaxResources. releaseMediaPlayer=" + releaseMediaPlayer);
 
         mService.stopForeground(true);
-
-        if (mMediaPlayer != null) {
-            mCurrentPosition = mMediaPlayer.getCurrentPosition();
-        }
 
         // stop and release the Media Player, if it's available
         if (releaseMediaPlayer && mMediaPlayer != null) {
