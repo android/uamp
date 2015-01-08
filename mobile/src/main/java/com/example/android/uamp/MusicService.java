@@ -116,22 +116,26 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
     private static final String CUSTOM_ACTION_THUMBS_UP = "thumbs_up";
     // Delay stopSelf by using a handler.
     private static final int STOP_DELAY = 30000;
+    // The action of the incoming Intent indicating that it contains a command
+    // to be executed (see {@link #onStartCommand})
+    public static final String ACTION_CMD = "com.example.android.uamp.ACTION_CMD";
+    // The key in the extras of the incoming Intent indicating the command that
+    // should be executed (see {@link #onStartCommand})
+    public static final String CMD_NAME = "CMD_NAME";
+    // A value of a {@link #CMD_NAME} key in the extras of the incoming Intent that
+    // indicates that the music playback should be paused (see {@link #onStartCommand})
+    public static final String CMD_PAUSE = "CMD_PAUSE";
 
     // Music catalog manager
     private MusicProvider mMusicProvider;
-
     private MediaSession mSession;
     private AlbumArtCache mAlbumArtCache;
-
     // "Now playing" queue:
     private List<MediaSession.QueueItem> mPlayingQueue;
     private int mCurrentIndexOnQueue;
-
     // Current local media player state
     private int mState = PlaybackState.STATE_NONE;
-
     private MediaNotificationManager mMediaNotificationManager;
-
     // Indicates whether the service was started.
     private boolean mServiceStarted;
 
@@ -240,7 +244,25 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
         mMediaRouter = MediaRouter.getInstance(getApplicationContext());
     }
 
-    /*
+    /**
+     * (non-Javadoc)
+     * @see android.app.Service#onStartCommand(android.content.Intent, int, int)
+     */
+    @Override
+    public int onStartCommand(Intent startIntent, int flags, int startId) {
+        if (startIntent != null) {
+            String action = startIntent.getAction();
+            String command = startIntent.getStringExtra(CMD_NAME);
+            if (ACTION_CMD.equals(action) && CMD_PAUSE.equals(command)) {
+                if (mPlayback != null && mPlayback.isPlaying()) {
+                    handlePauseRequest();
+                }
+            }
+        }
+        return START_STICKY;
+    }
+
+    /**
      * (non-Javadoc)
      * @see android.app.Service#onDestroy()
      */
@@ -261,7 +283,6 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
         // and notify associated MediaController(s).
         mSession.release();
     }
-
 
     @Override
     public BrowserRoot onGetRoot(String clientPackageName, int clientUid, Bundle rootHints) {
@@ -769,12 +790,12 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
 
     /**
      * Helper to switch to a different Playback instance
-     * @param playback
+     * @param playback switch to this playback
      */
     private void switchToPlayer(Playback playback) {
         // suspend the current one.
         boolean isPlaying = mPlayback.isPlaying();
-        int pos = (int) mPlayback.getCurrentStreamPosition();
+        int pos = mPlayback.getCurrentStreamPosition();
         String currentMediaId = mPlayback.getCurrentMediaId();
         LogHelper.d(TAG, "Current position from " + playback + " is ", pos);
         mPlayback.stop();
