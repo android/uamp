@@ -87,11 +87,8 @@ public class PlaybackControlsFragment extends Fragment {
     public void onStart() {
         super.onStart();
         LogHelper.d(TAG, "fragment.onStart");
-        MediaController controller = getActivity().getMediaController();
-        if (controller != null) {
-            onMetadataChanged(controller.getMetadata());
-            onPlaybackStateChanged(controller.getPlaybackState());
-            controller.registerCallback(mCallback);
+        if (getActivity().getMediaController() != null) {
+            onConnected();
         }
     }
 
@@ -101,6 +98,15 @@ public class PlaybackControlsFragment extends Fragment {
         LogHelper.d(TAG, "fragment.onStop");
         if (getActivity().getMediaController() != null) {
             getActivity().getMediaController().unregisterCallback(mCallback);
+        }
+    }
+
+    public void onConnected() {
+        MediaController controller = getActivity().getMediaController();
+        if (controller != null) {
+            onMetadataChanged(controller.getMetadata());
+            onPlaybackStateChanged(controller.getPlaybackState());
+            controller.registerCallback(mCallback);
         }
     }
 
