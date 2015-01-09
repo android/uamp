@@ -15,6 +15,8 @@
  */
 package com.example.android.uamp.ui;
 
+import android.app.ActivityOptions;
+import android.app.FragmentManager;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -74,6 +76,8 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
 
     private boolean mToolbarInitialized;
 
+    private int mItemToOpenWhenDrawerCloses = -1;
+
     private VideoCastConsumerImpl mCastConsumer = new VideoCastConsumerImpl() {
 
         @Override
@@ -92,7 +96,10 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
 
         @Override
         public void onCastDeviceDetected(final MediaRouter.RouteInfo info) {
+            // FTU stands for First Time Use:
             if (!PrefUtils.isFtuShown(ActionBarCastActivity.this)) {
+                // If user is seeing the cast button for the first time, we will
+                // show an overlay that explains what that button means.
                 PrefUtils.setFtuShown(ActionBarCastActivity.this, true);
 
                 LogHelper.d(TAG, "Route is visible: ", info);
@@ -110,6 +117,63 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
         }
     };
 
+    private DrawerLayout.DrawerListener mDrawerListener = new DrawerLayout.DrawerListener() {
+        @Override
+        public void onDrawerClosed(View drawerView) {
+            getSupportActionBar().setTitle(getTitle());
+            if (mDrawerToggle != null) mDrawerToggle.onDrawerClosed(drawerView);
+            if (mItemToOpenWhenDrawerCloses >= 0) {
+                int position = mItemToOpenWhenDrawerCloses;
+                mItemToOpenWhenDrawerCloses = -1;
+                Bundle extras = ActivityOptions.makeCustomAnimation(
+                    ActionBarCastActivity.this, 0, 0).toBundle();
+
+                switch (position) {
+                    // TODO(mangini): define the final drawer content and fix the calls below.
+                    case 0:
+                        startActivity(new Intent(ActionBarCastActivity.this,
+                            MusicPlayerActivity.class), extras);
+                        finish();
+                        break;
+                    case 1:
+                        startActivity(new Intent(ActionBarCastActivity.this,
+                            MusicPlayerActivity.class), extras);
+                        finish();
+                        break;
+                    case 2:
+                        startActivity(new Intent(ActionBarCastActivity.this,
+                            MusicPlayerActivity.class), extras);
+                        finish();
+                        break;
+                }
+            }
+        }
+
+        @Override
+        public void onDrawerStateChanged(int newState) {
+            if (mDrawerToggle != null) mDrawerToggle.onDrawerStateChanged(newState);
+        }
+
+        @Override
+        public void onDrawerSlide(View drawerView, float slideOffset) {
+            if (mDrawerToggle != null) mDrawerToggle.onDrawerSlide(drawerView, slideOffset);
+        }
+
+        @Override
+        public void onDrawerOpened(View drawerView) {
+            if (mDrawerToggle != null) mDrawerToggle.onDrawerOpened(drawerView);
+            getSupportActionBar().setTitle(R.string.app_name);
+        }
+    };
+
+    private FragmentManager.OnBackStackChangedListener mBackStackChangedListener =
+        new FragmentManager.OnBackStackChangedListener() {
+            @Override
+            public void onBackStackChanged() {
+                updateDrawerToggle();
+            }
+        };
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -120,99 +184,15 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
 
         mCastManager = ((UAMPApplication) getApplication()).getCastManager(this);
         mCastManager.reconnectSessionIfPossible(this, false);
-
-    }
-
-    protected void initializeToolbar() {
-        mToolbar = (Toolbar) findViewById(R.id.toolbar);
-        if (mToolbar == null) {
-            throw new IllegalStateException("Layout is required to include a Toolbar with id " +
-                "'toolbar'");
-        }
-        mToolbar.inflateMenu(R.menu.main);
-
-        mDrawerList = (ListView) findViewById(R.id.drawerList);
-        if (mToolbar == null) {
-            throw new IllegalStateException("Layout is required to include a ListView with " +
-                "id 'drawerList'");
-        }
-
-        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
-        if (mToolbar == null) {
-            throw new IllegalStateException("Layout is required to include a DrawerLayout with " +
-                "id 'drawerLayout'");
-        }
-
-        // Create an ActionBarDrawerToggle that will handle opening/closing of the drawer:
-        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
-            mToolbar, R.string.open_content_drawer, R.string.close_content_drawer) {
-
-            @Override
-            public void onDrawerClosed(View view) {
-                super.onDrawerClosed(view);
-                getSupportActionBar().setTitle(getTitle());
-            }
-
-            @Override
-            public void onDrawerOpened(View drawerView) {
-                super.onDrawerOpened(drawerView);
-                getSupportActionBar().setTitle(R.string.app_name);
-            }
-        };
-        mDrawerLayout.setDrawerListener(mDrawerToggle);
-
-        populateDrawerItems();
-
-        setSupportActionBar(mToolbar);
-
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setHomeButtonEnabled(true);
-        mToolbarInitialized = true;
-    }
-
-    private void populateDrawerItems() {
-        // Add itens to the drawer list:
-        List<Map<String, ?>> drawerItems = new ArrayList<>(2);
-        drawerItems.add(populateDrawerItem("Music", R.drawable.ic_launcher));
-        drawerItems.add(populateDrawerItem("Playlists", R.drawable.ic_launcher));
-        SimpleAdapter adapter = new SimpleAdapter(this, drawerItems, R.layout.drawer_list_item,
-            new String[]{"title", "icon"},
-            new int[]{R.id.drawer_item_title, R.id.drawer_item_icon});
-        mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-           @Override
-           public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-               mDrawerLayout.closeDrawers();
-               switch (position) {
-                   // TODO(mangini): define the final drawer content and fix the calls below.
-                   case 0:
-                       startActivity(new Intent(view.getContext(), MusicPlayerActivity.class));
-                       finish();
-                       break;
-                   case 1:
-                       startActivity(new Intent(view.getContext(), MusicPlayerActivity.class));
-                       finish();
-                       break;
-               }
-           }
-        });
-        mDrawerList.setAdapter(adapter);
-    }
-
-    private Map<String, ?> populateDrawerItem(String title, int icon) {
-        HashMap<String, Object> item = new HashMap<>();
-        item.put("title", title);
-        item.put("icon", icon);
-        return item;
     }
 
     @Override
     protected void onStart() {
+        super.onStart();
         if (!mToolbarInitialized) {
             throw new IllegalStateException("You must run super.initializeToolbar at " +
                 "the end of your onCreate method");
         }
-        super.onStart();
-        LogHelper.d(TAG, "Activity onStart");
     }
 
     @Override
@@ -222,15 +202,29 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        mCastManager.addVideoCastConsumer(mCastConsumer);
+        mCastManager.incrementUiCounter();
+
+        // Whenever the fragment back stack changes, we may need to update the
+        // action bar toggle: only top level screens show the hamburger-like icon, inner
+        // screens - either Activities or fragments - show the "Up" icon instead.
+        getFragmentManager().addOnBackStackChangedListener(mBackStackChangedListener);
+    }
+
+    @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         mDrawerToggle.onConfigurationChanged(newConfig);
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
-        LogHelper.d(TAG, "Activity onStop");
+    public void onPause() {
+        super.onPause();
+        mCastManager.removeVideoCastConsumer(mCastConsumer);
+        mCastManager.decrementUiCounter();
+        getFragmentManager().removeOnBackStackChangedListener(mBackStackChangedListener);
     }
 
     @Override
@@ -238,7 +232,7 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
         super.onCreateOptionsMenu(menu);
         getMenuInflater().inflate(R.menu.main, menu);
         mMediaRouteMenuItem = mCastManager.
-                addMediaRouterButton(menu, R.id.media_route_menu_item);
+            addMediaRouterButton(menu, R.id.media_route_menu_item);
         return true;
     }
 
@@ -247,18 +241,27 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
         if (mDrawerToggle.onOptionsItemSelected(item)) {
             return true;
         }
+        // If not handled by drawerToggle, home needs to be handled by returning to previous
+        if (item != null && item.getItemId() == android.R.id.home) {
+            onBackPressed();
+            return true;
+        }
         return super.onOptionsItemSelected(item);
     }
 
     @Override
     public void onBackPressed() {
+        // If the drawer is open, back will close it
         if (mDrawerLayout.isDrawerOpen(Gravity.START | Gravity.LEFT)) {
             mDrawerLayout.closeDrawers();
             return;
         }
-        if (getFragmentManager().getBackStackEntryCount() > 0) {
-            getFragmentManager().popBackStack();
+        // Otherwise, it may return to the previous fragment stack
+        FragmentManager fragmentManager = getFragmentManager();
+        if (fragmentManager.getBackStackEntryCount() > 0) {
+            fragmentManager.popBackStack();
         } else {
+            // Lastly, it will rely on the system behavior for back
             super.onBackPressed();
         }
     }
@@ -269,20 +272,6 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
             return true;
         }
         return super.dispatchKeyEvent(event);
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        mCastManager.addVideoCastConsumer(mCastConsumer);
-        mCastManager.incrementUiCounter();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        mCastManager.removeVideoCastConsumer(mCastConsumer);
-        mCastManager.decrementUiCounter();
     }
 
     @Override
@@ -297,6 +286,82 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
         mToolbar.setTitle(titleId);
     }
 
+    protected void initializeToolbar() {
+        mToolbar = (Toolbar) findViewById(R.id.toolbar);
+        if (mToolbar == null) {
+            throw new IllegalStateException("Layout is required to include a Toolbar with id " +
+                "'toolbar'");
+        }
+        mToolbar.inflateMenu(R.menu.main);
+
+        mDrawerList = (ListView) findViewById(R.id.drawerList);
+        if (mDrawerList == null) {
+            throw new IllegalStateException("Layout is required to include a ListView with " +
+                "id 'drawerList'");
+        }
+
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
+        if (mToolbar == null) {
+            throw new IllegalStateException("Layout is required to include a DrawerLayout with " +
+                "id 'drawerLayout'");
+        }
+
+        // Create an ActionBarDrawerToggle that will handle opening/closing of the drawer:
+        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
+            mToolbar, R.string.open_content_drawer, R.string.close_content_drawer);
+        mDrawerLayout.setDrawerListener(mDrawerListener);
+        populateDrawerItems();
+        setSupportActionBar(mToolbar);
+        updateDrawerToggle();
+        mToolbarInitialized = true;
+    }
+
+    private void populateDrawerItems() {
+        // Add itens to the drawer list:
+        List<Map<String, ?>> drawerItems = new ArrayList<>(3);
+        // TODO(mangini): when the final drawer content is defined, change the content below
+        // to proper configurable and i18n'able resources.
+        drawerItems.add(populateDrawerItem("All Music", R.drawable.ic_allmusic_black_24dp));
+        drawerItems.add(populateDrawerItem("Playlists", R.drawable.ic_playlist_music_black_24dp));
+        drawerItems.add(populateDrawerItem("Now Playing", R.drawable.ic_equalizer1_white_24dp));
+        SimpleAdapter adapter = new SimpleAdapter(this, drawerItems, R.layout.drawer_list_item,
+            new String[]{"title", "icon"},
+            new int[]{R.id.drawer_item_title, R.id.drawer_item_icon});
+        mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+           @Override
+           public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+               mItemToOpenWhenDrawerCloses = position;
+               mDrawerLayout.closeDrawers();
+           }
+        });
+        mDrawerList.setAdapter(adapter);
+    }
+
+    private Map<String, ?> populateDrawerItem(String title, int icon) {
+        HashMap<String, Object> item = new HashMap<>();
+        item.put("title", title);
+        item.put("icon", icon);
+        return item;
+    }
+
+    protected void updateDrawerToggle() {
+        if (mDrawerToggle == null) {
+            return;
+        }
+        boolean isRoot = getFragmentManager().getBackStackEntryCount() == 0;
+        mDrawerToggle.setDrawerIndicatorEnabled(isRoot);
+        getSupportActionBar().setDisplayShowHomeEnabled(!isRoot);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(!isRoot);
+        getSupportActionBar().setHomeButtonEnabled(!isRoot);
+        if (isRoot) {
+            mDrawerToggle.syncState();
+        }
+    }
+
+    /**
+     * Shows the Cast First Time User experience to the user (an overlay that explains what is
+     * the Cast icon)
+     */
     private void showFtu() {
         Menu menu = mToolbar.getMenu();
         View view = menu.findItem(R.id.media_route_menu_item).getActionView();

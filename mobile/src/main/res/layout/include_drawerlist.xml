@@ -19,8 +19,8 @@
     android:layout_height="match_parent"
     android:layout_gravity="left"
     android:background="@android:color/white"
-    android:divider="@android:color/white"
-    android:dividerHeight="8dp"
+    android:divider="#e5e5e5"
+    android:dividerHeight="1dp"
     android:drawSelectorOnTop="true"
     android:headerDividersEnabled="true">
 </ListView>
