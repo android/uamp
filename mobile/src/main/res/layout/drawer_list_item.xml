@@ -17,19 +17,20 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="@dimen/drawer_item_padding"
-    android:minHeight="@dimen/drawer_item_min_height"
+    android:minHeight="@dimen/drawer_item_height"
+    android:layout_marginEnd="@dimen/drawer_item_right_margin"
     android:orientation="horizontal">
 
     <ImageView
         android:id="@+id/drawer_item_icon"
-        tools:src="@drawable/ic_launcher"
+        tools:src="@drawable/ic_allmusic_black_24dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingLeft="@dimen/drawer_item_icon_horizontal_padding"
-        android:paddingRight="@dimen/drawer_item_icon_horizontal_padding"
+        android:layout_marginLeft="@dimen/drawer_item_icon_horizontal_margin"
+        android:layout_marginRight="@dimen/drawer_item_icon_horizontal_margin"
         android:tintMode="src_in"
-        android:tint="@android:color/darker_gray"/>
+        android:tint="@android:color/darker_gray"
+        android:layout_gravity="center_vertical"/>
 
     <TextView
         android:id="@+id/drawer_item_title"

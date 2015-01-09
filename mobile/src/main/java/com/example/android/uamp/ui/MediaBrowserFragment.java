@@ -41,9 +41,9 @@ import java.util.List;
  * A Fragment that lists all the various browsable queues available
  * from a {@link android.service.media.MediaBrowserService}.
  * <p/>
- * It uses a {@link MediaBrowser} to connect to the {@link com.example.android.uamp.MusicService}. Once connected,
- * the fragment subscribes to get all the children. All {@link MediaBrowser.MediaItem}'s
- * that can be browsed are shown in a ListView.
+ * It uses a {@link MediaBrowser} to connect to the {@link com.example.android.uamp.MusicService}.
+ * Once connected, the fragment subscribes to get all the children.
+ * All {@link MediaBrowser.MediaItem}'s that can be browsed are shown in a ListView.
  */
 public class MediaBrowserFragment extends Fragment {
 
@@ -77,28 +77,29 @@ public class MediaBrowserFragment extends Fragment {
         }
     };
 
-    private MediaBrowser.SubscriptionCallback mSubscriptionCallback = new MediaBrowser.SubscriptionCallback() {
-
-        @Override
-        public void onChildrenLoaded(String parentId, List<MediaBrowser.MediaItem> children) {
-            try {
-                LogHelper.d(TAG, "fragment onChildrenLoaded, parentId=" + parentId + "  count=" + children.size());
-                mBrowserAdapter.clear();
-                for (MediaBrowser.MediaItem item : children) {
-                    mBrowserAdapter.add(item);
+    private MediaBrowser.SubscriptionCallback mSubscriptionCallback =
+        new MediaBrowser.SubscriptionCallback() {
+            @Override
+            public void onChildrenLoaded(String parentId, List<MediaBrowser.MediaItem> children) {
+                try {
+                    LogHelper.d(TAG, "fragment onChildrenLoaded, parentId=" + parentId +
+                        "  count=" + children.size());
+                    mBrowserAdapter.clear();
+                    for (MediaBrowser.MediaItem item : children) {
+                        mBrowserAdapter.add(item);
+                    }
+                    mBrowserAdapter.notifyDataSetChanged();
+                } catch (Throwable t) {
+                    LogHelper.e(TAG, "Error on childrenloaded", t);
                 }
-                mBrowserAdapter.notifyDataSetChanged();
-            } catch (Throwable t) {
-                LogHelper.e(TAG, "Error on childrenloaded", t);
             }
-        }
 
-        @Override
-        public void onError(String id) {
-            LogHelper.e(TAG, "browse fragment subscription onError, id=" + id);
-            Toast.makeText(getActivity(), R.string.error_loading_media, Toast.LENGTH_LONG).show();
-        }
-    };
+            @Override
+            public void onError(String id) {
+                LogHelper.e(TAG, "browse fragment subscription onError, id=" + id);
+                Toast.makeText(getActivity(), R.string.error_loading_media, Toast.LENGTH_LONG).show();
+            }
+        };
 
     @Override
     public void onAttach(Activity activity) {
@@ -192,6 +193,8 @@ public class MediaBrowserFragment extends Fragment {
         // Unsubscribing before subscribing is required if this mediaId already has a subscriber
         // on this MediaBrowser instance. Subscribing to an already subscribed mediaId will replace
         // the callback, but won't trigger the initial callback.onChildrenLoaded.
+        // TODO(mangini): before publishing, check if go/ag/609270 has been publicly released.
+        // If yes, the unsubscribe below and the comment above can be removed.
         mSupportActivity.getMediaBrowser().unsubscribe(mMediaId);
 
         mSupportActivity.getMediaBrowser().subscribe(mMediaId, mSubscriptionCallback);
@@ -240,8 +243,10 @@ public class MediaBrowserFragment extends Fragment {
                 mediaBrowser.unsubscribe(parentId);
                 mediaBrowser.subscribe(parentId, new MediaBrowser.SubscriptionCallback() {
                     @Override
-                    public void onChildrenLoaded(String parentId, List<MediaBrowser.MediaItem> children) {
-                        LogHelper.d(TAG, "Got ", children.size(), " children for ", parentId, ". Looking for ", mMediaId);
+                    public void onChildrenLoaded(String parentId,
+                             List<MediaBrowser.MediaItem> children) {
+                        LogHelper.d(TAG, "Got ", children.size(), " children for ", parentId,
+                            ". Looking for ", mMediaId);
                         for (MediaBrowser.MediaItem item: children) {
                             LogHelper.d(TAG, "child ", item.getMediaId());
                             if (item.getMediaId().equals(mMediaId)) {

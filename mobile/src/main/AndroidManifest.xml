@@ -42,7 +42,7 @@
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
-        <!-- Main activity for local mobile UI -->
+        <!-- Main activity for music browsing on phone -->
         <activity
             android:name=".ui.MusicPlayerActivity"
             android:label="@string/app_name">

@@ -15,7 +15,6 @@
  */
 package com.example.android.uamp.ui;
 
-import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.ComponentName;
 import android.content.Intent;
@@ -25,9 +24,9 @@ import android.media.session.MediaController;
 import android.media.session.PlaybackState;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.text.TextUtils;
 
 import com.example.android.uamp.MusicService;
-import com.example.android.uamp.Playback;
 import com.example.android.uamp.R;
 import com.example.android.uamp.utils.LogHelper;
 
@@ -46,7 +45,6 @@ public class MusicPlayerActivity extends ActionBarCastActivity
 
     private MediaBrowser mMediaBrowser;
 
-    private String mMediaId;
     private String mSearchQuery;
 
     @Override
@@ -54,27 +52,14 @@ public class MusicPlayerActivity extends ActionBarCastActivity
         super.onCreate(savedInstanceState);
         LogHelper.d(TAG, "Activity onCreate");
 
-        bootstrapFromParameters(savedInstanceState);
-
         setContentView(R.layout.activity_player);
 
-        mMediaBrowser = new MediaBrowser(this,
-                new ComponentName(this, MusicService.class),
-                mConnectionCallback, null);
-
-        if (savedInstanceState == null) {
-            navigateToBrowser(mMediaId);
-        }
-
         initializeToolbar();
-    }
+        initializeFromParams(savedInstanceState);
 
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        if (mMediaId != null) {
-            outState.putString(SAVED_MEDIA_ID, mMediaId);
-        }
-        super.onSaveInstanceState(outState);
+        mMediaBrowser = new MediaBrowser(this,
+            new ComponentName(this, MusicService.class),
+            mConnectionCallback, null);
     }
 
     @Override
@@ -82,6 +67,15 @@ public class MusicPlayerActivity extends ActionBarCastActivity
         super.onStart();
         LogHelper.d(TAG, "Activity onStart");
         mMediaBrowser.connect();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        String mediaId = getMediaId();
+        if (mediaId != null) {
+            outState.putString(SAVED_MEDIA_ID, mediaId);
+        }
+        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -94,48 +88,6 @@ public class MusicPlayerActivity extends ActionBarCastActivity
         if (getMediaController() != null) {
             getMediaController().unregisterCallback(mMediaControllerCallback);
         }
-    }
-
-    protected void bootstrapFromParameters(Bundle savedInstanceState) {
-        if (savedInstanceState != null) {
-            // If there is a saved media ID, use it
-            mMediaId = savedInstanceState.getString(SAVED_MEDIA_ID);
-        } else {
-            // Instead, check if we were started from a "Play XYZ" voice search
-            Intent intent = this.getIntent();
-            if (intent.getAction() != null
-                    && intent.getAction().equals(MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH)
-                    && intent.hasExtra(EXTRA_PLAY_QUERY)) {
-                LogHelper.d(TAG, "Starting from play query=", mSearchQuery);
-                mSearchQuery = intent.getStringExtra(EXTRA_PLAY_QUERY);
-            }
-        }
-    }
-
-    protected void showPlaybackControls() {
-        LogHelper.d(TAG, "showPlaybackControls");
-        PlaybackControlsFragment controlsFragment = (PlaybackControlsFragment)
-                getFragmentManager().findFragmentById(R.id.controls);
-        if (controlsFragment == null) {
-            PlaybackControlsFragment fragment = new PlaybackControlsFragment();
-            getFragmentManager().beginTransaction()
-                    .replace(R.id.controls, fragment)
-                    .commit();
-        }
-    }
-
-    protected void navigateToBrowser(String mediaId) {
-        LogHelper.d(TAG, "navigateToBrowser, mediaId=" + mediaId);
-        this.mMediaId = mediaId;
-        MediaBrowserFragment fragment = new MediaBrowserFragment();
-        fragment.setMediaId(mediaId);
-        FragmentTransaction transaction = getFragmentManager().beginTransaction();
-        transaction.replace(R.id.container, fragment);
-        if (mediaId != null) {
-            transaction.addToBackStack(null);
-        }
-        transaction.commit();
-//        getSupportActionBar().setHomeButtonEnabled(mediaId == null);
     }
 
     @Override
@@ -153,17 +105,75 @@ public class MusicPlayerActivity extends ActionBarCastActivity
     }
 
     @Override
-    public MediaBrowser getMediaBrowser() {
-        return mMediaBrowser;
-    }
-
-    @Override
     public void setToolbarTitle(CharSequence title) {
         LogHelper.d(TAG, "Setting toolbar title to ", title);
         if (title == null) {
             title = getString(R.string.app_name);
         }
         setTitle(title);
+    }
+
+    @Override
+    public MediaBrowser getMediaBrowser() {
+        return mMediaBrowser;
+    }
+
+    protected void initializeFromParams(Bundle savedInstanceState) {
+        String mediaId = null;
+        // check if we were started from a "Play XYZ" voice search
+        Intent intent = this.getIntent();
+        if (intent.getAction() != null
+            && intent.getAction().equals(MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH)
+            && intent.hasExtra(EXTRA_PLAY_QUERY)) {
+            LogHelper.d(TAG, "Starting from play query=", mSearchQuery);
+            mSearchQuery = intent.getStringExtra(EXTRA_PLAY_QUERY);
+        } else {
+            if (savedInstanceState != null) {
+                // If there is a saved media ID, use it
+                mediaId = savedInstanceState.getString(SAVED_MEDIA_ID);
+            }
+        }
+        navigateToBrowser(mediaId);
+    }
+
+    protected void showPlaybackControls() {
+        LogHelper.d(TAG, "showPlaybackControls");
+        PlaybackControlsFragment controlsFragment = (PlaybackControlsFragment)
+            getFragmentManager().findFragmentById(R.id.controls);
+        if (controlsFragment == null) {
+            PlaybackControlsFragment fragment = new PlaybackControlsFragment();
+            getFragmentManager().beginTransaction()
+                .replace(R.id.controls, fragment)
+                .commit();
+        }
+    }
+
+    protected void navigateToBrowser(String mediaId) {
+        LogHelper.d(TAG, "navigateToBrowser, mediaId=" + mediaId);
+        MediaBrowserFragment fragment = getBrowseFragment();
+
+        if (fragment == null || !TextUtils.equals(fragment.getMediaId(), mediaId)) {
+            fragment = new MediaBrowserFragment();
+            fragment.setMediaId(mediaId);
+            FragmentTransaction transaction = getFragmentManager().beginTransaction();
+            transaction.replace(R.id.container, fragment);
+            if (mediaId != null) {
+                transaction.addToBackStack(null);
+            }
+            transaction.commit();
+        }
+    }
+
+    public String getMediaId() {
+        MediaBrowserFragment fragment = getBrowseFragment();
+        if (fragment == null) {
+            return null;
+        }
+        return fragment.getMediaId();
+    }
+
+    private MediaBrowserFragment getBrowseFragment() {
+        return (MediaBrowserFragment) getFragmentManager().findFragmentById(R.id.container);
     }
 
     private MediaBrowser.ConnectionCallback mConnectionCallback =
@@ -180,10 +190,7 @@ public class MusicPlayerActivity extends ActionBarCastActivity
                     MusicPlayerActivity.this, mMediaBrowser.getSessionToken());
             setMediaController(mediaController);
             mediaController.registerCallback(mMediaControllerCallback);
-            // Fire the onConnected() callback on the fragment.
-            MediaBrowserFragment fragment =
-                    (MediaBrowserFragment) getFragmentManager().findFragmentById(R.id.container);
-            fragment.onConnected();
+            getBrowseFragment().onConnected();
 
             PlaybackControlsFragment playbackFragment = (PlaybackControlsFragment)
                     getFragmentManager().findFragmentById(R.id.controls);
