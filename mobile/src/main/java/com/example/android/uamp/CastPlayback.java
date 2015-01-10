@@ -133,7 +133,11 @@ public class CastPlayback implements Playback {
         // This can happen when the app was either restarted/diconnected + connected, or if the
         // app joins an existing session while the Chromecast was playing a queue.
         try {
-            JSONObject customData = mCastManager.getRemoteMediaInformation().getCustomData();
+            MediaInfo mediaInfo = mCastManager.getRemoteMediaInformation();
+            if (mediaInfo == null) {
+                return;
+            }
+            JSONObject customData = mediaInfo.getCustomData();
 
             if (customData != null && customData.has(ITEM_ID)) {
                 String remoteMediaId = customData.getString(ITEM_ID);
