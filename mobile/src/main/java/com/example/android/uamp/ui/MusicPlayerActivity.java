@@ -196,6 +196,10 @@ public class MusicPlayerActivity extends ActionBarCastActivity
                     getFragmentManager().findFragmentById(R.id.controls);
             if (playbackFragment != null) {
                 playbackFragment.onConnected();
+            } else if (mediaController.getMetadata() != null) { // && playbackFragment == null
+                // Fragment is null but the mediaController has metadata. This indicates
+                // that we should show the controls fragment.
+                showPlaybackControls();
             }
 
             if (mSearchQuery != null) {
