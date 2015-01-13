@@ -583,6 +583,9 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
         LogHelper.d(TAG, "handlePauseRequest: mState=" + mState);
         mPlayback.setState(mState);
         mPlayback.pause();
+        // reset the delayed stop handler.
+        mDelayedStopHandler.removeCallbacksAndMessages(null);
+        mDelayedStopHandler.sendEmptyMessageDelayed(0, STOP_DELAY);
     }
 
     /**
