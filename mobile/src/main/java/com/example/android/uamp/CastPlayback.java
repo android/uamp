@@ -222,7 +222,7 @@ public class CastPlayback implements Playback {
             JSONObject customData = new JSONObject();
             customData.put(ITEM_ID, mediaId);
             MediaInfo media = toCastMediaMetadata(track, customData);
-            mCastManager.loadMedia(media, true, (int)mCurrentPosition, customData);
+            mCastManager.loadMedia(media, true, mCurrentPosition, customData);
             mState = PlaybackState.STATE_BUFFERING;
             mCallback.onPlaybackStatusChanged(mState);
         } catch (TransientNetworkDisconnectionException | NoConnectionException | JSONException e) {
