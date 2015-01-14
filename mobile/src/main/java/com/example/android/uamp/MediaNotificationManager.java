@@ -94,6 +94,10 @@ public class MediaNotificationManager extends BroadcastReceiver {
         openUI.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         mContentIntent = PendingIntent.getActivity(mService, 100, openUI,
                 PendingIntent.FLAG_CANCEL_CURRENT);
+
+        // Cancel all notifications to handle the case where the Service was killed and
+        // restarted by the system.
+        mNotificationManager.cancelAll();
     }
 
     protected int getNotificationColor() {
