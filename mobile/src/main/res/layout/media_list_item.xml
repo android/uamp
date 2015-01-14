@@ -45,7 +45,8 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/margin_text_view"
             android:layout_marginTop="@dimen/margin_text_view"
-            android:textAppearance="?android:attr/textAppearanceMedium"/>
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textColor="?android:attr/textColorPrimary"/>
 
         <TextView
             android:id="@+id/description"
@@ -54,7 +55,8 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/margin_text_view"
             android:layout_marginTop="@dimen/margin_text_view"
-            android:textAppearance="?android:attr/textAppearanceSmall"/>
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="?android:attr/textColorSecondary"/>
 
     </LinearLayout>
 
