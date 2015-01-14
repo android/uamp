@@ -40,13 +40,17 @@
             tools:text="The Best Music EVAH1111"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:contentDescription="@string/currently_playing_song" />
+            android:contentDescription="@string/currently_playing_song"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textColor="?android:attr/textColorPrimary"/>
         <TextView
             android:id="@+id/artist"
             tools:text="John Doe and Band"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:contentDescription="@string/currently_playing_artist" />
+            android:contentDescription="@string/currently_playing_artist"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="?android:attr/textColorSecondary"/>
     </LinearLayout>
 
     <ImageButton
