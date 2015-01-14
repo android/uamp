@@ -16,10 +16,9 @@
 <android.support.v7.widget.Toolbar
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="?attr/actionBarSize"
     android:layout_alignParentLeft="true"
     android:layout_alignParentTop="true"
     android:background="?attr/colorPrimary"
-    android:minHeight="?attr/actionBarSize"
     android:popupTheme="@style/ThemeOverlay.AppCompat.Light"
     android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"/>
