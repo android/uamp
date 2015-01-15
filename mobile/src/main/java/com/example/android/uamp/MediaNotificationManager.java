@@ -139,7 +139,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
 
             mStarted = true;
             // The notification must be updated after setting started to true
-            updateNotificationMetadata();
+            updateNotification();
             mService.startForeground(NOTIFICATION_ID, mNotificationBuilder.build());
         }
     }
@@ -200,7 +200,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
         public void onPlaybackStateChanged(PlaybackState state) {
             mPlaybackState = state;
             LogHelper.d(TAG, "Received new playback state", state);
-            updateNotificationPlaybackState();
+            updateNotification();
             mNotificationManager.notify(NOTIFICATION_ID, mNotificationBuilder.build());
         }
 
@@ -208,7 +208,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
         public void onMetadataChanged(MediaMetadata metadata) {
             mMetadata = metadata;
             LogHelper.d(TAG, "Received new metadata ", metadata);
-            updateNotificationMetadata();
+            updateNotification();
             mNotificationManager.notify(NOTIFICATION_ID, mNotificationBuilder.build());
         }
 
@@ -220,7 +220,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
         }
     };
 
-    private void updateNotificationMetadata() {
+    private void updateNotification() {
         LogHelper.d(TAG, "updateNotificationMetadata. mMetadata=" + mMetadata);
         if (mMetadata == null || mPlaybackState == null) {
             return;
@@ -333,8 +333,6 @@ public class MediaNotificationManager extends BroadcastReceiver {
                     .setShowWhen(false)
                     .setUsesChronometer(false);
         }
-
-        updatePlayPauseAction();
 
         // Make sure that the notification can be dismissed by the user when we are not playing:
         mNotificationBuilder.setOngoing(mPlaybackState.getState() == PlaybackState.STATE_PLAYING);
