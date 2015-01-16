@@ -120,6 +120,11 @@
             </intent-filter>
         </service>
 
+        <!-- Service that keeps track of reconnecting to Cast when wifi is enabled. -->
+        <service
+            android:name=
+                "com.google.sample.castcompanionlibrary.cast.reconnection.ReconnectionService"/>
+
         <activity android:name=".hardware.DemoKitActivity" >
             <intent-filter>
                 <action android:name="android.hardware.usb.action.USB_ACCESSORY_ATTACHED" />
