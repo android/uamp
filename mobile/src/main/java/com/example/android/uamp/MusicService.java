@@ -269,7 +269,6 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
     @Override
     public void onDestroy() {
         LogHelper.d(TAG, "onDestroy");
-
         // Service is being killed, so make sure we release our resources
         handleStopRequest(null);
         if (mPlayback != null) {
@@ -279,7 +278,7 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
         mCastManager.removeVideoCastConsumer(mCastConsumer);
 
         mDelayedStopHandler.removeCallbacksAndMessages(null);
-        // In particular, always release the MediaSession to clean up resources
+        // Always release the MediaSession to clean up resources
         // and notify associated MediaController(s).
         mSession.release();
     }
@@ -604,8 +603,6 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
 
         updatePlaybackState(withError);
 
-        mMediaNotificationManager.stopNotification();
-
         // service is no longer necessary. Will be started again if needed.
         stopSelf();
         mServiceStarted = false;
@@ -811,8 +808,6 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
         }
         mPlayback.setCurrentStreamPosition(pos);
         mPlayback.setCurrentMediaId(currentMediaId);
-        // TODO(nageshs)-- Handle joining of cast session here. We should not
-        // play if we are joining a session. Instead simply pause locally
         if (isPlaying) {
             if (QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, mPlayingQueue)) {
                 mPlayback.play(mPlayingQueue.get(mCurrentIndexOnQueue));
