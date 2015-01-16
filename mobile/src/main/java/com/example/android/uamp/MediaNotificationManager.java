@@ -149,15 +149,17 @@ public class MediaNotificationManager extends BroadcastReceiver {
      * was destroyed this has no effect.
      */
     public void stopNotification() {
-        mStarted = false;
-        mController.unregisterCallback(mCb);
-        try {
-            mNotificationManager.cancel(NOTIFICATION_ID);
-            mService.unregisterReceiver(this);
-        } catch (IllegalArgumentException ex) {
-            // ignore if the receiver is not registered.
+        if (mStarted) {
+            mStarted = false;
+            mController.unregisterCallback(mCb);
+            try {
+                mNotificationManager.cancel(NOTIFICATION_ID);
+                mService.unregisterReceiver(this);
+            } catch (IllegalArgumentException ex) {
+                // ignore if the receiver is not registered.
+            }
+            mService.stopForeground(true);
         }
-        mService.stopForeground(true);
     }
 
     @Override
@@ -200,8 +202,12 @@ public class MediaNotificationManager extends BroadcastReceiver {
         public void onPlaybackStateChanged(PlaybackState state) {
             mPlaybackState = state;
             LogHelper.d(TAG, "Received new playback state", state);
-            updateNotification();
-            mNotificationManager.notify(NOTIFICATION_ID, mNotificationBuilder.build());
+            if (state != null && state.getState() == PlaybackState.STATE_STOPPED) {
+                stopNotification();
+            } else {
+                updateNotification();
+                mNotificationManager.notify(NOTIFICATION_ID, mNotificationBuilder.build());
+            }
         }
 
         @Override
