@@ -20,14 +20,13 @@ import android.content.Context;
 
 import com.google.sample.castcompanionlibrary.cast.VideoCastManager;
 
+import static com.google.sample.castcompanionlibrary.cast.BaseCastManager.FEATURE_DEBUGGING;
+import static com.google.sample.castcompanionlibrary.cast.BaseCastManager.FEATURE_WIFI_RECONNECT;
+
 /**
  * The {@link Application} for the uAmp application.
  */
 public class UAMPApplication extends Application {
-
-    // Not used for now but will be re-instated when we start using a custom
-    // receiver.
-    public static final String CAST_NAMESPACE = "urn:x-cast:com.example.android.uamp.playlist";
 
     private String applicationId;
 
@@ -50,9 +49,7 @@ public class UAMPApplication extends Application {
             if (mCastManager == null) {
                 mCastManager =
                         VideoCastManager.initialize(context, applicationId, null, null);
-                mCastManager.enableFeatures(
-                        VideoCastManager.FEATURE_WIFI_RECONNECT |
-                        VideoCastManager.FEATURE_DEBUGGING);
+                mCastManager.enableFeatures(FEATURE_WIFI_RECONNECT | FEATURE_DEBUGGING);
             }
         }
         mCastManager.setContext(context);
