@@ -136,7 +136,7 @@ public class MusicPlayerActivity extends ActionBarCastActivity
         navigateToBrowser(mediaId);
     }
 
-    protected void showPlaybackControls() {
+    private void showPlaybackControls() {
         LogHelper.d(TAG, "showPlaybackControls");
         PlaybackControlsFragment controlsFragment = (PlaybackControlsFragment)
             getFragmentManager().findFragmentById(R.id.controls);
@@ -148,7 +148,18 @@ public class MusicPlayerActivity extends ActionBarCastActivity
         }
     }
 
-    protected void navigateToBrowser(String mediaId) {
+    private void hidePlaybackControls() {
+        LogHelper.d(TAG, "hidePlaybackControls");
+        PlaybackControlsFragment controlsFragment = (PlaybackControlsFragment)
+                getFragmentManager().findFragmentById(R.id.controls);
+        if (controlsFragment != null) {
+            getFragmentManager().beginTransaction()
+                    .remove(controlsFragment)
+                    .commit();
+        }
+    }
+
+    private void navigateToBrowser(String mediaId) {
         LogHelper.d(TAG, "navigateToBrowser, mediaId=" + mediaId);
         MediaBrowserFragment fragment = getBrowseFragment();
 
@@ -192,14 +203,16 @@ public class MusicPlayerActivity extends ActionBarCastActivity
             mediaController.registerCallback(mMediaControllerCallback);
             getBrowseFragment().onConnected();
 
+            if (mediaController.getMetadata() != null) {
+                showPlaybackControls();
+            } else {
+                hidePlaybackControls();
+            }
+
             PlaybackControlsFragment playbackFragment = (PlaybackControlsFragment)
                     getFragmentManager().findFragmentById(R.id.controls);
             if (playbackFragment != null) {
                 playbackFragment.onConnected();
-            } else if (mediaController.getMetadata() != null) { // && playbackFragment == null
-                // Fragment is null but the mediaController has metadata. This indicates
-                // that we should show the controls fragment.
-                showPlaybackControls();
             }
 
             if (mSearchQuery != null) {
@@ -234,12 +247,18 @@ public class MusicPlayerActivity extends ActionBarCastActivity
             if (state != null && state.getState() != PlaybackState.STATE_NONE &&
                     state.getState() != PlaybackState.STATE_STOPPED) {
                 showPlaybackControls();
+            } else {
+                hidePlaybackControls();
             }
         }
 
         @Override
         public void onMetadataChanged(MediaMetadata metadata) {
-            showPlaybackControls();
+            if (metadata != null) {
+                showPlaybackControls();
+            } else {
+                hidePlaybackControls();
+            }
         }
     };
 }
