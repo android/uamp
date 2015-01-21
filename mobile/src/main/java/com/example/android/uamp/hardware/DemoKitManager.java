@@ -270,7 +270,7 @@ public class DemoKitManager implements Runnable {
         }
     };
 
-    public void sendCommand(byte command, byte target, int value) {
+    public void sendCommand(byte command, byte target, int value) throws IOException {
         byte[] buffer = new byte[3];
         if (value > 255)
             value = 255;
@@ -279,11 +279,7 @@ public class DemoKitManager implements Runnable {
         buffer[1] = target;
         buffer[2] = (byte) value;
         if (mOutputStream != null && buffer[1] != -1) {
-            try {
-                mOutputStream.write(buffer);
-            } catch (IOException e) {
-                Log.e(TAG, "write failed", e);
-            }
+            mOutputStream.write(buffer);
         }
     }
 

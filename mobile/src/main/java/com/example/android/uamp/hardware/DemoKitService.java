@@ -13,7 +13,6 @@ import android.media.MediaMetadata;
 import android.media.browse.MediaBrowser;
 import android.media.session.MediaController;
 import android.media.session.PlaybackState;
-import android.os.Handler;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.util.Log;
@@ -22,25 +21,26 @@ import android.widget.SeekBar;
 import com.example.android.uamp.MusicService;
 import com.example.android.uamp.utils.LogHelper;
 
-import java.util.Timer;
-import java.util.TimerTask;
+import java.io.IOException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 public class DemoKitService extends Service {
     private static final String TAG = LogHelper.makeLogTag(DemoKitService.class);
 
-    public static final String EXTRA_USB_ACCESSORY = "com.example.android.uamp.hardware.USB_ACCESSORY";
+    public static final String EXTRA_USB_ACCESSORY =
+        "com.example.android.uamp.hardware.USB_ACCESSORY";
 
     private DemoKitManager mManager;
     private MediaBrowser mMediaBrowser;
     private MediaController mMediaController;
     private PlaybackState mState;
     private ScheduledExecutorService mScheduler;
+    private ScheduledFuture<?> mScheduledFuture;
 
     private long mCurrentMusicDuration = -1;
-    private long mLastPosition = -1;
 
     private byte mCurrentLed = 0;
 
@@ -50,14 +50,10 @@ public class DemoKitService extends Service {
             String action = intent.getAction();
             if (UsbManager.ACTION_USB_ACCESSORY_DETACHED.equals(action)) {
                 Log.d(TAG, "Accessory detached");
-                if (mManager != null) {
-                    mManager.closeAccessory();
-                }
-                stopForeground(true);
+                stopSelf();
             }
         }
     };
-
 
     public DemoKitService() {
     }
@@ -135,6 +131,12 @@ public class DemoKitService extends Service {
     public void onDestroy() {
         super.onDestroy();
         LogHelper.d(TAG, "Destroying service");
+        if (mMediaController != null && mMediaCallback != null) {
+            mMediaController.unregisterCallback(mMediaCallback);
+        }
+        if (mMediaBrowser != null && mMediaBrowser.isConnected()) {
+            mMediaBrowser.disconnect();
+        }
         if (mScheduler != null && !mScheduler.isShutdown()) {
             mScheduler.shutdownNow();
         }
@@ -157,18 +159,20 @@ public class DemoKitService extends Service {
     }
 
     public void startPositionTrackerTask() {
-        if (mScheduler == null) {
+        if (mScheduler == null || mScheduler.isShutdown()) {
             mScheduler = Executors.newSingleThreadScheduledExecutor();
-        } else {
-            mScheduler.shutdownNow();
         }
-        mScheduler.scheduleAtFixedRate(new Runnable() {
+        if (mScheduledFuture != null) {
+            mScheduledFuture.cancel(true);
+        }
+
+        mScheduledFuture = mScheduler.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                LogHelper.d(TAG, "positionTrackerTask, mLastPosition=", mLastPosition,
+                LogHelper.d(TAG, "positionTrackerTask, ",
                     " mState = ", mState, " mCurrentMusicDuration=", mCurrentMusicDuration);
                 // cycle over LEDs:
-                mCurrentLed = (byte) (( mCurrentLed + 1 ) % 3);
+                mCurrentLed = (byte) ((mCurrentLed + 1) % 3);
                 setLed();
 
                 if (mState != null && mState.getState() == PlaybackState.STATE_PAUSED) {
@@ -208,7 +212,11 @@ public class DemoKitService extends Service {
         byte v = (byte) (value * 255);
         int servoNumber = 0;  // 0, 1 or 2
         byte commandTarget = (byte) (servoNumber + 0x10);
-        mManager.sendCommand(mManager.LED_SERVO_COMMAND, commandTarget, v);
+        try {
+            mManager.sendCommand(mManager.LED_SERVO_COMMAND, commandTarget, v);
+        } catch (IOException ex) {
+            LogHelper.w(TAG, "could not send command to UsbAccessory device", ex);
+        }
     }
 
     private void setLed() {
@@ -243,13 +251,39 @@ public class DemoKitService extends Service {
 
         LogHelper.d(TAG, "setLed, currentLed=", currentLed);
 
-        for (int color = 0; color<3; color++) {
-            mManager.sendCommand(DemoKitManager.LED_SERVO_COMMAND, (byte) (((currentLed + 1) % 3 ) * 3 + color), value2[color]);
-            mManager.sendCommand(DemoKitManager.LED_SERVO_COMMAND, (byte) (((currentLed + 2) % 3 ) * 3 + color), value1[color]);
-            mManager.sendCommand(DemoKitManager.LED_SERVO_COMMAND, (byte) (currentLed * 3 + color), maxValue[color]);
+        for (int color = 0; color < 3; color++) {
+            try {
+                mManager.sendCommand(DemoKitManager.LED_SERVO_COMMAND,
+                    (byte) (((currentLed + 1) % 3) * 3 + color), value2[color]);
+                mManager.sendCommand(DemoKitManager.LED_SERVO_COMMAND,
+                    (byte) (((currentLed + 2) % 3) * 3 + color), value1[color]);
+                mManager.sendCommand(DemoKitManager.LED_SERVO_COMMAND,
+                    (byte) (currentLed * 3 + color), maxValue[color]);
+            } catch (IOException ex) {
+                LogHelper.i(TAG, "Temporarily unable to send command to UsbAccessory device. ",
+                    ex.getMessage());
+            }
         }
 
     }
+
+    private final MediaController.Callback mMediaCallback = new MediaController.Callback() {
+        @Override
+        public void onPlaybackStateChanged(PlaybackState state) {
+            super.onPlaybackStateChanged(state);
+            LogHelper.d(TAG, "onPlaybackStateChanged: state=", state);
+            mState = state;
+            setLed();
+        }
+
+        @Override
+        public void onMetadataChanged(MediaMetadata metadata) {
+            super.onMetadataChanged(metadata);
+            LogHelper.d(TAG, "onMetadataChanged: metadata=", metadata);
+            mCurrentMusicDuration = metadata.getLong(
+                MediaMetadata.METADATA_KEY_DURATION);
+        }
+    };
 
     private MediaBrowser.ConnectionCallback mConnectionCallback =
         new MediaBrowser.ConnectionCallback() {
@@ -263,23 +297,12 @@ public class DemoKitService extends Service {
 
                 mMediaController = new MediaController(
                     DemoKitService.this, mMediaBrowser.getSessionToken());
-                mMediaController.registerCallback(new MediaController.Callback() {
-                    @Override
-                    public void onPlaybackStateChanged(PlaybackState state) {
-                        super.onPlaybackStateChanged(state);
-                        LogHelper.d(TAG, "onPlaybackStateChanged: state=", state);
-                        mState = state;
-                        setLed();
-                    }
 
-                    @Override
-                    public void onMetadataChanged(MediaMetadata metadata) {
-                        super.onMetadataChanged(metadata);
-                        LogHelper.d(TAG, "onMetadataChanged: metadata=", metadata);
-                        mCurrentMusicDuration = metadata.getLong(
-                            MediaMetadata.METADATA_KEY_DURATION);
-                    }
-                });
+                mState = mMediaController.getPlaybackState();
+                mCurrentMusicDuration = mMediaController.getMetadata().getLong(
+                    MediaMetadata.METADATA_KEY_DURATION);
+
+                mMediaController.registerCallback(mMediaCallback);
 
                 startPositionTrackerTask();
 
