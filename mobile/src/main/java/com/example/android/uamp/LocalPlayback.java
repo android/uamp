@@ -27,7 +27,6 @@ import android.media.session.PlaybackState;
 import android.net.wifi.WifiManager;
 import android.os.PowerManager;
 import android.text.TextUtils;
-import android.widget.Toast;
 
 import com.example.android.uamp.model.MusicProvider;
 import com.example.android.uamp.utils.LogHelper;
@@ -54,6 +53,13 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
     // The volume we set the media player when we have audio focus.
     public static final float VOLUME_NORMAL = 1.0f;
 
+    // we don't have audio focus, and can't duck (play at a low volume)
+    private static final int AUDIO_NO_FOCUS_NO_DUCK = 0;
+    // we don't have focus, but can duck (play at a low volume)
+    private static final int AUDIO_NO_FOCUS_CAN_DUCK = 1;
+    // we have full audio focus
+    private static final int AUDIO_FOCUSED  = 2;
+
     private final MusicService mService;
     private final WifiManager.WifiLock mWifiLock;
     private int mState;
@@ -64,15 +70,8 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
     private volatile int mCurrentPosition;
     private volatile String mCurrentMediaId;
 
-    enum AudioFocus {
-        NoFocusNoDuck, // we don't have audio focus, and can't duck
-        NoFocusCanDuck, // we don't have focus, but can play at a low volume
-        // ("ducking")
-        Focused // we have full audio focus
-    }
-
     // Type of audio focus we have:
-    private AudioFocus mAudioFocus = AudioFocus.NoFocusNoDuck;
+    private int mAudioFocus = AUDIO_NO_FOCUS_NO_DUCK;
     private AudioManager mAudioManager;
     private MediaPlayer mMediaPlayer;
 
@@ -108,9 +107,11 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
     }
 
     @Override
-    public void stop() {
+    public void stop(boolean notifyListeners) {
         mState = PlaybackState.STATE_STOPPED;
-        mCallback.onPlaybackStatusChanged(mState);
+        if (notifyListeners && mCallback != null) {
+            mCallback.onPlaybackStatusChanged(mState);
+        }
         mCurrentPosition = getCurrentStreamPosition();
         // Give up Audio focus
         giveUpAudioFocus();
@@ -154,12 +155,13 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
         tryToGetAudioFocus();
         registerAudioNoisyReceiver();
         String mediaId = item.getDescription().getMediaId();
-        if (!TextUtils.equals(mediaId, mCurrentMediaId)) {
+        boolean mediaHasChanged = !TextUtils.equals(mediaId, mCurrentMediaId);
+        if (mediaHasChanged) {
             mCurrentPosition = 0;
             mCurrentMediaId = mediaId;
         }
 
-        if (mState == PlaybackState.STATE_PAUSED) {
+        if (mState == PlaybackState.STATE_PAUSED && !mediaHasChanged && mMediaPlayer != null) {
             configMediaPlayerState();
         } else {
             mState = PlaybackState.STATE_STOPPED;
@@ -189,11 +191,15 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
                 // sleep while the song is playing.
                 mWifiLock.acquire();
 
-                mCallback.onPlaybackStatusChanged(mState);
+                if (mCallback != null) {
+                    mCallback.onPlaybackStatusChanged(mState);
+                }
 
             } catch (IOException ex) {
                 LogHelper.e(TAG, ex, "Exception playing song");
-                mCallback.onError(ex.getMessage());
+                if (mCallback != null) {
+                    mCallback.onError(ex.getMessage());
+                }
             }
         }
     }
@@ -202,7 +208,6 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
     public void pause() {
         if (mState == PlaybackState.STATE_PLAYING) {
             // Pause media player and cancel the 'foreground service' state.
-            mState = PlaybackState.STATE_PAUSED;
             if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
                 mMediaPlayer.pause();
                 mCurrentPosition = mMediaPlayer.getCurrentPosition();
@@ -211,16 +216,11 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
             relaxResources(false);
             giveUpAudioFocus();
         }
-        mCallback.onPlaybackStatusChanged(mState);
-        unregisterAudioNoisyReceiver();
-    }
-
-    @Override
-    public void togglePlayback() {
-        tryToGetAudioFocus();
-        if (mState == PlaybackState.STATE_PAUSED) {
-            configMediaPlayerState();
+        mState = PlaybackState.STATE_PAUSED;
+        if (mCallback != null) {
+            mCallback.onPlaybackStatusChanged(mState);
         }
+        unregisterAudioNoisyReceiver();
     }
 
     @Override
@@ -248,11 +248,11 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
      */
     private void tryToGetAudioFocus() {
         LogHelper.d(TAG, "tryToGetAudioFocus");
-        if (mAudioFocus != AudioFocus.Focused) {
+        if (mAudioFocus != AUDIO_FOCUSED) {
             int result = mAudioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC,
                     AudioManager.AUDIOFOCUS_GAIN);
             if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-                mAudioFocus = AudioFocus.Focused;
+                mAudioFocus = AUDIO_FOCUSED;
             }
         }
     }
@@ -262,10 +262,9 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
      */
     private void giveUpAudioFocus() {
         LogHelper.d(TAG, "giveUpAudioFocus");
-        if (mAudioFocus == AudioFocus.Focused) {
-            if (mAudioManager.abandonAudioFocus(this) ==
-                    AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-                mAudioFocus = AudioFocus.NoFocusNoDuck;
+        if (mAudioFocus == AUDIO_FOCUSED) {
+            if (mAudioManager.abandonAudioFocus(this) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+                mAudioFocus = AUDIO_NO_FOCUS_NO_DUCK;
             }
         }
     }
@@ -282,13 +281,13 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
      */
     private void configMediaPlayerState() {
         LogHelper.d(TAG, "configMediaPlayerState. mAudioFocus=", mAudioFocus);
-        if (mAudioFocus == AudioFocus.NoFocusNoDuck) {
+        if (mAudioFocus == AUDIO_NO_FOCUS_NO_DUCK) {
             // If we don't have audio focus and can't duck, we have to pause,
             if (mState == PlaybackState.STATE_PLAYING) {
                 pause();
             }
         } else {  // we have audio focus:
-            if (mAudioFocus == AudioFocus.NoFocusCanDuck) {
+            if (mAudioFocus == AUDIO_NO_FOCUS_CAN_DUCK) {
                 mMediaPlayer.setVolume(VOLUME_DUCK, VOLUME_DUCK); // we'll be relatively quiet
             } else {
                 if (mMediaPlayer != null) {
@@ -298,7 +297,8 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
             // If we were playing when we lost focus, we need to resume playing.
             if (mPlayOnFocusGain) {
                 if (mMediaPlayer != null && !mMediaPlayer.isPlaying()) {
-                    LogHelper.d(TAG, "configMediaPlayerState startMediaPlayer. seeking to ", mCurrentPosition);
+                    LogHelper.d(TAG,"configMediaPlayerState startMediaPlayer. seeking to ",
+                        mCurrentPosition);
                     // TODO(nageshs): Ideally only a seekTo(pos) should've worked but for some
                     // reason calling seekTo(X) on an existing mediaPlayer instance that has not
                     // been reset causes the stream to play from somewhere in the begining!
@@ -312,7 +312,9 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
                 mState = PlaybackState.STATE_PLAYING;
             }
         }
-        mCallback.onPlaybackStatusChanged(mState);
+        if (mCallback != null) {
+            mCallback.onPlaybackStatusChanged(mState);
+        }
     }
 
     /**
@@ -324,7 +326,7 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
         LogHelper.d(TAG, "onAudioFocusChange. focusChange=", focusChange);
         if (focusChange == AudioManager.AUDIOFOCUS_GAIN) {
             // We have gained focus:
-            mAudioFocus = AudioFocus.Focused;
+            mAudioFocus = AUDIO_FOCUSED;
 
         } else if (focusChange == AudioManager.AUDIOFOCUS_LOSS ||
                 focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT ||
@@ -332,7 +334,7 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
             // We have lost focus. If we can duck (low playback volume), we can keep playing.
             // Otherwise, we need to pause the playback.
             boolean canDuck = focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK;
-            mAudioFocus = canDuck ? AudioFocus.NoFocusCanDuck : AudioFocus.NoFocusNoDuck;
+            mAudioFocus = canDuck ? AUDIO_NO_FOCUS_CAN_DUCK : AUDIO_NO_FOCUS_NO_DUCK;
 
             // If we are playing, we need to reset media player by calling configMediaPlayerState
             // with mAudioFocus properly set.
@@ -369,7 +371,9 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
         LogHelper.d(TAG, "onCompletion from MediaPlayer");
         // The media player finished playing the current song, so we go ahead
         // and start the next.
-        mCallback.onCompletion();
+        if (mCallback != null) {
+            mCallback.onCompletion();
+        }
     }
 
     /**
@@ -395,7 +399,9 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
     @Override
     public boolean onError(MediaPlayer mp, int what, int extra) {
         LogHelper.e(TAG, "Media player error: what=" + what + ", extra=" + extra);
-        mCallback.onError("MediaPlayer error " + what + " (" + extra + ")");
+        if (mCallback != null) {
+            mCallback.onError("MediaPlayer error " + what + " (" + extra + ")");
+        }
         return true; // true indicates we handled the error
     }
 

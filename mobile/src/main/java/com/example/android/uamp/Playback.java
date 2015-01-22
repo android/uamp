@@ -32,8 +32,11 @@ public interface Playback {
 
     /**
      * Stop the playback. All resources can be de-allocated by implementations here.
+     * @param notifyListeners if true and a callback has been set by setCallback,
+     *                        callback.onPlaybackStatusChanged will be called after changing
+     *                        the state.
      */
-    void stop();
+    void stop(boolean notifyListeners);
 
     /**
      * Set the latest playback state as determined by the caller.
@@ -41,7 +44,7 @@ public interface Playback {
     void setState(int state);
 
     /**
-     * Get the current {@link android.media.session.PlaybackState#STATE_*}
+     * Get the current {@link android.media.session.PlaybackState#getState()}
      */
     int getState();
 
@@ -78,12 +81,6 @@ public interface Playback {
      * Pause the current playing item
      */
     void pause();
-
-    /**
-     * Play or Pause depending on the current player state on
-     * the remote/local player.
-     */
-    void togglePlayback();
 
     /**
      * Set the current mediaId. This is only used when switching from one

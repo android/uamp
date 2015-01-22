@@ -99,22 +99,30 @@ public class CastPlayback implements Playback {
             switch (status) {
                 case MediaStatus.PLAYER_STATE_IDLE:
                     if (idleReason == MediaStatus.IDLE_REASON_FINISHED) {
-                        mCallback.onCompletion();
+                        if (mCallback != null) {
+                            mCallback.onCompletion();
+                        }
                     }
                     break;
                 case MediaStatus.PLAYER_STATE_BUFFERING:
                     mState = PlaybackState.STATE_BUFFERING;
-                    mCallback.onPlaybackStatusChanged(mState);
+                    if (mCallback != null) {
+                        mCallback.onPlaybackStatusChanged(mState);
+                    }
                     break;
                 case MediaStatus.PLAYER_STATE_PLAYING:
                     mState = PlaybackState.STATE_PLAYING;
                     updateMetadata();
-                    mCallback.onPlaybackStatusChanged(mState);
+                    if (mCallback != null) {
+                        mCallback.onPlaybackStatusChanged(mState);
+                    }
                     break;
                 case MediaStatus.PLAYER_STATE_PAUSED:
                     mState = PlaybackState.STATE_PAUSED;
                     updateMetadata();
-                    mCallback.onPlaybackStatusChanged(mState);
+                    if (mCallback != null) {
+                        mCallback.onPlaybackStatusChanged(mState);
+                    }
                     break;
                 default: // case unknown
                     break;
@@ -143,7 +151,9 @@ public class CastPlayback implements Playback {
                 String remoteMediaId = customData.getString(ITEM_ID);
                 if (!TextUtils.equals(mCurrentMediaId, remoteMediaId)) {
                     mCurrentMediaId = remoteMediaId;
-                    mCallback.onMetadataChanged(remoteMediaId);
+                    if (mCallback != null) {
+                        mCallback.onMetadataChanged(remoteMediaId);
+                    }
                     mCurrentPosition = getCurrentStreamPosition();
                 }
             }
@@ -175,10 +185,12 @@ public class CastPlayback implements Playback {
     }
 
     @Override
-    public void stop() {
+    public void stop(boolean notifyListeners) {
         mCastManager.removeVideoCastConsumer(mCastConsumer);
         mState = PlaybackState.STATE_STOPPED;
-        mCallback.onPlaybackStatusChanged(mState);
+        if (notifyListeners && mCallback != null) {
+            mCallback.onPlaybackStatusChanged(mState);
+        }
     }
 
     @Override
@@ -210,24 +222,16 @@ public class CastPlayback implements Playback {
             return;
         }
         try {
-            String mediaId = item.getDescription().getMediaId();
-            String musicId = MediaIDHelper.extractMusicIDFromMediaID(
-                    item.getDescription().getMediaId());
-            android.media.MediaMetadata track = mMusicProvider.getMusic(musicId);
-
-            if (!TextUtils.equals(mediaId, mCurrentMediaId)) {
-                mCurrentMediaId = mediaId;
-                mCurrentPosition = 0;
-            }
-            JSONObject customData = new JSONObject();
-            customData.put(ITEM_ID, mediaId);
-            MediaInfo media = toCastMediaMetadata(track, customData);
-            mCastManager.loadMedia(media, true, mCurrentPosition, customData);
+            loadMedia(item.getDescription().getMediaId(), true);
             mState = PlaybackState.STATE_BUFFERING;
-            mCallback.onPlaybackStatusChanged(mState);
+            if (mCallback != null) {
+                mCallback.onPlaybackStatusChanged(mState);
+            }
         } catch (TransientNetworkDisconnectionException | NoConnectionException | JSONException e) {
             LogHelper.e(TAG, "Exception loading media ", e, null);
-            mCallback.onError(e.getMessage());
+            if (mCallback != null) {
+                mCallback.onError(e.getMessage());
+            }
         }
     }
 
@@ -235,24 +239,18 @@ public class CastPlayback implements Playback {
     public void pause() {
         if (mCastManager.isConnected()) {
             try {
-                mCastManager.pause();
-                mCurrentPosition = (int) mCastManager.getCurrentMediaPosition();
-            } catch (CastException | TransientNetworkDisconnectionException | NoConnectionException e) {
+                if (mCastManager.isRemoteMediaLoaded()) {
+                    mCastManager.pause();
+                    mCurrentPosition = (int) mCastManager.getCurrentMediaPosition();
+                } else {
+                    loadMedia(mCurrentMediaId, false);
+                }
+            } catch (JSONException | CastException | TransientNetworkDisconnectionException
+                    | NoConnectionException e) {
                 LogHelper.e(TAG, e, "Exception pausing cast playback");
             }
         } else {
             LogHelper.d(TAG, "mCastManager is not connected");
-        }
-    }
-
-    @Override
-    public void togglePlayback() {
-        if (mCastManager.isConnected()) {
-            try {
-                mCastManager.togglePlayback();
-            } catch (CastException | TransientNetworkDisconnectionException | NoConnectionException e) {
-                LogHelper.e(TAG, e, "Exception resuming playback");
-            }
         }
     }
 
@@ -289,6 +287,21 @@ public class CastPlayback implements Playback {
     @Override
     public int getState() {
         return mState;
+    }
+
+    private void loadMedia(String mediaId, boolean autoplay) throws
+        TransientNetworkDisconnectionException, NoConnectionException, JSONException {
+        String musicId = MediaIDHelper.extractMusicIDFromMediaID(mediaId);
+        android.media.MediaMetadata track = mMusicProvider.getMusic(musicId);
+
+        if (!TextUtils.equals(mediaId, mCurrentMediaId)) {
+            mCurrentMediaId = mediaId;
+            mCurrentPosition = 0;
+        }
+        JSONObject customData = new JSONObject();
+        customData.put(ITEM_ID, mediaId);
+        MediaInfo media = toCastMediaMetadata(track, customData);
+        mCastManager.loadMedia(media, autoplay, mCurrentPosition, customData);
     }
 
     /**
