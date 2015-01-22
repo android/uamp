@@ -206,6 +206,8 @@ public class MusicPlayerActivity extends ActionBarCastActivity
             if (mediaController.getMetadata() != null) {
                 showPlaybackControls();
             } else {
+                LogHelper.d(TAG, "connectionCallback.onConnected: " +
+                    "hiding controls because metadata is null");
                 hidePlaybackControls();
             }
 
@@ -248,6 +250,9 @@ public class MusicPlayerActivity extends ActionBarCastActivity
                     state.getState() != PlaybackState.STATE_STOPPED) {
                 showPlaybackControls();
             } else {
+                LogHelper.d(TAG, "mediaControllerCallback.onPlaybackStateChanged: " +
+                    "hiding controls because state is ",
+                    state == null ? "null" : state.getState());
                 hidePlaybackControls();
             }
         }
@@ -257,6 +262,8 @@ public class MusicPlayerActivity extends ActionBarCastActivity
             if (metadata != null) {
                 showPlaybackControls();
             } else {
+                LogHelper.d(TAG, "mediaControllerCallback.onMetadataChanged: " +
+                        "hiding controls because metadata is null");
                 hidePlaybackControls();
             }
         }
