@@ -21,14 +21,16 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.MediaRouteActionProvider;
 import android.support.v7.app.MediaRouteButton;
+import android.support.v7.app.MediaRouteDialogFactory;
 import android.support.v7.media.MediaRouter;
 import android.support.v7.widget.Toolbar;
 import android.view.Gravity;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -65,7 +67,6 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
     private static final String TAG = LogHelper.makeLogTag(ActionBarCastActivity.class);
 
     private static final int DELAY_MILLIS = 1000;
-    private static final double VOLUME_INCREMENT = 0.05;
 
     private VideoCastManager mCastManager;
     private MenuItem mMediaRouteMenuItem;
@@ -231,8 +232,10 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
         getMenuInflater().inflate(R.menu.main, menu);
-        mMediaRouteMenuItem = mCastManager.
-            addMediaRouterButton(menu, R.id.media_route_menu_item);
+        mMediaRouteMenuItem = mCastManager.addMediaRouterButton(menu, R.id.media_route_menu_item);
+        MediaRouteActionProvider actionProvider = (MediaRouteActionProvider)
+                MenuItemCompat.getActionProvider(mMediaRouteMenuItem);
+        actionProvider.setDialogFactory(new MediaRouteDialogFactory());
         return true;
     }
 
@@ -264,14 +267,6 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
             // Lastly, it will rely on the system behavior for back
             super.onBackPressed();
         }
-    }
-
-    @Override
-    public boolean dispatchKeyEvent(KeyEvent event) {
-        if (mCastManager.onDispatchVolumeKeyEvent(event, VOLUME_INCREMENT)) {
-            return true;
-        }
-        return super.dispatchKeyEvent(event);
     }
 
     @Override
