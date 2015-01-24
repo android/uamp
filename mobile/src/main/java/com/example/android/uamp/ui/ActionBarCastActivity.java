@@ -233,9 +233,6 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
         super.onCreateOptionsMenu(menu);
         getMenuInflater().inflate(R.menu.main, menu);
         mMediaRouteMenuItem = mCastManager.addMediaRouterButton(menu, R.id.media_route_menu_item);
-        MediaRouteActionProvider actionProvider = (MediaRouteActionProvider)
-                MenuItemCompat.getActionProvider(mMediaRouteMenuItem);
-        actionProvider.setDialogFactory(new MediaRouteDialogFactory());
         return true;
     }
 
