@@ -323,10 +323,15 @@ public class CastPlayback implements Playback {
                 track.getString(android.media.MediaMetadata.METADATA_KEY_ALBUM));
         mediaMetadata.putString(MediaMetadata.KEY_ALBUM_TITLE,
                 track.getString(android.media.MediaMetadata.METADATA_KEY_ALBUM));
-        mediaMetadata.addImage(new WebImage(
+        WebImage image = new WebImage(
                 new Uri.Builder().encodedPath(
                         track.getString(android.media.MediaMetadata.METADATA_KEY_ALBUM_ART_URI))
-                        .build()));
+                        .build());
+        // First image is used by the receiver for showing the audio album art.
+        mediaMetadata.addImage(image);
+        // Second image is used by Cast Companion Library on the full screen activity that is shown
+        // when the cast dialog is clicked.
+        mediaMetadata.addImage(image);
 
         return new MediaInfo.Builder(track.getString(MusicProvider.CUSTOM_METADATA_TRACK_SOURCE))
                 .setContentType(MIME_TYPE_AUDIO_MPEG)
