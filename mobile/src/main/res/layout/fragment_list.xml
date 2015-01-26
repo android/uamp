@@ -13,15 +13,37 @@
   See the License for the specific language governing permissions and
   limitations under the License.
   -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:orientation="vertical"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
               android:layout_width="match_parent"
               android:layout_height="match_parent">
 
+    <android.support.v7.widget.CardView
+        android:id="@+id/playback_error"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:animateLayoutChanges="true"
+        android:visibility="gone">
+        <TextView
+            android:id="@+id/error_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingRight="@dimen/error_horizontal_padding"
+            android:paddingLeft="@dimen/error_horizontal_padding"
+            android:paddingTop="@dimen/error_vertical_padding"
+            android:paddingBottom="@dimen/error_vertical_padding"
+            android:background="#ffff1600"
+            android:gravity="center"
+            tools:text="Connectivity error!"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"/>
+    </android.support.v7.widget.CardView>
     <ListView
         android:id="@+id/list_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:layout_alignParentBottom="true"
+        android:layout_below="@id/playback_error">
     </ListView>
-
-</LinearLayout>
+</RelativeLayout>

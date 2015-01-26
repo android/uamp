@@ -29,6 +29,7 @@ import android.text.TextUtils;
 import com.example.android.uamp.MusicService;
 import com.example.android.uamp.R;
 import com.example.android.uamp.utils.LogHelper;
+import com.example.android.uamp.utils.NetworkHelper;
 
 /**
  * Main activity for the music player.
@@ -140,7 +141,7 @@ public class MusicPlayerActivity extends ActionBarCastActivity
         LogHelper.d(TAG, "showPlaybackControls");
         PlaybackControlsFragment controlsFragment = (PlaybackControlsFragment)
             getFragmentManager().findFragmentById(R.id.controls);
-        if (controlsFragment == null) {
+        if (controlsFragment == null && NetworkHelper.isOnline(this)) {
             PlaybackControlsFragment fragment = new PlaybackControlsFragment();
             getFragmentManager().beginTransaction()
                 .replace(R.id.controls, fragment)
@@ -187,6 +188,23 @@ public class MusicPlayerActivity extends ActionBarCastActivity
         return (MediaBrowserFragment) getFragmentManager().findFragmentById(R.id.container);
     }
 
+    private boolean shouldShowControls() {
+        MediaController mediaController = getMediaController();
+        if (mediaController == null ||
+            mediaController.getMetadata() == null ||
+            mediaController.getPlaybackState() == null) {
+            return false;
+        }
+        switch (mediaController.getPlaybackState().getState()) {
+            case PlaybackState.STATE_ERROR:
+            case PlaybackState.STATE_NONE:
+            case PlaybackState.STATE_STOPPED:
+                return false;
+            default:
+                return true;
+        }
+    }
+
     private MediaBrowser.ConnectionCallback mConnectionCallback =
             new MediaBrowser.ConnectionCallback() {
         @Override
@@ -203,7 +221,7 @@ public class MusicPlayerActivity extends ActionBarCastActivity
             mediaController.registerCallback(mMediaControllerCallback);
             getBrowseFragment().onConnected();
 
-            if (mediaController.getMetadata() != null) {
+            if (shouldShowControls()) {
                 showPlaybackControls();
             } else {
                 LogHelper.d(TAG, "connectionCallback.onConnected: " +
@@ -246,8 +264,7 @@ public class MusicPlayerActivity extends ActionBarCastActivity
         public void onPlaybackStateChanged(PlaybackState state) {
             // If the service is already active and in a "playback-able" state
             // (not NONE and not STOPPED), we need to set the proper playback controls:
-            if (state != null && state.getState() != PlaybackState.STATE_NONE &&
-                    state.getState() != PlaybackState.STATE_STOPPED) {
+            if (shouldShowControls()) {
                 showPlaybackControls();
             } else {
                 LogHelper.d(TAG, "mediaControllerCallback.onPlaybackStateChanged: " +
@@ -259,7 +276,7 @@ public class MusicPlayerActivity extends ActionBarCastActivity
 
         @Override
         public void onMetadataChanged(MediaMetadata metadata) {
-            if (metadata != null) {
+            if (shouldShowControls()) {
                 showPlaybackControls();
             } else {
                 LogHelper.d(TAG, "mediaControllerCallback.onMetadataChanged: " +
