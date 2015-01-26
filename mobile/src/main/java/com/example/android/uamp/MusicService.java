@@ -45,6 +45,7 @@ import com.google.sample.castcompanionlibrary.cast.VideoCastManager;
 import com.google.sample.castcompanionlibrary.cast.callbacks.VideoCastConsumerImpl;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static com.example.android.uamp.utils.MediaIDHelper.MEDIA_ID_MUSICS_BY_GENRE;
@@ -306,7 +307,7 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
                         loadChildrenImpl(parentMediaId, result);
                     } else {
                         updatePlaybackState(getString(R.string.error_no_metadata));
-                        result.sendResult(new ArrayList<MediaItem>());
+                        result.sendResult(Collections.<MediaItem>emptyList());
                     }
                 }
             });
