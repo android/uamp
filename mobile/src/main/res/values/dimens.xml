@@ -20,8 +20,8 @@
     <dimen name="error_vertical_padding">16dp</dimen>
     <dimen name="list_item_padding">4dp</dimen>
     <dimen name="margin_text_view">6dp</dimen>
-    <dimen name="horizontal_padding_around_albumart">8dp</dimen>
-    <dimen name="max_height_albumart">72dp</dimen>
+    <dimen name="horizontal_margin_around_albumart">8dp</dimen>
+    <dimen name="max_height_albumart">64dp</dimen>
     <dimen name="playback_controls_padding">8dp</dimen>
 
     <dimen name="drawer_item_icon_horizontal_margin">12dp</dimen>

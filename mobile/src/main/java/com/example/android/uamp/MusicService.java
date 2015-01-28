@@ -16,41 +16,42 @@
 
 package com.example.android.uamp;
 
-import android.app.PendingIntent;
-import android.content.Context;
-import android.content.Intent;
-import android.graphics.Bitmap;
-import android.media.MediaDescription;
-import android.media.MediaMetadata;
-import android.media.browse.MediaBrowser;
-import android.media.browse.MediaBrowser.MediaItem;
-import android.media.session.MediaSession;
-import android.media.session.PlaybackState;
-import android.net.Uri;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
-import android.os.SystemClock;
-import android.service.media.MediaBrowserService;
-import android.support.v7.media.MediaRouter;
+ import android.app.PendingIntent;
+ import android.content.Context;
+ import android.content.Intent;
+ import android.graphics.Bitmap;
+ import android.media.MediaDescription;
+ import android.media.MediaMetadata;
+ import android.media.browse.MediaBrowser;
+ import android.media.browse.MediaBrowser.MediaItem;
+ import android.media.session.MediaSession;
+ import android.media.session.PlaybackState;
+ import android.net.Uri;
+ import android.os.Bundle;
+ import android.os.Handler;
+ import android.os.Message;
+ import android.os.SystemClock;
+ import android.service.media.MediaBrowserService;
+ import android.support.v7.media.MediaRouter;
 
-import com.example.android.uamp.model.MusicProvider;
-import com.example.android.uamp.ui.NowPlayingActivity;
-import com.example.android.uamp.utils.CarHelper;
-import com.example.android.uamp.utils.LogHelper;
-import com.example.android.uamp.utils.MediaIDHelper;
-import com.example.android.uamp.utils.QueueHelper;
-import com.google.android.gms.cast.ApplicationMetadata;
-import com.google.sample.castcompanionlibrary.cast.VideoCastManager;
-import com.google.sample.castcompanionlibrary.cast.callbacks.VideoCastConsumerImpl;
+ import com.example.android.uamp.model.MusicProvider;
+ import com.example.android.uamp.ui.NowPlayingActivity;
+ import com.example.android.uamp.utils.CarHelper;
+ import com.example.android.uamp.utils.LogHelper;
+ import com.example.android.uamp.utils.MediaIDHelper;
+ import com.example.android.uamp.utils.QueueHelper;
+ import com.google.android.gms.cast.ApplicationMetadata;
+ import com.google.android.gms.cast.CastDevice;
+ import com.google.sample.castcompanionlibrary.cast.VideoCastManager;
+ import com.google.sample.castcompanionlibrary.cast.callbacks.VideoCastConsumerImpl;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+ import java.util.ArrayList;
+ import java.util.Collections;
+ import java.util.List;
 
-import static com.example.android.uamp.utils.MediaIDHelper.MEDIA_ID_MUSICS_BY_GENRE;
-import static com.example.android.uamp.utils.MediaIDHelper.MEDIA_ID_ROOT;
-import static com.example.android.uamp.utils.MediaIDHelper.createBrowseCategoryMediaID;
+ import static com.example.android.uamp.utils.MediaIDHelper.MEDIA_ID_MUSICS_BY_GENRE;
+ import static com.example.android.uamp.utils.MediaIDHelper.MEDIA_ID_ROOT;
+ import static com.example.android.uamp.utils.MediaIDHelper.createBrowseCategoryMediaID;
 
 /**
  * This class provides a MediaBrowser through a service. It exposes the media library to a browsing
@@ -113,10 +114,8 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
 
     private static final String TAG = LogHelper.makeLogTag(MusicService.class);
 
-    // Action to thumbs up a media item
-    private static final String CUSTOM_ACTION_THUMBS_UP = "thumbs_up";
-    // Delay stopSelf by using a handler.
-    private static final int STOP_DELAY = 30000;
+    // Extra on MediaSession that contains the Cast device name currently connected to
+    public static final String EXTRA_CONNECTED_CAST = "com.example.android.uamp.CAST_NAME";
     // The action of the incoming Intent indicating that it contains a command
     // to be executed (see {@link #onStartCommand})
     public static final String ACTION_CMD = "com.example.android.uamp.ACTION_CMD";
@@ -126,6 +125,11 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
     // A value of a {@link #CMD_NAME} key in the extras of the incoming Intent that
     // indicates that the music playback should be paused (see {@link #onStartCommand})
     public static final String CMD_PAUSE = "CMD_PAUSE";
+
+    // Action to thumbs up a media item
+    private static final String CUSTOM_ACTION_THUMBS_UP = "com.example.android.uamp.THUMBS_UP";
+    // Delay stopSelf by using a handler.
+    private static final int STOP_DELAY = 30000;
 
     // Music catalog manager
     private MusicProvider mMusicProvider;
@@ -138,6 +142,9 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
     private MediaNotificationManager mMediaNotificationManager;
     // Indicates whether the service was started.
     private boolean mServiceStarted;
+
+    private Bundle mSessionExtras;
+    private String mCastDeviceName;
 
     private Handler mDelayedStopHandler = new Handler() {
         @Override
@@ -163,8 +170,16 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
     private final VideoCastConsumerImpl mCastConsumer = new VideoCastConsumerImpl() {
 
         @Override
+        public void onDeviceSelected(CastDevice device) {
+            mCastDeviceName = device.getFriendlyName();
+        }
+
+        @Override
         public void onApplicationConnected(ApplicationMetadata appMetadata, String sessionId,
                                            boolean wasLaunched) {
+            // In case we are casting, send the devicename as an extra on MediaSession metadata
+            mSessionExtras.putString(EXTRA_CONNECTED_CAST, mCastDeviceName);
+            mSession.setExtras(mSessionExtras);
             // Now we can switch to CastPlayback
             Playback playback = new CastPlayback(MusicService.this, mMusicProvider);
             mMediaRouter.setMediaSession(mSession);
@@ -174,6 +189,8 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
         @Override
         public void onDisconnected() {
             LogHelper.d(TAG, "onDisconnected");
+            mSessionExtras.remove(EXTRA_CONNECTED_CAST);
+            mSession.setExtras(mSessionExtras);
             Playback playback = new LocalPlayback(MusicService.this, mMusicProvider);
             mMediaRouter.setMediaSession(null);
             switchToPlayer(playback);
@@ -213,9 +230,9 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
                 intent, PendingIntent.FLAG_UPDATE_CURRENT);
         mSession.setSessionActivity(pi);
 
-        Bundle extras = new Bundle();
-        CarHelper.setSlotReservationFlags(extras, true, true, true);
-        mSession.setExtras(extras);
+        mSessionExtras = new Bundle();
+        CarHelper.setSlotReservationFlags(mSessionExtras, true, true, true);
+        mSession.setExtras(mSessionExtras);
 
         updatePlaybackState(null);
 

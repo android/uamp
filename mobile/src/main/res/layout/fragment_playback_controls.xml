@@ -21,23 +21,25 @@
     <ImageView
         android:id="@+id/album_art"
         tools:src="@drawable/ic_launcher"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingLeft="@dimen/horizontal_padding_around_albumart"
-        android:paddingRight="@dimen/horizontal_padding_around_albumart"
-        android:maxHeight="@dimen/max_height_albumart"
-        android:scaleType="fitCenter"
-        android:layout_alignParentStart="true" />
-
+        android:layout_width="@dimen/max_height_albumart"
+        android:layout_height="@dimen/max_height_albumart"
+        android:scaleType="centerCrop"
+        android:contentDescription="@string/currently_playing_song"
+        android:layout_alignParentStart="true"/>
     <LinearLayout
+        android:id="@+id/content"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/horizontal_margin_around_albumart"
         android:orientation="vertical"
         android:layout_toEndOf="@id/album_art"
+        android:layout_toStartOf="@+id/play_pause"
         android:layout_centerVertical="true">
         <TextView
             android:id="@+id/title"
-            tools:text="The Best Music EVAH1111"
+            tools:text="The Best Music EVAH1111 THE BEST"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:contentDescription="@string/currently_playing_song"
@@ -46,13 +48,23 @@
         <TextView
             android:id="@+id/artist"
             tools:text="John Doe and Band"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:contentDescription="@string/currently_playing_artist"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="?android:attr/textColorSecondary"/>
+            android:textAppearance="?android:attr/textAppearanceSmall"/>
+        <TextView
+            android:id="@+id/extra_info"
+            tools:text="casting to MyCast"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:contentDescription="@string/currently_playing_extra_info"
+            android:textAppearance="?android:attr/textAppearanceSmall"/>
     </LinearLayout>
-
     <ImageButton
         android:id="@+id/play_pause"
         android:layout_centerVertical="true"
@@ -61,5 +73,4 @@
         android:layout_alignParentEnd="true"
         android:src="@drawable/ic_play_arrow_white_24dp"
         android:contentDescription="@string/play_pause"/>
-
 </RelativeLayout>
