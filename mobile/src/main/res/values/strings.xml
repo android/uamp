@@ -26,8 +26,10 @@
     <string name="error_cannot_skip">Cannot skip</string>
     <string name="error_no_connection">Cannot connect to server. Please, check your Internet connectivity.</string>
     <string name="error_loading_media">Error Loading Media</string>
+    <string name="casting_to_device">Casting to %1$s</string>
     <string name="currently_playing_song">Song currently playing</string>
     <string name="currently_playing_artist">Artist of currently playing song</string>
+    <string name="currently_playing_extra_info">Extra info for currently playing song</string>
     <string name="play_item">Play item</string>
     <string name="skip_previous">Skip to previous</string>
     <string name="play_pause">play or pause</string>

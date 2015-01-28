@@ -27,8 +27,8 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import com.example.android.uamp.MusicService;
 import com.example.android.uamp.R;
 import com.example.android.uamp.utils.LogHelper;
 
@@ -42,6 +42,7 @@ public class PlaybackControlsFragment extends Fragment {
     private ImageButton mPlayPause;
     private TextView mTitle;
     private TextView mSubtitle;
+    private TextView mExtraInfo;
     private ImageView mAlbumArt;
 
     // Receive callbacks from the MediaController. Here we update our state such as which queue
@@ -79,6 +80,7 @@ public class PlaybackControlsFragment extends Fragment {
 
         mTitle = (TextView) rootView.findViewById(R.id.title);
         mSubtitle = (TextView) rootView.findViewById(R.id.artist);
+        mExtraInfo = (TextView) rootView.findViewById(R.id.extra_info);
         mAlbumArt = (ImageView) rootView.findViewById(R.id.album_art);
 
         return rootView;
@@ -121,6 +123,7 @@ public class PlaybackControlsFragment extends Fragment {
         if (metadata == null) {
             return;
         }
+
         mTitle.setText(metadata.getDescription().getTitle());
         mSubtitle.setText(metadata.getDescription().getSubtitle());
         Bitmap albumArt = metadata.getDescription().getIconBitmap();
@@ -128,6 +131,15 @@ public class PlaybackControlsFragment extends Fragment {
             LogHelper.d(TAG, "album art of w=", albumArt.getWidth(), " h=", albumArt.getHeight());
         }
         mAlbumArt.setImageBitmap(albumArt);
+    }
+
+    public void setExtraInfo(String extraInfo) {
+        if (extraInfo == null) {
+            mExtraInfo.setVisibility(View.GONE);
+        } else {
+            mExtraInfo.setText(extraInfo);
+            mExtraInfo.setVisibility(View.VISIBLE);
+        }
     }
 
     private void onPlaybackStateChanged(PlaybackState state) {
@@ -157,6 +169,16 @@ public class PlaybackControlsFragment extends Fragment {
         } else {
             mPlayPause.setImageDrawable(getActivity().getDrawable(R.drawable.ic_pause_white_24dp));
         }
+
+        MediaController controller = getActivity().getMediaController();
+        String extraInfo = null;
+        if (controller != null && controller.getExtras() != null) {
+            String castName = controller.getExtras().getString(MusicService.EXTRA_CONNECTED_CAST);
+            if (castName != null) {
+                extraInfo = getResources().getString(R.string.casting_to_device, castName);
+            }
+        }
+        setExtraInfo(extraInfo);
     }
 
     private View.OnClickListener mButtonListener = new View.OnClickListener() {

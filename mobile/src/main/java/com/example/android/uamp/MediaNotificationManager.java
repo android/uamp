@@ -241,7 +241,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
         if ((mPlaybackState.getActions() & PlaybackState.ACTION_SKIP_TO_PREVIOUS) != 0) {
             mNotificationBuilder
                     .addAction(R.drawable.ic_skip_previous_white_24dp,
-                            mService.getString(R.string.label_previous), mPreviousIntent);
+                        mService.getString(R.string.label_previous), mPreviousIntent);
             playPauseActionIndex = 1;
         }
 
@@ -272,8 +272,8 @@ public class MediaNotificationManager extends BroadcastReceiver {
 
         mNotificationBuilder
                 .setStyle(new Notification.MediaStyle()
-                        .setShowActionsInCompactView(playPauseActionIndex)  // only show play/pause in compact view
-                        .setMediaSession(mSessionToken))
+                    .setShowActionsInCompactView(playPauseActionIndex)  // only show play/pause in compact view
+                    .setMediaSession(mSessionToken))
                 .setColor(mNotificationColor)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
@@ -282,6 +282,16 @@ public class MediaNotificationManager extends BroadcastReceiver {
                 .setContentTitle(description.getTitle())
                 .setContentText(description.getSubtitle())
                 .setLargeIcon(art);
+
+        String extraInfo = null;
+        if (mController != null && mController.getExtras() != null) {
+            String castName = mController.getExtras().getString(MusicService.EXTRA_CONNECTED_CAST);
+            if (castName != null) {
+                extraInfo = mService.getResources().getString(R.string.casting_to_device, castName);
+            }
+        }
+        mNotificationBuilder.setContentInfo(extraInfo);
+
 
         updateNotificationPlaybackState();
 
