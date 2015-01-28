@@ -52,7 +52,6 @@ public class UAMPApplication extends Application {
                 mCastManager.enableFeatures(FEATURE_WIFI_RECONNECT | FEATURE_DEBUGGING);
             }
         }
-        mCastManager.setContext(context);
         return mCastManager;
     }
 }

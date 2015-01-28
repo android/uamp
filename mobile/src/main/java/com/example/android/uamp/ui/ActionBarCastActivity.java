@@ -181,7 +181,7 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
         VideoCastManager.checkGooglePlayServices(this);
 
         mCastManager = ((UAMPApplication) getApplication()).getCastManager(this);
-        mCastManager.reconnectSessionIfPossible(this, false);
+        mCastManager.reconnectSessionIfPossible();
     }
 
     @Override

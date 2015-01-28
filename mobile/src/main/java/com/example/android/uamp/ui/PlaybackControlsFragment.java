@@ -195,7 +195,9 @@ public class PlaybackControlsFragment extends Fragment {
                             state == PlaybackState.STATE_STOPPED ||
                             state == PlaybackState.STATE_NONE) {
                         playMedia();
-                    } else if (state == PlaybackState.STATE_PLAYING) {
+                    } else if (state == PlaybackState.STATE_PLAYING ||
+                            state == PlaybackState.STATE_BUFFERING ||
+                            state == PlaybackState.STATE_CONNECTING) {
                         pauseMedia();
                     }
                     break;

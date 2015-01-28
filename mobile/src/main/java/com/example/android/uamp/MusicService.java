@@ -818,7 +818,6 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
                 break;
             default:
                 LogHelper.d(TAG, "Default called. Old state is ", oldState);
-                mPlayback.stop(true);
         }
     }
 }
