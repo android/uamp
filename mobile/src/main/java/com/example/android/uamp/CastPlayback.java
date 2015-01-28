@@ -135,34 +135,6 @@ public class CastPlayback implements Playback {
         }
     };
 
-    private void updateMetadata() {
-        // Sync: We get the customData from the remote media information and update the local
-        // metadata if it happens to be different from the one we are currently using.
-        // This can happen when the app was either restarted/diconnected + connected, or if the
-        // app joins an existing session while the Chromecast was playing a queue.
-        try {
-            MediaInfo mediaInfo = mCastManager.getRemoteMediaInformation();
-            if (mediaInfo == null) {
-                return;
-            }
-            JSONObject customData = mediaInfo.getCustomData();
-
-            if (customData != null && customData.has(ITEM_ID)) {
-                String remoteMediaId = customData.getString(ITEM_ID);
-                if (!TextUtils.equals(mCurrentMediaId, remoteMediaId)) {
-                    mCurrentMediaId = remoteMediaId;
-                    if (mCallback != null) {
-                        mCallback.onMetadataChanged(remoteMediaId);
-                    }
-                    mCurrentPosition = getCurrentStreamPosition();
-                }
-            }
-        } catch (TransientNetworkDisconnectionException | NoConnectionException | JSONException e) {
-            LogHelper.e(TAG, e, "Exception processing update metadata");
-        }
-
-    }
-
     /** The current PlaybackState*/
     private int mState;
     /** Callback for making completion/error calls on */
@@ -170,6 +142,8 @@ public class CastPlayback implements Playback {
     private VideoCastManager mCastManager;
     private volatile int mCurrentPosition;
     private volatile String mCurrentMediaId;
+    private OnMediaLoadedStatusListener mPauseOnMediaLoadedStatusListener;
+    private OnMediaLoadedStatusListener mPlayOnMediaLoadedStatusListener;
 
     public CastPlayback(MusicService service, MusicProvider musicProvider) {
         this.mMusicProvider = musicProvider;
@@ -178,10 +152,12 @@ public class CastPlayback implements Playback {
 
     @Override
     public void start() {
-        this.mCastManager = ((UAMPApplication) mService.getApplication())
+        mCastManager = ((UAMPApplication) mService.getApplication())
                 .getCastManager(mService.getApplicationContext());
 
         mCastManager.addVideoCastConsumer(mCastConsumer);
+        mPauseOnMediaLoadedStatusListener = new OnMediaLoadedStatusListener(mCastManager, false);
+        mPlayOnMediaLoadedStatusListener = new OnMediaLoadedStatusListener(mCastManager, true);
     }
 
     @Override
@@ -222,6 +198,9 @@ public class CastPlayback implements Playback {
             return;
         }
         try {
+            if (mPlayOnMediaLoadedStatusListener != null) {
+                mCastManager.addVideoCastConsumer(mPlayOnMediaLoadedStatusListener);
+            }
             loadMedia(item.getDescription().getMediaId(), true);
             mState = PlaybackState.STATE_BUFFERING;
             if (mCallback != null) {
@@ -243,6 +222,9 @@ public class CastPlayback implements Playback {
                     mCastManager.pause();
                     mCurrentPosition = (int) mCastManager.getCurrentMediaPosition();
                 } else {
+                    if (mPauseOnMediaLoadedStatusListener != null) {
+                        mCastManager.addVideoCastConsumer(mPauseOnMediaLoadedStatusListener);
+                    }
                     loadMedia(mCurrentMediaId, false);
                 }
             } catch (JSONException | CastException | TransientNetworkDisconnectionException
@@ -341,6 +323,34 @@ public class CastPlayback implements Playback {
                 .build();
     }
 
+    private void updateMetadata() {
+        // Sync: We get the customData from the remote media information and update the local
+        // metadata if it happens to be different from the one we are currently using.
+        // This can happen when the app was either restarted/diconnected + connected, or if the
+        // app joins an existing session while the Chromecast was playing a queue.
+        try {
+            MediaInfo mediaInfo = mCastManager.getRemoteMediaInformation();
+            if (mediaInfo == null) {
+                return;
+            }
+            JSONObject customData = mediaInfo.getCustomData();
+
+            if (customData != null && customData.has(ITEM_ID)) {
+                String remoteMediaId = customData.getString(ITEM_ID);
+                if (!TextUtils.equals(mCurrentMediaId, remoteMediaId)) {
+                    mCurrentMediaId = remoteMediaId;
+                    if (mCallback != null) {
+                        mCallback.onMetadataChanged(remoteMediaId);
+                    }
+                    mCurrentPosition = getCurrentStreamPosition();
+                }
+            }
+        } catch (TransientNetworkDisconnectionException | NoConnectionException | JSONException e) {
+            LogHelper.e(TAG, e, "Exception processing update metadata");
+        }
+
+    }
+
     /**
      * Convert the playlist to custom data
      */
@@ -361,5 +371,41 @@ public class CastPlayback implements Playback {
         LogHelper.d(TAG, "playlist => ", playList.toString());
 
         return customData;
+    }
+
+    /**
+     * A listener that handles playing or pausing depending on the boolean
+     * provided in the constructor.
+     */
+    private static class OnMediaLoadedStatusListener extends VideoCastConsumerImpl {
+        private final VideoCastManager mCastManager;
+        private final boolean mPlay;
+
+        private OnMediaLoadedStatusListener(VideoCastManager manager, boolean play) {
+            mCastManager = manager;
+            mPlay = play;
+        }
+
+        @Override
+        public void onMediaLoadRequestStatus(boolean success, Integer failureCode) {
+            if (success) {
+                // Remove the listener as soon as we're done with the action.
+                mCastManager.removeVideoCastConsumer(this);
+
+                LogHelper.d(TAG, "onMediaLoaded called ******** mPlay=", mPlay);
+                try {
+                    if (mPlay) {
+                        mCastManager.play();
+                    } else {
+                        mCastManager.pause();
+                    }
+                } catch (CastException | TransientNetworkDisconnectionException |
+                        NoConnectionException e) {
+                    LogHelper.e(TAG, e, "Exception pausing stream");
+                }
+            } else {
+                LogHelper.e(TAG, "Error calling loadMedia with status ", failureCode);
+            }
+        }
     }
 }
