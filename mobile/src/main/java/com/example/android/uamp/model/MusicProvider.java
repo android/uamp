@@ -52,16 +52,16 @@ public class MusicProvider {
 
     public static final String CUSTOM_METADATA_TRACK_SOURCE = "__SOURCE__";
 
-    private static String JSON_MUSIC = "music";
-    private static String JSON_TITLE = "title";
-    private static String JSON_ALBUM = "album";
-    private static String JSON_ARTIST = "artist";
-    private static String JSON_GENRE = "genre";
-    private static String JSON_SOURCE = "source";
-    private static String JSON_IMAGE = "image";
-    private static String JSON_TRACK_NUMBER = "trackNumber";
-    private static String JSON_TOTAL_TRACK_COUNT = "totalTrackCount";
-    private static String JSON_DURATION = "duration";
+    private static final String JSON_MUSIC = "music";
+    private static final String JSON_TITLE = "title";
+    private static final String JSON_ALBUM = "album";
+    private static final String JSON_ARTIST = "artist";
+    private static final String JSON_GENRE = "genre";
+    private static final String JSON_SOURCE = "source";
+    private static final String JSON_IMAGE = "image";
+    private static final String JSON_TRACK_NUMBER = "trackNumber";
+    private static final String JSON_TOTAL_TRACK_COUNT = "totalTrackCount";
+    private static final String JSON_DURATION = "duration";
 
     private final ReentrantLock initializationLock = new ReentrantLock();
 
