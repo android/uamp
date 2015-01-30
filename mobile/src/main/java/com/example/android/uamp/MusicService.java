@@ -605,8 +605,16 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
         MediaMetadata track = mMusicProvider.getMusic(musicId);
         final String trackId = track.getString(MediaMetadata.METADATA_KEY_MEDIA_ID);
         if (!musicId.equals(trackId)) {
-            throw new IllegalStateException("track ID (" + trackId + ") " +
-                    "should match musicId (" + musicId + ")");
+            IllegalStateException e = new IllegalStateException("track ID should match musicId.");
+            LogHelper.e(TAG, "track ID should match musicId.",
+                " musicId=", musicId, " trackId=", trackId,
+                " mediaId from queueItem=", queueItem.getDescription().getMediaId(),
+                " title from queueItem=", queueItem.getDescription().getTitle(),
+                " mediaId from track=", track.getDescription().getMediaId(),
+                " title from track=", track.getDescription().getTitle(),
+                " source.hashcode from track=", track.getString(MusicProvider.CUSTOM_METADATA_TRACK_SOURCE).hashCode(),
+                e);
+            throw e;
         }
         LogHelper.d(TAG, "Updating metadata for MusicID= " + musicId);
         mSession.setMetadata(track);
@@ -620,14 +628,15 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
                 @Override
                 public void onFetched(String artUrl, Bitmap result) {
                     MediaSession.QueueItem queueItem = mPlayingQueue.get(mCurrentIndexOnQueue);
-                    String currentPlayingId = MediaIDHelper.extractMusicIDFromMediaID(
-                            queueItem.getDescription().getMediaId());
-                    MediaMetadata track = mMusicProvider.getMusic(currentPlayingId);
+                    MediaMetadata track = mMusicProvider.getMusic(trackId);
                     track = new MediaMetadata.Builder(track)
                             .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, result)
                             .build();
                     mMusicProvider.updateMusic(trackId, track);
+
                     // If we are still playing the same music
+                    String currentPlayingId = MediaIDHelper.extractMusicIDFromMediaID(
+                        queueItem.getDescription().getMediaId());
                     if (trackId.equals(currentPlayingId)) {
                         mSession.setMetadata(track);
                     }
