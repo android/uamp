@@ -45,6 +45,7 @@ package com.example.android.uamp;
  import com.google.sample.castcompanionlibrary.cast.VideoCastManager;
  import com.google.sample.castcompanionlibrary.cast.callbacks.VideoCastConsumerImpl;
 
+ import java.lang.ref.WeakReference;
  import java.util.ArrayList;
  import java.util.Collections;
  import java.util.List;
@@ -112,8 +113,6 @@ package com.example.android.uamp;
 
 public class MusicService extends MediaBrowserService implements Playback.Callback {
 
-    private static final String TAG = LogHelper.makeLogTag(MusicService.class);
-
     // Extra on MediaSession that contains the Cast device name currently connected to
     public static final String EXTRA_CONNECTED_CAST = "com.example.android.uamp.CAST_NAME";
     // The action of the incoming Intent indicating that it contains a command
@@ -126,6 +125,7 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
     // indicates that the music playback should be paused (see {@link #onStartCommand})
     public static final String CMD_PAUSE = "CMD_PAUSE";
 
+    private static final String TAG = LogHelper.makeLogTag(MusicService.class);
     // Action to thumbs up a media item
     private static final String CUSTOM_ACTION_THUMBS_UP = "com.example.android.uamp.THUMBS_UP";
     // Delay stopSelf by using a handler.
@@ -142,25 +142,10 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
     private MediaNotificationManager mMediaNotificationManager;
     // Indicates whether the service was started.
     private boolean mServiceStarted;
-
     private Bundle mSessionExtras;
     private String mCastDeviceName;
-
-    private Handler mDelayedStopHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            if (mPlayback.isPlaying()) {
-                LogHelper.d(TAG, "Ignoring delayed stop since the media player is in use.");
-                return;
-            }
-            LogHelper.d(TAG, "Stopping service with delay handler.");
-            stopSelf();
-            mServiceStarted = false;
-        }
-    };
-
+    private DelayedStopHandler mDelayedStopHandler = new DelayedStopHandler(this);
     private Playback mPlayback;
-
     private MediaRouter mMediaRouter;
 
     /**
@@ -818,6 +803,31 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
                 break;
             default:
                 LogHelper.d(TAG, "Default called. Old state is ", oldState);
+        }
+    }
+
+    /**
+     * A simple handler that stops the service if playback is not active (playing)
+     */
+    private static class DelayedStopHandler extends Handler {
+        private final WeakReference<MusicService> mWeakReference;
+
+        private DelayedStopHandler(MusicService service) {
+            mWeakReference = new WeakReference<>(service);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            MusicService service = mWeakReference.get();
+            if (service != null && service.mPlayback != null) {
+                if (service.mPlayback.isPlaying()) {
+                    LogHelper.d(TAG, "Ignoring delayed stop since the media player is in use.");
+                    return;
+                }
+                LogHelper.d(TAG, "Stopping service with delay handler.");
+                service.stopSelf();
+                service.mServiceStarted = false;
+            }
         }
     }
 }
