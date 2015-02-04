@@ -15,9 +15,11 @@
  */
 package com.example.android.uamp.ui;
 
+import android.app.ActivityManager;
 import android.app.FragmentTransaction;
 import android.content.ComponentName;
 import android.content.Intent;
+import android.graphics.BitmapFactory;
 import android.media.MediaMetadata;
 import android.media.browse.MediaBrowser;
 import android.media.session.MediaController;
@@ -30,6 +32,7 @@ import com.example.android.uamp.MusicService;
 import com.example.android.uamp.R;
 import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.NetworkHelper;
+import com.example.android.uamp.utils.ResourceHelper;
 
 /**
  * Main activity for the music player.
@@ -56,6 +59,14 @@ public class MusicPlayerActivity extends ActionBarCastActivity
         setContentView(R.layout.activity_player);
 
         initializeToolbar();
+        // Since our app icon has the same color as colorPrimary, our entry in the Recents Apps
+        // list gets weird. We need to change either the icon or the color of the TaskDescription.
+        ActivityManager.TaskDescription taskDesc = new ActivityManager.TaskDescription(
+            getTitle().toString(),
+            BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher_white),
+            ResourceHelper.getThemeColor(this, R.attr.colorPrimary, android.R.color.darker_gray));
+        setTaskDescription(taskDesc);
+
         initializeFromParams(savedInstanceState);
 
         mMediaBrowser = new MediaBrowser(this,
