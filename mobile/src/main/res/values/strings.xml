@@ -42,5 +42,6 @@
     <string name="action_listen">Listen</string>
     <string name="open_content_drawer">Open the main menu</string>
     <string name="close_content_drawer">Close the main menu</string>
+    <string name="placeholder_message">This is a placeholder for your application code.</string>
 
 </resources>

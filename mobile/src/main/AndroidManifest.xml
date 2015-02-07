@@ -53,6 +53,12 @@
             </intent-filter>
         </activity>
 
+        <!-- Placeholder activity for phone UI -->
+        <activity
+            android:name=".ui.PlaceholderActivity"
+            android:label="@string/app_name">
+        </activity>
+
         <!-- Main activity for Android TV UI -->
         <activity
             android:name=".ui.tv.TvBrowseActivity"

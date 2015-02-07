@@ -135,12 +135,12 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
                         break;
                     case 1:
                         startActivity(new Intent(ActionBarCastActivity.this,
-                            MusicPlayerActivity.class), extras);
+                            PlaceholderActivity.class), extras);
                         finish();
                         break;
                     case 2:
                         startActivity(new Intent(ActionBarCastActivity.this,
-                            MusicPlayerActivity.class), extras);
+                            PlaceholderActivity.class), extras);
                         finish();
                         break;
                 }
