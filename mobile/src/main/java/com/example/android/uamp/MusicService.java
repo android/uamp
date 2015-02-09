@@ -225,16 +225,6 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
         mCastManager = ((UAMPApplication)getApplication()).getCastManager(getApplicationContext());
 
         mCastManager.addVideoCastConsumer(mCastConsumer);
-        // TODO(nageshs): This is very helpful in debugging current position when playing
-        // over multiple devices. See if there is a way to generalize and add it as a debugging
-        // snippet (OR remove it)
-//        mDebugHandler.postDelayed(new Runnable() {
-//            @Override
-//            public void run() {
-//                LogHelper.d(TAG, "playback: ", mPlayback, " pos: " + mPlayback.getCurrentStreamPosition());
-//                mDebugHandler.postDelayed(this, 1000);
-//            }
-//        }, 1000);
         mMediaRouter = MediaRouter.getInstance(getApplicationContext());
     }
 
@@ -634,7 +624,6 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
      * Update the current media player state, optionally showing an error message.
      *
      * @param error if not null, error message to present to the user.
-     *
      */
     private void updatePlaybackState(String error) {
 
