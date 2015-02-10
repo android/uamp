@@ -41,7 +41,7 @@ import org.json.JSONObject;
 import java.util.List;
 
 /**
- * An implementation of Playback that talks to Chromecast.
+ * An implementation of Playback that talks to Cast.
  */
 public class CastPlayback implements Playback {
 
@@ -194,9 +194,6 @@ public class CastPlayback implements Playback {
 
     @Override
     public void play(MediaSession.QueueItem item) {
-        if (!mCastManager.isConnected()) {
-            return;
-        }
         try {
             if (mPlayOnMediaLoadedStatusListener != null) {
                 mCastManager.addVideoCastConsumer(mPlayOnMediaLoadedStatusListener);
@@ -216,23 +213,22 @@ public class CastPlayback implements Playback {
 
     @Override
     public void pause() {
-        if (mCastManager.isConnected()) {
-            try {
-                if (mCastManager.isRemoteMediaLoaded()) {
-                    mCastManager.pause();
-                    mCurrentPosition = (int) mCastManager.getCurrentMediaPosition();
-                } else {
-                    if (mPauseOnMediaLoadedStatusListener != null) {
-                        mCastManager.addVideoCastConsumer(mPauseOnMediaLoadedStatusListener);
-                    }
-                    loadMedia(mCurrentMediaId, false);
+        try {
+            if (mCastManager.isRemoteMediaLoaded()) {
+                mCastManager.pause();
+                mCurrentPosition = (int) mCastManager.getCurrentMediaPosition();
+            } else {
+                if (mPauseOnMediaLoadedStatusListener != null) {
+                    mCastManager.addVideoCastConsumer(mPauseOnMediaLoadedStatusListener);
                 }
-            } catch (JSONException | CastException | TransientNetworkDisconnectionException
-                    | NoConnectionException e) {
-                LogHelper.e(TAG, e, "Exception pausing cast playback");
+                loadMedia(mCurrentMediaId, false);
             }
-        } else {
-            LogHelper.d(TAG, "mCastManager is not connected");
+        } catch (JSONException | CastException | TransientNetworkDisconnectionException
+                | NoConnectionException e) {
+            LogHelper.e(TAG, e, "Exception pausing cast playback");
+            if (mCallback != null) {
+                mCallback.onError(e.getMessage());
+            }
         }
     }
 
@@ -271,7 +267,7 @@ public class CastPlayback implements Playback {
         return mState;
     }
 
-    private void loadMedia(String mediaId, boolean autoplay) throws
+    private void loadMedia(String mediaId, boolean autoPlay) throws
         TransientNetworkDisconnectionException, NoConnectionException, JSONException {
         String musicId = MediaIDHelper.extractMusicIDFromMediaID(mediaId);
         android.media.MediaMetadata track = mMusicProvider.getMusic(musicId);
@@ -283,7 +279,7 @@ public class CastPlayback implements Playback {
         JSONObject customData = new JSONObject();
         customData.put(ITEM_ID, mediaId);
         MediaInfo media = toCastMediaMetadata(track, customData);
-        mCastManager.loadMedia(media, autoplay, mCurrentPosition, customData);
+        mCastManager.loadMedia(media, autoPlay, mCurrentPosition, customData);
     }
 
     /**
@@ -352,28 +348,6 @@ public class CastPlayback implements Playback {
     }
 
     /**
-     * Convert the playlist to custom data
-     */
-    private JSONObject playlistToCustomData(List<MediaSession.QueueItem> queueItems, int currentIndex)
-            throws JSONException {
-        // Should really send the playlist from current position to the end
-        JSONArray playList = new JSONArray();
-        for (int i = currentIndex; i < queueItems.size(); i++) {
-            MediaSession.QueueItem qItem = queueItems.get(i);
-            JSONObject item = new JSONObject();
-            item.put("title", qItem.getDescription().getTitle().toString());
-            item.put("contentId", mMusicProvider.getMusic(qItem.getDescription().getMediaId()));
-            item.put("image", qItem.getDescription().getIconUri());
-            playList.put(item);
-        }
-        JSONObject customData = new JSONObject();
-        customData.put("playlist", playList);
-        LogHelper.d(TAG, "playlist => ", playList.toString());
-
-        return customData;
-    }
-
-    /**
      * A listener that handles playing or pausing depending on the boolean
      * provided in the constructor.
      */
@@ -392,7 +366,7 @@ public class CastPlayback implements Playback {
                 // Remove the listener as soon as we're done with the action.
                 mCastManager.removeVideoCastConsumer(this);
 
-                LogHelper.d(TAG, "onMediaLoaded called ******** mPlay=", mPlay);
+                LogHelper.d(TAG, "onMediaLoaded called mPlay =", mPlay);
                 try {
                     if (mPlay) {
                         mCastManager.play();

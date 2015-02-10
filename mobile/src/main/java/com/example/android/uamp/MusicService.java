@@ -143,7 +143,6 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
     // Indicates whether the service was started.
     private boolean mServiceStarted;
     private Bundle mSessionExtras;
-    private String mCastDeviceName;
     private DelayedStopHandler mDelayedStopHandler = new DelayedStopHandler(this);
     private Playback mPlayback;
     private MediaRouter mMediaRouter;
@@ -155,15 +154,10 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
     private final VideoCastConsumerImpl mCastConsumer = new VideoCastConsumerImpl() {
 
         @Override
-        public void onDeviceSelected(CastDevice device) {
-            mCastDeviceName = device.getFriendlyName();
-        }
-
-        @Override
         public void onApplicationConnected(ApplicationMetadata appMetadata, String sessionId,
                                            boolean wasLaunched) {
-            // In case we are casting, send the devicename as an extra on MediaSession metadata
-            mSessionExtras.putString(EXTRA_CONNECTED_CAST, mCastDeviceName);
+            // In case we are casting, send the device name as an extra on MediaSession metadata.
+            mSessionExtras.putString(EXTRA_CONNECTED_CAST, mCastManager.getDeviceName());
             mSession.setExtras(mSessionExtras);
             // Now we can switch to CastPlayback
             Playback playback = new CastPlayback(MusicService.this, mMusicProvider);
