@@ -44,11 +44,6 @@ import com.github.amlcurran.showcaseview.targets.ViewTarget;
 import com.google.sample.castcompanionlibrary.cast.VideoCastManager;
 import com.google.sample.castcompanionlibrary.cast.callbacks.VideoCastConsumerImpl;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 /**
  * Abstract activity with toolbar, navigation drawer and cast support. Needs to be extended by
  * any activity that wants to be shown as a top level activity.
@@ -71,6 +66,7 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
     private ActionBarDrawerToggle mDrawerToggle;
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
+    private DrawerMenuContents mDrawerMenuContents;
 
     private boolean mToolbarInitialized;
 
@@ -126,24 +122,8 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
                 Bundle extras = ActivityOptions.makeCustomAnimation(
                     ActionBarCastActivity.this, 0, 0).toBundle();
 
-                switch (position) {
-                    // TODO(mangini): define the final drawer content and fix the calls below.
-                    case 0:
-                        startActivity(new Intent(ActionBarCastActivity.this,
-                            MusicPlayerActivity.class), extras);
-                        finish();
-                        break;
-                    case 1:
-                        startActivity(new Intent(ActionBarCastActivity.this,
-                            PlaceholderActivity.class), extras);
-                        finish();
-                        break;
-                    case 2:
-                        startActivity(new Intent(ActionBarCastActivity.this,
-                            PlaceholderActivity.class), extras);
-                        finish();
-                        break;
-                }
+                Class activityClass = mDrawerMenuContents.getActivity(position);
+                startActivity(new Intent(ActionBarCastActivity.this,activityClass), extras);
             }
         }
 
@@ -306,16 +286,13 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
     }
 
     private void populateDrawerItems() {
-        // Add itens to the drawer list:
-        List<Map<String, ?>> drawerItems = new ArrayList<>(3);
-        // TODO(mangini): when the final drawer content is defined, change the content below
-        // to proper configurable and i18n'able resources.
-        drawerItems.add(populateDrawerItem("All Music", R.drawable.ic_allmusic_black_24dp));
-        drawerItems.add(populateDrawerItem("Playlists", R.drawable.ic_playlist_music_black_24dp));
-        drawerItems.add(populateDrawerItem("Now Playing", R.drawable.ic_equalizer1_white_24dp));
-        SimpleAdapter adapter = new SimpleAdapter(this, drawerItems, R.layout.drawer_list_item,
-            new String[]{"title", "icon"},
+        mDrawerMenuContents = new DrawerMenuContents(this);
+
+        SimpleAdapter adapter = new SimpleAdapter(this, mDrawerMenuContents.getItems(),
+            R.layout.drawer_list_item,
+            new String[]{DrawerMenuContents.FIELD_TITLE, DrawerMenuContents.FIELD_ICON},
             new int[]{R.id.drawer_item_title, R.id.drawer_item_icon});
+
         mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
            @Override
            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -324,13 +301,6 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
            }
         });
         mDrawerList.setAdapter(adapter);
-    }
-
-    private Map<String, ?> populateDrawerItem(String title, int icon) {
-        HashMap<String, Object> item = new HashMap<>();
-        item.put("title", title);
-        item.put("icon", icon);
-        return item;
     }
 
     protected void updateDrawerToggle() {
