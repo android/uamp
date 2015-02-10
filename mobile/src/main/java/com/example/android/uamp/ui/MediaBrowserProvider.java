@@ -15,24 +15,8 @@
  */
 package com.example.android.uamp.ui;
 
-import android.os.Bundle;
+import android.media.browse.MediaBrowser;
 
-import com.example.android.uamp.R;
-import com.example.android.uamp.utils.LogHelper;
-
-/**
- * Placeholder activity for features that are not implemented in this sample, but
- * are in the navigation drawer.
- */
-public class PlaceholderActivity extends BaseActivity {
-
-    private static final String TAG = LogHelper.makeLogTag(PlaceholderActivity.class);
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_placeholder);
-        initializeToolbar();
-    }
-
+public interface MediaBrowserProvider {
+    MediaBrowser getMediaBrowser();
 }

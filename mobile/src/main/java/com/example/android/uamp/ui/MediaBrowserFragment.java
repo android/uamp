@@ -82,7 +82,6 @@ public class MediaBrowserFragment extends Fragment {
         }
     };
 
-
     // Receive callbacks from the MediaController. Here we update our state such as which queue
     // is being shown, the current title and description and the PlaybackState.
     private MediaController.Callback mMediaControllerCallback = new MediaController.Callback() {
@@ -368,9 +367,8 @@ public class MediaBrowserFragment extends Fragment {
         }
     }
 
-    public static interface MediaFragmentListener {
+    public static interface MediaFragmentListener extends MediaBrowserProvider {
         void onMediaItemSelected(MediaBrowser.MediaItem item);
-        MediaBrowser getMediaBrowser();
         void setToolbarTitle(CharSequence title);
     }
 
