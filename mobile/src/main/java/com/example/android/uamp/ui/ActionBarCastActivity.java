@@ -229,7 +229,7 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
     @Override
     public void onBackPressed() {
         // If the drawer is open, back will close it
-        if (mDrawerLayout.isDrawerOpen(Gravity.START | Gravity.LEFT)) {
+        if (mDrawerLayout.isDrawerOpen(Gravity.START)) {
             mDrawerLayout.closeDrawers();
             return;
         }

@@ -16,43 +16,42 @@
 
 package com.example.android.uamp;
 
- import android.app.PendingIntent;
- import android.content.Context;
- import android.content.Intent;
- import android.graphics.Bitmap;
- import android.media.MediaDescription;
- import android.media.MediaMetadata;
- import android.media.browse.MediaBrowser;
- import android.media.browse.MediaBrowser.MediaItem;
- import android.media.session.MediaSession;
- import android.media.session.PlaybackState;
- import android.net.Uri;
- import android.os.Bundle;
- import android.os.Handler;
- import android.os.Message;
- import android.os.SystemClock;
- import android.service.media.MediaBrowserService;
- import android.support.v7.media.MediaRouter;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.media.MediaDescription;
+import android.media.MediaMetadata;
+import android.media.browse.MediaBrowser;
+import android.media.browse.MediaBrowser.MediaItem;
+import android.media.session.MediaSession;
+import android.media.session.PlaybackState;
+import android.net.Uri;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.os.SystemClock;
+import android.service.media.MediaBrowserService;
+import android.support.v7.media.MediaRouter;
 
- import com.example.android.uamp.model.MusicProvider;
- import com.example.android.uamp.ui.NowPlayingActivity;
- import com.example.android.uamp.utils.CarHelper;
- import com.example.android.uamp.utils.LogHelper;
- import com.example.android.uamp.utils.MediaIDHelper;
- import com.example.android.uamp.utils.QueueHelper;
- import com.google.android.gms.cast.ApplicationMetadata;
- import com.google.android.gms.cast.CastDevice;
- import com.google.sample.castcompanionlibrary.cast.VideoCastManager;
- import com.google.sample.castcompanionlibrary.cast.callbacks.VideoCastConsumerImpl;
+import com.example.android.uamp.model.MusicProvider;
+import com.example.android.uamp.ui.NowPlayingActivity;
+import com.example.android.uamp.utils.CarHelper;
+import com.example.android.uamp.utils.LogHelper;
+import com.example.android.uamp.utils.MediaIDHelper;
+import com.example.android.uamp.utils.QueueHelper;
+import com.google.android.gms.cast.ApplicationMetadata;
+import com.google.sample.castcompanionlibrary.cast.VideoCastManager;
+import com.google.sample.castcompanionlibrary.cast.callbacks.VideoCastConsumerImpl;
 
- import java.lang.ref.WeakReference;
- import java.util.ArrayList;
- import java.util.Collections;
- import java.util.List;
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
- import static com.example.android.uamp.utils.MediaIDHelper.MEDIA_ID_MUSICS_BY_GENRE;
- import static com.example.android.uamp.utils.MediaIDHelper.MEDIA_ID_ROOT;
- import static com.example.android.uamp.utils.MediaIDHelper.createBrowseCategoryMediaID;
+import static com.example.android.uamp.utils.MediaIDHelper.MEDIA_ID_MUSICS_BY_GENRE;
+import static com.example.android.uamp.utils.MediaIDHelper.MEDIA_ID_ROOT;
+import static com.example.android.uamp.utils.MediaIDHelper.createBrowseCategoryMediaID;
 
 /**
  * This class provides a MediaBrowser through a service. It exposes the media library to a browsing

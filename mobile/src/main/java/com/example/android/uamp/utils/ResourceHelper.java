@@ -5,7 +5,6 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
-import android.graphics.Color;
 
 /**
  * Generic reusable network methods.
@@ -18,7 +17,7 @@ public class ResourceHelper {
      * @param defaultColor
      * @return color value
      */
-    public static final int getThemeColor(Context context, int attribute, int defaultColor) {
+    public static int getThemeColor(Context context, int attribute, int defaultColor) {
         int themeColor = 0;
         String packageName = context.getPackageName();
         try {

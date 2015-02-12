@@ -15,7 +15,6 @@
  */
 package com.example.android.uamp.ui.tv;
 
-import android.app.Activity;
 import android.content.Context;
 import android.media.MediaMetadata;
 import android.media.session.MediaController;
@@ -27,12 +26,9 @@ import android.support.v17.leanback.widget.Action;
 import android.support.v17.leanback.widget.ArrayObjectAdapter;
 import android.support.v17.leanback.widget.ClassPresenterSelector;
 import android.support.v17.leanback.widget.ControlButtonPresenterSelector;
-import android.support.v17.leanback.widget.ListRow;
-import android.support.v17.leanback.widget.ListRowPresenter;
 import android.support.v17.leanback.widget.OnActionClickedListener;
 import android.support.v17.leanback.widget.PlaybackControlsRow;
 import android.support.v17.leanback.widget.PlaybackControlsRowPresenter;
-import android.support.v17.leanback.widget.RowHeaderPresenter;
 import android.util.Log;
 
 import com.example.android.uamp.utils.LogHelper;
@@ -66,12 +62,6 @@ public class MusicPlaybackOverlayFragment extends PlaybackOverlayFragment {
     private OnActionListener mOnActionListener = new OnActionListener();
     private long mDuration;
     private long mPosition;
-
-
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -111,11 +101,6 @@ public class MusicPlaybackOverlayFragment extends PlaybackOverlayFragment {
         mPrimaryActionsAdapter.add(mSkipPreviousAction);
         mPrimaryActionsAdapter.add(mPlayPauseAction);
         mPrimaryActionsAdapter.add(mSkipNextAction);
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
     }
 
     @Override

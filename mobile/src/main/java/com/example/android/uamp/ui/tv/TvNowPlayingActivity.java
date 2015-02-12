@@ -40,7 +40,7 @@ public class TvNowPlayingActivity extends Activity {
     private MediaBrowser mMediaBrowser;
     private MediaController mMediaController;
 
-    ImageView mImageView;
+    private ImageView mImageView;
     private MusicPlaybackOverlayFragment mFragment;
     private MediaBrowser.MediaItem mMediaItem;
 
@@ -147,6 +147,4 @@ public class TvNowPlayingActivity extends Activity {
         public void onQueueChanged(List<MediaSession.QueueItem> queue) {
         }
     };
-
-
 }

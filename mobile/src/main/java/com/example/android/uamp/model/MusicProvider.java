@@ -30,6 +30,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -227,7 +228,6 @@ public class MusicProvider {
                 if (tracks != null) {
                     for (int j = 0; j < tracks.length(); j++) {
                         MediaMetadata item = buildFromJSON(tracks.getJSONObject(j), path);
-                        String genre = item.getString(MediaMetadata.METADATA_KEY_GENRE);
                         String musicId = item.getString(MediaMetadata.METADATA_KEY_MEDIA_ID);
                         mMusicListById.put(musicId, new MutableMediaMetadata(musicId, item));
                     }
@@ -302,13 +302,13 @@ public class MusicProvider {
     private JSONObject parseUrl(String urlString) {
         InputStream is = null;
         try {
-            java.net.URL url = new java.net.URL(urlString);
+            URL url = new URL(urlString);
             URLConnection urlConnection = url.openConnection();
             is = new BufferedInputStream(urlConnection.getInputStream());
             BufferedReader reader = new BufferedReader(new InputStreamReader(
                     urlConnection.getInputStream(), "iso-8859-1"));
             StringBuilder sb = new StringBuilder();
-            String line = null;
+            String line;
             while ((line = reader.readLine()) != null) {
                 sb.append(line);
             }

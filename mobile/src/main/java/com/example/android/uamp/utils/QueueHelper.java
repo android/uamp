@@ -36,7 +36,7 @@ public class QueueHelper {
 
     private static final String TAG = LogHelper.makeLogTag(QueueHelper.class);
 
-    public static final List<MediaSession.QueueItem> getPlayingQueue(String mediaId,
+    public static List<MediaSession.QueueItem> getPlayingQueue(String mediaId,
             MusicProvider musicProvider) {
 
         // extract the browsing hierarchy from the media ID:
@@ -63,12 +63,11 @@ public class QueueHelper {
             LogHelper.e(TAG, "Unrecognized category type: ", categoryType, " for mediaId ", mediaId);
             return null;
         }
-        List<MediaSession.QueueItem> queue = convertToQueue(tracks, hierarchy[0], hierarchy[1]);
 
-        return queue;
+        return convertToQueue(tracks, hierarchy[0], hierarchy[1]);
     }
 
-    public static final List<MediaSession.QueueItem> getPlayingQueueFromSearch(String query,
+    public static List<MediaSession.QueueItem> getPlayingQueueFromSearch(String query,
             MusicProvider musicProvider) {
 
         LogHelper.d(TAG, "Creating playing queue for musics from search ", query);
@@ -77,7 +76,7 @@ public class QueueHelper {
     }
 
 
-    public static final int getMusicIndexOnQueue(Iterable<MediaSession.QueueItem> queue,
+    public static int getMusicIndexOnQueue(Iterable<MediaSession.QueueItem> queue,
              String mediaId) {
         int index = 0;
         for (MediaSession.QueueItem item : queue) {
@@ -89,7 +88,7 @@ public class QueueHelper {
         return -1;
     }
 
-    public static final int getMusicIndexOnQueue(Iterable<MediaSession.QueueItem> queue,
+    public static int getMusicIndexOnQueue(Iterable<MediaSession.QueueItem> queue,
              long queueId) {
         int index = 0;
         for (MediaSession.QueueItem item : queue) {
@@ -101,7 +100,7 @@ public class QueueHelper {
         return -1;
     }
 
-    private static final List<MediaSession.QueueItem> convertToQueue(
+    private static List<MediaSession.QueueItem> convertToQueue(
             Iterable<MediaMetadata> tracks, String... categories) {
         List<MediaSession.QueueItem> queue = new ArrayList<>();
         int count = 0;
@@ -130,10 +129,10 @@ public class QueueHelper {
      * Create a random queue. For simplicity sake, instead of a random queue, we create a
      * queue using the first genre.
      *
-     * @param musicProvider
-     * @return
+     * @param musicProvider the provider used for fetching music.
+     * @return list containing {@link MediaSession.QueueItem}'s
      */
-    public static final List<MediaSession.QueueItem> getRandomQueue(MusicProvider musicProvider) {
+    public static List<MediaSession.QueueItem> getRandomQueue(MusicProvider musicProvider) {
         Iterator<String> genres = musicProvider.getGenres().iterator();
         if (!genres.hasNext()) {
             return Collections.emptyList();
@@ -144,9 +143,7 @@ public class QueueHelper {
         return convertToQueue(tracks, MEDIA_ID_MUSICS_BY_GENRE, genre);
     }
 
-
-
-    public static final boolean isIndexPlayable(int index, List<MediaSession.QueueItem> queue) {
+    public static boolean isIndexPlayable(int index, List<MediaSession.QueueItem> queue) {
         return (queue != null && index >= 0 && index < queue.size());
     }
 }

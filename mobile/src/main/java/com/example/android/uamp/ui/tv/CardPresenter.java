@@ -31,10 +31,10 @@ import com.example.android.uamp.R;
 
 public class CardPresenter extends Presenter {
     private static final String TAG = "CardPresenter";
+    private static final int CARD_WIDTH = 313;
+    private static final int CARD_HEIGHT = 176;
 
     private static Context mContext;
-    private static int CARD_WIDTH = 313;
-    private static int CARD_HEIGHT = 176;
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent) {

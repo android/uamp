@@ -16,8 +16,6 @@
 
 package com.example.android.uamp.utils;
 
-import android.text.TextUtils;
-
 import java.util.Arrays;
 
 /**
@@ -35,7 +33,7 @@ public class MediaIDHelper {
     private static final char CATEGORY_SEPARATOR = '/';
     private static final char LEAF_SEPARATOR = '|';
 
-    public static final String createMediaID(String musicID, String... categories) {
+    public static String createMediaID(String musicID, String... categories) {
         // MediaIDs are of the form <categoryType>/<categoryValue>|<musicUniqueId>, to make it easy
         // to find the category (like genre) that a music was selected from, so we
         // can correctly build the playing queue. This is specially useful when
@@ -54,7 +52,7 @@ public class MediaIDHelper {
         return sb.toString();
     }
 
-    public static final String createBrowseCategoryMediaID(String categoryType, String categoryValue) {
+    public static String createBrowseCategoryMediaID(String categoryType, String categoryValue) {
         return categoryType + CATEGORY_SEPARATOR + categoryValue;
     }
 
@@ -64,10 +62,10 @@ public class MediaIDHelper {
      * musicID. This is necessary so we know where the user selected the music from, when the music
      * exists in more than one music list, and thus we are able to correctly build the playing queue.
      *
-     * @param mediaID
-     * @return
+     * @param mediaID that contains the musicID
+     * @return musicID
      */
-    public static final String extractMusicIDFromMediaID(String mediaID) {
+    public static String extractMusicIDFromMediaID(String mediaID) {
         int pos = mediaID.indexOf(LEAF_SEPARATOR);
         if (pos >= 0) {
             return mediaID.substring(pos+1);
@@ -81,10 +79,9 @@ public class MediaIDHelper {
      * mediaID. This is necessary so we know where the user selected the music from, when the music
      * exists in more than one music list, and thus we are able to correctly build the playing queue.
      *
-     * @param mediaID
-     * @return
+     * @param mediaID that contains a category and categoryValue.
      */
-    public static final String[] getHierarchy(String mediaID) {
+    public static String[] getHierarchy(String mediaID) {
         int pos = mediaID.indexOf(LEAF_SEPARATOR);
         if (pos >= 0) {
             mediaID = mediaID.substring(0, pos);
@@ -92,7 +89,7 @@ public class MediaIDHelper {
         return mediaID.split(String.valueOf(CATEGORY_SEPARATOR));
     }
 
-    public static final String extractBrowseCategoryValueFromMediaID(String mediaID) {
+    public static String extractBrowseCategoryValueFromMediaID(String mediaID) {
         String[] hierarchy = getHierarchy(mediaID);
         if (hierarchy != null && hierarchy.length == 2) {
             return hierarchy[1];
@@ -104,7 +101,7 @@ public class MediaIDHelper {
         return mediaID.indexOf(LEAF_SEPARATOR) < 0;
     }
 
-    public static final String getParentMediaID(String mediaID) {
+    public static String getParentMediaID(String mediaID) {
         String[] hierarchy = getHierarchy(mediaID);
         if (!isBrowseable(mediaID)) {
             return createMediaID(null, hierarchy);
