@@ -92,9 +92,12 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
         PlaybackControlsFragment controlsFragment = (PlaybackControlsFragment)
             getFragmentManager().findFragmentById(R.id.controls);
         if (controlsFragment == null && NetworkHelper.isOnline(this)) {
-            PlaybackControlsFragment fragment = new PlaybackControlsFragment();
+            controlsFragment = new PlaybackControlsFragment();
             getFragmentManager().beginTransaction()
-                .replace(R.id.controls, fragment)
+                .setCustomAnimations(
+                    R.animator.slide_in_from_bottom, R.animator.slide_out_to_bottom,
+                    R.animator.slide_in_from_bottom, R.animator.slide_out_to_bottom)
+                .add(R.id.controls, controlsFragment)
                 .commit();
         }
     }
