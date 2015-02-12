@@ -15,8 +15,9 @@
   limitations under the License.
   -->
 <resources>
+    <style name="UAmpAppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowContentTransitions">true</item>
 
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- colorPrimary is used for:
                - Phone: Action bar (App bar)
                - Auto: Notification icon and bottom facet bar icons and overflow actions

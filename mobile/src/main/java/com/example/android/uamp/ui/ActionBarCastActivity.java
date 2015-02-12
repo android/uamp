@@ -114,16 +114,14 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
     private DrawerLayout.DrawerListener mDrawerListener = new DrawerLayout.DrawerListener() {
         @Override
         public void onDrawerClosed(View drawerView) {
-            getSupportActionBar().setTitle(getTitle());
             if (mDrawerToggle != null) mDrawerToggle.onDrawerClosed(drawerView);
-            if (mItemToOpenWhenDrawerCloses >= 0) {
-                int position = mItemToOpenWhenDrawerCloses;
-                mItemToOpenWhenDrawerCloses = -1;
+            int position = mItemToOpenWhenDrawerCloses;
+            if (position >= 0) {
                 Bundle extras = ActivityOptions.makeCustomAnimation(
-                    ActionBarCastActivity.this, 0, 0).toBundle();
+                    ActionBarCastActivity.this, R.anim.fade_in, R.anim.fade_out).toBundle();
 
                 Class activityClass = mDrawerMenuContents.getActivity(position);
-                startActivity(new Intent(ActionBarCastActivity.this,activityClass), extras);
+                startActivity(new Intent(ActionBarCastActivity.this, activityClass), extras);
             }
         }
 
