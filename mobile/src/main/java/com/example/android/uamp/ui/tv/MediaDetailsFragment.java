@@ -33,9 +33,6 @@ import android.support.v17.leanback.widget.HeaderItem;
 import android.support.v17.leanback.widget.ListRow;
 import android.support.v17.leanback.widget.ListRowPresenter;
 import android.support.v17.leanback.widget.OnActionClickedListener;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.example.android.uamp.R;
@@ -48,7 +45,6 @@ public class MediaDetailsFragment extends DetailsFragment {
     private Activity mActivity;
     private MediaBrowser.MediaItem mMediaItem;
     private ArrayObjectAdapter mRowsAdapter;
-    private ArrayObjectAdapter mRelatedAdapter;
 
     @Override
     public void onAttach(Activity activity) {
@@ -87,9 +83,9 @@ public class MediaDetailsFragment extends DetailsFragment {
     }
 
     private void addRelatedContentRow() {
-        mRelatedAdapter = new ArrayObjectAdapter(new CardPresenter());
+        ArrayObjectAdapter relatedAdapter = new ArrayObjectAdapter(new CardPresenter());
         HeaderItem headerItem = new HeaderItem(0, getString(R.string.related_content_header), null);
-        ListRow relatedContentRow = new ListRow(headerItem, mRelatedAdapter);
+        ListRow relatedContentRow = new ListRow(headerItem, relatedAdapter);
         mRowsAdapter.add(relatedContentRow);
     }
 

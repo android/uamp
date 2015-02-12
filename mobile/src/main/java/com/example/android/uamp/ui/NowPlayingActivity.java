@@ -22,7 +22,6 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.example.android.uamp.ui.tv.TvBrowseActivity;
 import com.example.android.uamp.ui.tv.TvNowPlayingActivity;
 import com.example.android.uamp.utils.LogHelper;
 

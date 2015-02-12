@@ -57,6 +57,7 @@ public class BitmapHelper {
         return Math.min(actualW/targetW, actualH/targetH);
     }
 
+    @SuppressWarnings("SameParameterValue")
     public static Bitmap fetchAndRescaleBitmap(String uri, int width, int height)
             throws IOException {
         URL url = new URL(uri);

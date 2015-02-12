@@ -34,7 +34,6 @@ import android.widget.Toast;
 
 import com.example.android.uamp.R;
 import com.example.android.uamp.utils.LogHelper;
-import com.example.android.uamp.utils.MediaIDHelper;
 
 import java.util.List;
 
@@ -49,8 +48,6 @@ import java.util.List;
 public class TvBrowseFragment extends BrowseFragment {
 
     private static final String TAG = LogHelper.makeLogTag(TvBrowseFragment.class);
-
-    private static final String ARG_MEDIA_ID = "media_id";
 
     private ArrayObjectAdapter mRowsAdapter;
     private String mMediaId;
@@ -154,8 +151,6 @@ public class TvBrowseFragment extends BrowseFragment {
         }
     }
 
-    ;
-
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         Log.i(TAG, "onActivityCreated");
@@ -210,7 +205,7 @@ public class TvBrowseFragment extends BrowseFragment {
         mMediaBrowser = mSupportActivity.getMediaBrowser();
 
         if (mMediaBrowser == null || !mMediaBrowser.isConnected()) {
-            Log.d(TAG, "mMediaBrowser: " + mMediaBrowser.toString());
+            Log.d(TAG, "mMediaBrowser: " + mMediaBrowser);
             if (mMediaBrowser != null) {
                 Log.d(TAG, "MediaBrowser not connected");
             }

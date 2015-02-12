@@ -9,11 +9,10 @@ import android.net.NetworkInfo;
  */
 public class NetworkHelper {
     /**
-     * Check for network connectivity.
-     * @param context
+     * @param context to use to check for network connectivity.
      * @return true if connected, false otherwise.
      */
-    public static final boolean isOnline(Context context) {
+    public static boolean isOnline(Context context) {
         ConnectivityManager connMgr = (ConnectivityManager)
             context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();

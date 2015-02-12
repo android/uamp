@@ -131,7 +131,7 @@ public class DemoKitService extends Service {
     public void onDestroy() {
         super.onDestroy();
         LogHelper.d(TAG, "Destroying service");
-        if (mMediaController != null && mMediaCallback != null) {
+        if (mMediaController != null) {
             mMediaController.unregisterCallback(mMediaCallback);
         }
         if (mMediaBrowser != null && mMediaBrowser.isConnected()) {

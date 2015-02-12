@@ -18,7 +18,6 @@ package com.example.android.uamp.ui;
 import android.app.Activity;
 import android.graphics.drawable.AnimationDrawable;
 import android.media.MediaDescription;
-import android.media.session.MediaController;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,7 +25,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.android.uamp.R;
-import com.example.android.uamp.utils.MediaIDHelper;
 
 public class MediaItemViewHolder {
 

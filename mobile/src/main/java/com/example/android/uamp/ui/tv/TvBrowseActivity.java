@@ -40,9 +40,10 @@ public class TvBrowseActivity extends Activity
         implements TvBrowseFragment.MediaFragmentListener {
 
     private static final String TAG = LogHelper.makeLogTag(TvBrowseActivity.class);
-    public static final String EXTRA_PLAY_QUERY="com.example.android.uamp.PLAY_QUERY";
     private static final String SAVED_MEDIA_ID="com.example.android.uamp.MEDIA_ID";
     private static final String BROWSE_TITLE = "com.example.android.uamp.BROWSE_TITLE";
+
+    public static final String EXTRA_PLAY_QUERY="com.example.android.uamp.PLAY_QUERY";
 
     private MediaBrowser mMediaBrowser;
 
@@ -64,6 +65,7 @@ public class TvBrowseActivity extends Activity
                 mConnectionCallback, null);
     }
 
+    @SuppressWarnings("NullableProblems")
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         if (mMediaId != null) {
@@ -100,7 +102,6 @@ public class TvBrowseActivity extends Activity
             if (mediaId != null) {
                 mMediaId = mediaId;
                 mBrowseTitle = intent.getStringExtra(TvBrowseActivity.BROWSE_TITLE);
-                return;
             } else if (intent.getAction() != null &&
                     intent.getAction().equals(MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH) &&
                     intent.hasExtra(EXTRA_PLAY_QUERY)) {

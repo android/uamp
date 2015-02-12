@@ -34,6 +34,7 @@ public class PrefUtils {
         getPreferences(context).edit().putBoolean(FTU_SHOWN, shown).apply();
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static boolean isFtuShown(Context context) {
         return getPreferences(context).getBoolean(FTU_SHOWN, false);
     }

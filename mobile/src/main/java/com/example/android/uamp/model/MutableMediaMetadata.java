@@ -17,6 +17,7 @@
 package com.example.android.uamp.model;
 
 import android.media.MediaMetadata;
+import android.text.TextUtils;
 
 /**
  * Holder class that encapsulates a MediaMetadata and allows the actual metadata to be modified
@@ -39,9 +40,7 @@ public class MutableMediaMetadata {
 
         MutableMediaMetadata that = (MutableMediaMetadata) o;
 
-        if (trackId != null ? !trackId.equals(that.trackId) : that.trackId != null) return false;
-
-        return true;
+        return TextUtils.equals(trackId, that.trackId);
     }
 
     @Override

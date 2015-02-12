@@ -163,8 +163,7 @@ public class CarHelper {
     }
 
     public static boolean isValidAutoPackageSignature(byte[] signature) {
-        for (int i = 0; i < VALID_PUBLIC_SIGNATURES.length; i++) {
-            byte[] validSignature = VALID_PUBLIC_SIGNATURES[i];
+        for (byte[] validSignature : VALID_PUBLIC_SIGNATURES) {
             if (Arrays.equals(validSignature, signature)) {
                 return true;
             }

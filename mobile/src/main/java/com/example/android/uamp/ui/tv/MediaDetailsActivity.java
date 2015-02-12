@@ -19,7 +19,6 @@ import android.app.Activity;
 import android.os.Bundle;
 
 import com.example.android.uamp.R;
-import com.example.android.uamp.utils.LogHelper;
 
 public class MediaDetailsActivity extends Activity {
 

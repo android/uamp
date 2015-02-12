@@ -32,7 +32,6 @@ import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 
 public class DemoKitManager implements Runnable {
     private static final String TAG = LogHelper.makeLogTag(DemoKitManager.class);
@@ -42,8 +41,6 @@ public class DemoKitManager implements Runnable {
     private UsbManager mUsbManager;
     private PendingIntent mPermissionIntent;
     private boolean mPermissionRequestPending;
-
-    private WeakReference<Context> mContext;
 
     UsbAccessory mAccessory;
     ParcelFileDescriptor mFileDescriptor;
@@ -120,7 +117,6 @@ public class DemoKitManager implements Runnable {
     }
 
     public DemoKitManager(Context context) {
-        mContext = new WeakReference<Context>(context);
         mUsbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
     }
 
@@ -151,7 +147,7 @@ public class DemoKitManager implements Runnable {
             if (mFileDescriptor != null) {
                 mFileDescriptor.close();
             }
-        } catch (IOException e) {
+        } catch (IOException ignored) {
         } finally {
             mFileDescriptor = null;
             mAccessory = null;
@@ -270,6 +266,7 @@ public class DemoKitManager implements Runnable {
         }
     };
 
+    @SuppressWarnings("SameParameterValue")
     public void sendCommand(byte command, byte target, int value) throws IOException {
         byte[] buffer = new byte[3];
         if (value > 255)
