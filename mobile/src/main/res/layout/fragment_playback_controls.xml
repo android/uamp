@@ -21,8 +21,8 @@
     <ImageView
         android:id="@+id/album_art"
         tools:src="@drawable/ic_launcher"
-        android:layout_width="@dimen/max_height_albumart"
-        android:layout_height="@dimen/max_height_albumart"
+        android:layout_width="@dimen/playback_controls_albumart_size"
+        android:layout_height="@dimen/playback_controls_albumart_size"
         android:scaleType="centerCrop"
         android:contentDescription="@string/currently_playing_song"
         android:layout_alignParentStart="true"/>
@@ -30,7 +30,7 @@
         android:id="@+id/content"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/horizontal_margin_around_albumart"
+        android:layout_marginStart="@dimen/playback_controls_albumart_horizontal_margin"
         android:orientation="vertical"
         android:layout_toEndOf="@id/album_art"
         android:layout_toStartOf="@+id/play_pause"

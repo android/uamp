@@ -15,18 +15,24 @@
   limitations under the License.
   -->
 <resources>
-
+    <!-- error infobar -->
     <dimen name="error_horizontal_padding">4dp</dimen>
     <dimen name="error_vertical_padding">16dp</dimen>
-    <dimen name="list_item_padding">4dp</dimen>
-    <dimen name="margin_text_view">6dp</dimen>
-    <dimen name="horizontal_margin_around_albumart">8dp</dimen>
-    <dimen name="max_height_albumart">64dp</dimen>
+
+    <!-- playback controls -->
+    <dimen name="playback_controls_albumart_horizontal_margin">8dp</dimen>
+    <dimen name="playback_controls_albumart_size">64dp</dimen>
     <dimen name="playback_controls_padding">8dp</dimen>
 
+    <!-- navigation drawer -->
     <dimen name="drawer_item_icon_horizontal_margin">12dp</dimen>
     <dimen name="drawer_item_left_margin">16dp</dimen>
     <dimen name="drawer_item_right_margin">56dp</dimen>
     <dimen name="drawer_item_height">48dp</dimen>
 
+    <!-- media browser listview -->
+    <dimen name="media_item_height">72dp</dimen>
+    <dimen name="media_item_icon_margin_start">12dp</dimen>
+    <dimen name="media_item_text_margin_start">60dp</dimen>
+    <dimen name="toolbar_inset_start">60dp</dimen>
 </resources>

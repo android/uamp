@@ -13,29 +13,29 @@
   See the License for the specific language governing permissions and
   limitations under the License.
   -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:padding="@dimen/list_item_padding"
-    android:minHeight="?android:listPreferredItemHeight"
-    android:orientation="horizontal">
+    android:layout_height="@dimen/media_item_height">
 
     <ImageView
         android:id="@+id/play_eq"
         android:layout_width="wrap_content"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_centerVertical="true"
+        android:layout_marginStart="@dimen/media_item_icon_margin_start"
         android:tintMode="src_in"
-        android:tint="@android:color/darker_gray"
+        android:tint="@color/media_item_icon_not_playing"
         android:contentDescription="@string/play_item"
-        android:src="@drawable/ic_play_arrow_white_24dp"/>
+        android:src="@drawable/ic_play_arrow_black_36dp"/>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:minHeight="?android:attr/listPreferredItemHeight"
-        android:mode="twoLine"
-        android:padding="@dimen/list_item_padding"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="@dimen/media_item_text_margin_start"
+        android:layout_centerVertical="true"
         android:orientation="vertical">
 
         <TextView
@@ -43,8 +43,6 @@
             tools:text="The Best Music EVAH1111 FOREVER YOUNG I'M AWESOME!!!11^H^H"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/margin_text_view"
-            android:layout_marginTop="@dimen/margin_text_view"
             android:maxLines="1"
             android:ellipsize="end"
             android:textAppearance="?android:attr/textAppearanceMedium"
@@ -55,8 +53,6 @@
             tools:text="John Doe, his brothers, his sisters, his pets and his more than amazing band"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/margin_text_view"
-            android:layout_marginTop="@dimen/margin_text_view"
             android:maxLines="1"
             android:ellipsize="end"
             android:textAppearance="?android:attr/textAppearanceSmall"
@@ -64,4 +60,4 @@
 
     </LinearLayout>
 
-</LinearLayout>
+</RelativeLayout>
