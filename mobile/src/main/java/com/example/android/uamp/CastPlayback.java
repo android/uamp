@@ -24,6 +24,7 @@ import com.example.android.uamp.model.MusicProvider;
 import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.MediaIDHelper;
 import com.google.android.gms.cast.ApplicationMetadata;
+import com.google.android.gms.cast.CastStatusCodes;
 import com.google.android.gms.cast.MediaInfo;
 import com.google.android.gms.cast.MediaMetadata;
 import com.google.android.gms.cast.MediaStatus;
@@ -358,8 +359,8 @@ public class CastPlayback implements Playback {
         }
 
         @Override
-        public void onMediaLoadRequestStatus(boolean success, Integer failureCode) {
-            if (success) {
+        public void onMediaLoadResult(int statusCode) {
+            if (statusCode == CastStatusCodes.SUCCESS) {
                 // Remove the listener as soon as we're done with the action.
                 mCastManager.removeVideoCastConsumer(this);
 
@@ -375,7 +376,7 @@ public class CastPlayback implements Playback {
                     LogHelper.e(TAG, e, "Exception pausing stream");
                 }
             } else {
-                LogHelper.e(TAG, "Error calling loadMedia with status ", failureCode);
+                LogHelper.e(TAG, "Error calling loadMedia with status ", statusCode);
             }
         }
     }
