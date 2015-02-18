@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<allowed_callers>
+    <signing_certificate name="Android Auto" release="false"
+                         package="com.google.android.projection.gearhead">
+        MIIDvTCCAqWgAwIBAgIJAOfkBvDXw5bzMA0GCSqGSIb3DQEBBQUAMHUxCzAJBgNV
+        BAYTAlVTMRMwEQYDVQQIDApDYWxpZm9ybmlhMRYwFAYDVQQHDA1Nb3VudGFpbiBW
+        aWV3MRQwEgYDVQQKDAtHb29nbGUgSW5jLjEQMA4GA1UECwwHQW5kcm9pZDERMA8G
+        A1UEAwwIZ2VhcmhlYWQwHhcNMTQwNTI3MjMwMjUxWhcNNDExMDEyMjMwMjUxWjB1
+        MQswCQYDVQQGEwJVUzETMBEGA1UECAwKQ2FsaWZvcm5pYTEWMBQGA1UEBwwNTW91
+        bnRhaW4gVmlldzEUMBIGA1UECgwLR29vZ2xlIEluYy4xEDAOBgNVBAsMB0FuZHJv
+        aWQxETAPBgNVBAMMCGdlYXJoZWFkMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIB
+        CgKCAQEAou7wwBKFyznqpRretJ3EVp55/Yr049Ag5wlGvrCnjIP8DrMrU+skfKe1
+        DmwpsLNtnhhiNH+J000Lok3hc8jdWKeKOopzKGDNvL/HvnS70Zyk26gj9jtMMHz9
+        2aZdpmwD67FNmTlG2FERr+TwMD5agaPnsFR2zla6ugUvHGzz65YDxpCZsQ/TowyD
+        LnxgMagvhvS+Oex3yh2FN7pJfwS03KdGdkWPbLqf9Fem09s5jjeZW/O3RgnKoRPI
+        J4QLK70efjAZqJyBGcDZyQMwOs+8HIknraf8+cRZJDzqOx7rttl8M3KGB2EFljTp
+        6/FyxJLnAo6QlXn7GrYalTI0yLU9dQIDAQABo1AwTjAdBgNVHQ4EFgQU9QPJ5xJE
+        DA8MDQMrj0hm2/A2BRkwHwYDVR0jBBgwFoAU9QPJ5xJEDA8MDQMrj0hm2/A2BRkw
+        DAYDVR0TBAUwAwEB/zANBgkqhkiG9w0BAQUFAAOCAQEADcr5h1FR8IpmN4hSsUA9
+        SnCQVyXa1GQhzpQgRbF+npkgOn2Mebp8bd28VpfgooD2OBNQXCUcZkn7pWj++ut9
+        HhObHVaV5FNg0pdDqLna9QZ9Y4oS+ZrijK70XZ/EjlYUHvhu0pIjZAbD8CmCFlow
+        SR55qCSjM5iS37LZB32SMr1BBiYrNAvncKjYQVK8ctTRzhpNQQPBgXBA98Xl+d1D
+        Py00JWQuF0ssmhKcJuvfdEnFF7Hvaxz/gCQ9nzarQI3CJB8dOXVwF8mcyDRBz4JR
+        +YDpXo6BD+fGt15ov+zmqC8xaT9P1/JgoDXiMhy/6rwgdi9WxPf8mb7TnBC+CksX
+        0A==
+    </signing_certificate>
+    <signing_certificate name="Android Auto" release="true"
+                         package="com.google.android.projection.gearhead">
+        MIIDvTCCAqWgAwIBAgIJAMePnkuTQTAGMA0GCSqGSIb3DQEBBQUAMHUxCzAJBgNV
+        BAYTAlVTMRMwEQYDVQQIDApDYWxpZm9ybmlhMRYwFAYDVQQHDA1Nb3VudGFpbiBW
+        aWV3MRQwEgYDVQQKDAtHb29nbGUgSW5jLjEQMA4GA1UECwwHQW5kcm9pZDERMA8G
+        A1UEAwwIZ2VhcmhlYWQwHhcNMTQwNTI3MjMwNTM0WhcNNDExMDEyMjMwNTM0WjB1
+        MQswCQYDVQQGEwJVUzETMBEGA1UECAwKQ2FsaWZvcm5pYTEWMBQGA1UEBwwNTW91
+        bnRhaW4gVmlldzEUMBIGA1UECgwLR29vZ2xlIEluYy4xEDAOBgNVBAsMB0FuZHJv
+        aWQxETAPBgNVBAMMCGdlYXJoZWFkMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIB
+        CgKCAQEA050XDkNIsVRMX2wTvVplpCu4OtnyNK2v5B7PS+DggmH2yuZiwpTurdKD
+        Q9R9UzxH9U4lsC+mIxXkiBYKIWNVgMtiTgxkEy7cgWvdYHgNYpFu8IxZKYDyXes+
+        02pfvpu63MIBD/PnvVFipo1oUrbfetj+mroEpjnA71gUS0Ok+H6XWWsmb8xFHQVM
+        oZWEIzsUJ2nhm8EcnPkAPfNZAG++XLPROoRQCaswyYsd42JuYAP3CwZuhDcUbMWm
+        k7rBi9BVQ8gmkrbwqo94A7qStLUp3NyCmlKSWHaZ05SspEPwsfctka0oXG5bhgT6
+        67EMCzQ+YsFN1oJRL7Qq+mMQjFJs3wIDAQABo1AwTjAdBgNVHQ4EFgQUGvBfYNeu
+        6JSJUnJZCiaBGsnXztswHwYDVR0jBBgwFoAUGvBfYNeu6JSJUnJZCiaBGsnXztsw
+        DAYDVR0TBAUwAwEB/zANBgkqhkiG9w0BAQUFAAOCAQEAlGsDY0EPu3NBSH5k6iw/
+        wJh9e3xMwS17ErKGlhyWogxJMzLjAN6g0aCPHxB40IQC+8qAl+RL7VQx6oxttf0m
+        31yUGQPcNYbt2CxBTCAr885oLK5t2TAi5tQzhd6ZEYihWSUWUd/X8BQRouxboss9
+        QbBA/iIx0OpDaxiAcq7Cb67TheXZDxGuQ8fmHYbLx84pEvm3DQOB/LIMkkpQSfEC
+        1f+oP1zB3urPU/dSvED/LCgOdrpxZ5di7SwSyue+Vq/TZQy34tPygEzD2d8hFlh/
+        yfhWkMizOeIXcayVAQdNn5zpBkuay1skGOjQQ5kTbDcDzigO2R2rqn6HCd9l5Z0W
+        IQ==
+    </signing_certificate>
+    <signing_certificate name="Media Browser Service Simulator" release="true"
+                         package="com.google.android.mediasimulator">
+        MIIDvTCCAqWgAwIBAgIJAMePnkuTQTAGMA0GCSqGSIb3DQEBBQUAMHUxCzAJBgNV
+        BAYTAlVTMRMwEQYDVQQIDApDYWxpZm9ybmlhMRYwFAYDVQQHDA1Nb3VudGFpbiBW
+        aWV3MRQwEgYDVQQKDAtHb29nbGUgSW5jLjEQMA4GA1UECwwHQW5kcm9pZDERMA8G
+        A1UEAwwIZ2VhcmhlYWQwHhcNMTQwNTI3MjMwNTM0WhcNNDExMDEyMjMwNTM0WjB1
+        MQswCQYDVQQGEwJVUzETMBEGA1UECAwKQ2FsaWZvcm5pYTEWMBQGA1UEBwwNTW91
+        bnRhaW4gVmlldzEUMBIGA1UECgwLR29vZ2xlIEluYy4xEDAOBgNVBAsMB0FuZHJv
+        aWQxETAPBgNVBAMMCGdlYXJoZWFkMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIB
+        CgKCAQEA050XDkNIsVRMX2wTvVplpCu4OtnyNK2v5B7PS+DggmH2yuZiwpTurdKD
+        Q9R9UzxH9U4lsC+mIxXkiBYKIWNVgMtiTgxkEy7cgWvdYHgNYpFu8IxZKYDyXes+
+        02pfvpu63MIBD/PnvVFipo1oUrbfetj+mroEpjnA71gUS0Ok+H6XWWsmb8xFHQVM
+        oZWEIzsUJ2nhm8EcnPkAPfNZAG++XLPROoRQCaswyYsd42JuYAP3CwZuhDcUbMWm
+        k7rBi9BVQ8gmkrbwqo94A7qStLUp3NyCmlKSWHaZ05SspEPwsfctka0oXG5bhgT6
+        67EMCzQ+YsFN1oJRL7Qq+mMQjFJs3wIDAQABo1AwTjAdBgNVHQ4EFgQUGvBfYNeu
+        6JSJUnJZCiaBGsnXztswHwYDVR0jBBgwFoAUGvBfYNeu6JSJUnJZCiaBGsnXztsw
+        DAYDVR0TBAUwAwEB/zANBgkqhkiG9w0BAQUFAAOCAQEAlGsDY0EPu3NBSH5k6iw/
+        wJh9e3xMwS17ErKGlhyWogxJMzLjAN6g0aCPHxB40IQC+8qAl+RL7VQx6oxttf0m
+        31yUGQPcNYbt2CxBTCAr885oLK5t2TAi5tQzhd6ZEYihWSUWUd/X8BQRouxboss9
+        QbBA/iIx0OpDaxiAcq7Cb67TheXZDxGuQ8fmHYbLx84pEvm3DQOB/LIMkkpQSfEC
+        1f+oP1zB3urPU/dSvED/LCgOdrpxZ5di7SwSyue+Vq/TZQy34tPygEzD2d8hFlh/
+        yfhWkMizOeIXcayVAQdNn5zpBkuay1skGOjQQ5kTbDcDzigO2R2rqn6HCd9l5Z0W
+        IQ==
+    </signing_certificate>
+</allowed_callers>

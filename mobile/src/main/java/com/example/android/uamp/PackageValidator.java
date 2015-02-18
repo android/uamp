@@ -18,76 +18,143 @@ package com.example.android.uamp;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.res.XmlResourceParser;
 import android.os.Process;
 import android.util.Base64;
 
-import com.example.android.uamp.utils.CarHelper;
 import com.example.android.uamp.utils.LogHelper;
 
+import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
- * Validates that the calling package is authorized to use this
+ * Validates that the calling package is authorized to browse a
  * {@link android.service.media.MediaBrowserService}.
+ *
+ * The list of allowed signing certificates and their corresponding package names is defined in
+ * res/xml/allowed_media_browser_callers.xml.
  */
 public class PackageValidator {
     private static final String TAG = LogHelper.makeLogTag(PackageValidator.class);
 
     /**
-     * Disallow instantiation of this helper class.
+     * Map allowed callers' certificate keys to the expected caller information.
+     *
      */
-    private PackageValidator() {}
+    private final Map<String, ArrayList<CallerInfo>> mValidCertificates;
 
-    /**
-     * Throws when the caller is not authorized to get data from this MediaBrowserService
-     */
-    public static void checkCallerAllowed(Context context, String callingPackage, int callingUid) {
-        if (!isCallerAllowed(context, callingPackage, callingUid)) {
-            throw new SecurityException("signature check failed.");
+    public PackageValidator(Context ctx) {
+        mValidCertificates = readValidCertificates(ctx.getResources().getXml(
+            R.xml.allowed_media_browser_callers));
+    }
+
+    private Map<String, ArrayList<CallerInfo>> readValidCertificates(XmlResourceParser parser) {
+        HashMap<String, ArrayList<CallerInfo>> validCertificates = new HashMap<>();
+        try {
+            int eventType = parser.next();
+            while (eventType != XmlResourceParser.END_DOCUMENT) {
+                if (eventType == XmlResourceParser.START_TAG
+                        && parser.getName().equals("signing_certificate")) {
+
+                    String certificate = parser.nextText().replaceAll("\\s|\\n", "");
+
+                    CallerInfo info = new CallerInfo(
+                        parser.getAttributeValue(null, "name"),
+                        parser.getAttributeValue(null, "package"),
+                        parser.getAttributeBooleanValue(null, "release", false),
+                        certificate);
+
+                    ArrayList<CallerInfo> infos = validCertificates.get(certificate);
+                    if (infos == null) {
+                        infos = new ArrayList<>();
+                        validCertificates.put(certificate, infos);
+                    }
+                    LogHelper.v(TAG, "Adding allowed caller: ", info.name,
+                        " package=", info.packageName, " release=", info.release,
+                        " certificate=", certificate);
+                    infos.add(info);
+                }
+                eventType = parser.next();
+            }
+        } catch (XmlPullParserException | IOException e) {
+            LogHelper.e(TAG, e, "Could not read allowed callers from XML.");
         }
+        return validCertificates;
     }
 
     /**
      * @return false if the caller is not authorized to get data from this MediaBrowserService
      */
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    public static boolean isCallerAllowed(Context context, String callingPackage, int callingUid) {
+    public boolean isCallerAllowed(Context context, String callingPackage, int callingUid) {
         // Always allow calls from the framework, self app or development environment.
         if (Process.SYSTEM_UID == callingUid || Process.myUid() == callingUid) {
             return true;
         }
-        if (BuildConfig.DEBUG) {
-            LogHelper.i(TAG, "Allowing caller '"+callingPackage+" because app was built in debug mode.");
-            return true;
-        }
+        PackageManager packageManager = context.getPackageManager();
         PackageInfo packageInfo;
-        final PackageManager packageManager = context.getPackageManager();
         try {
             packageInfo = packageManager.getPackageInfo(
                     callingPackage, PackageManager.GET_SIGNATURES);
-        } catch (PackageManager.NameNotFoundException ignored) {
-            LogHelper.w(TAG, "Package manager can't find package " + callingPackage
-                        + ", defaulting to false");
+        } catch (PackageManager.NameNotFoundException e) {
+            LogHelper.w(TAG, e, "Package manager can't find package: ", callingPackage);
             return false;
         }
-        if (packageInfo == null) {
-            LogHelper.w(TAG, "Package manager can't find package: " + callingPackage);
-            return false;
-        }
-
         if (packageInfo.signatures.length != 1) {
-            LogHelper.w(TAG, "Package has more than one signature.");
+            LogHelper.w(TAG, "Caller has more than one signature certificate!");
             return false;
         }
-        final byte[] signature = packageInfo.signatures[0].toByteArray();
+        String signature = Base64.encodeToString(
+            packageInfo.signatures[0].toByteArray(), Base64.NO_WRAP);
 
-        // Test for official car app signatures:
-        if (CarHelper.isValidAutoPackageSignature(signature)) {
-            return true;
+        // Test for known signatures:
+        ArrayList<CallerInfo> validCallers = mValidCertificates.get(signature);
+        if (validCallers == null) {
+            LogHelper.v(TAG, "Signature for caller ", callingPackage, " is not valid: \n"
+                , signature);
+            if (mValidCertificates.isEmpty()) {
+                LogHelper.w(TAG, "The list of valid certificates is empty. Either your file ",
+                        "res/xml/allowed_media_browser_callers.xml is empty or there was an error ",
+                        "while reading it. Check previous log messages.");
+            }
+            return false;
         }
 
-        // If you want to allow other consumers, check for their signatures here.
+        // Check if the package name is valid for the certificate:
+        StringBuffer expectedPackages = new StringBuffer();
+        for (CallerInfo info: validCallers) {
+            if (callingPackage.equals(info.packageName)) {
+                LogHelper.v(TAG, "Valid caller: ", info.name, "  package=", info.packageName,
+                    " release=", info.release);
+                return true;
+            }
+            expectedPackages.append(info.packageName).append(' ');
+        }
 
-        LogHelper.v(TAG, "Signature not valid.  Found: \n" + Base64.encodeToString(signature, 0));
+        LogHelper.i(TAG, "Caller has a valid certificate, but its package doesn't match any ",
+            "expected package for the given certificate. Caller's package is ", callingPackage,
+            ". Expected packages as defined in res/xml/allowed_media_browser_callers.xml are (",
+            expectedPackages, "). This caller's certificate is: \n", signature);
+
         return false;
     }
 
+    private final static class CallerInfo {
+        final String name;
+        final String packageName;
+        final boolean release;
+        final String signingCertificate;
+
+        public CallerInfo(String name, String packageName, boolean release,
+                          String signingCertificate) {
+            this.name = name;
+            this.packageName = packageName;
+            this.release = release;
+            this.signingCertificate = signingCertificate;
+        }
+    }
 }
