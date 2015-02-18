@@ -340,14 +340,15 @@ public class MediaNotificationManager extends BroadcastReceiver {
         builder.setOngoing(mPlaybackState.getState() == PlaybackState.STATE_PLAYING);
     }
 
-    private void fetchBitmapFromURLAsync(final String source, final Notification.Builder builder) {
-        mService.getAlbumArtCache().fetch(source, new AlbumArtCache.FetchListener() {
+    private void fetchBitmapFromURLAsync(final String bitmapUrl,
+                                         final Notification.Builder builder) {
+        mService.getAlbumArtCache().fetch(bitmapUrl, new AlbumArtCache.FetchListener() {
             @Override
             public void onFetched(String artUrl, Bitmap bitmap) {
                 if (bitmap != null && mMetadata != null && mMetadata.getDescription() != null &&
-                        !source.equals(mMetadata.getDescription().getIconUri())) {
+                        bitmapUrl.equals(mMetadata.getDescription().getIconUri().toString())) {
                     // If the media is still the same, update the notification:
-                    LogHelper.d(TAG, "fetchBitmapFromURLAsync: set bitmap to ", source);
+                    LogHelper.d(TAG, "fetchBitmapFromURLAsync: set bitmap to ", bitmapUrl);
                     builder.setLargeIcon(bitmap);
                     mNotificationManager.notify(NOTIFICATION_ID, builder.build());
                 }
