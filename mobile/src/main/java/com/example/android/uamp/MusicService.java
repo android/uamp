@@ -145,6 +145,7 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
     private DelayedStopHandler mDelayedStopHandler = new DelayedStopHandler(this);
     private Playback mPlayback;
     private MediaRouter mMediaRouter;
+    private PackageValidator mPackageValidator;
 
     /**
      * Consumer responsible for switching the Playback instances depending on whether
@@ -189,6 +190,7 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
         mPlayingQueue = new ArrayList<>();
         mMusicProvider = new MusicProvider();
         mAlbumArtCache = new AlbumArtCache();
+        mPackageValidator = new PackageValidator(this);
 
         // Start a new MediaSession
         mSession = new MediaSession(this, "MusicService");
@@ -264,13 +266,14 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
                 "; clientUid=" + clientUid + " ; rootHints=", rootHints);
         // To ensure you are not allowing any arbitrary app to browse your app's contents, you
         // need to check the origin:
-        if (!PackageValidator.isCallerAllowed(this, clientPackageName, clientUid)) {
+        if (!mPackageValidator.isCallerAllowed(this, clientPackageName, clientUid)) {
             // If the request comes from an untrusted package, return null. No further calls will
             // be made to other media browsing methods.
             LogHelper.w(TAG, "OnGetRoot: IGNORING request from untrusted package "
                     + clientPackageName);
             return null;
         }
+        //noinspection StatementWithEmptyBody
         if (CarHelper.isValidCarPackage(clientPackageName)) {
             // Optional: if your app needs to adapt ads, music library or anything else that
             // needs to run differently when connected to the car, this is where you should handle

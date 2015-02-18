@@ -76,13 +76,14 @@ public class LogHelper {
     }
 
     public static void log(String tag, int level, Throwable t, Object... messages) {
-        if (messages != null && Log.isLoggable(tag, level)) {
+        if (Log.isLoggable(tag, level)) {
             String message;
-            if (messages.length == 1) {
-                message = messages[0] == null ? null : messages[0].toString();
+            if (t == null && messages != null && messages.length == 1) {
+                // handle this common case without the extra cost of creating a stringbuffer:
+                message = messages[0].toString();
             } else {
                 StringBuilder sb = new StringBuilder();
-                for (Object m: messages) {
+                if (messages != null) for (Object m : messages) {
                     sb.append(m);
                 }
                 if (t != null) {
