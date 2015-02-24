@@ -35,4 +35,6 @@
     <dimen name="media_item_icon_margin_start">12dp</dimen>
     <dimen name="media_item_text_margin_start">60dp</dimen>
     <dimen name="toolbar_inset_start">60dp</dimen>
+    <!-- Margins for the ShowcaseView button -->
+    <dimen name="button_margin">50dp</dimen>
 </resources>
