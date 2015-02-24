@@ -57,6 +57,11 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
         mMediaBrowser = new MediaBrowser(this,
             new ComponentName(this, MusicService.class), mConnectionCallback, null);
 
+        // If we are here due to a orientation change, hide the controls and let
+        // the mediaController playbackState and metadata decide whether it is needed.
+        if (savedInstanceState != null) {
+            hidePlaybackControls();
+        }
     }
 
     @Override
