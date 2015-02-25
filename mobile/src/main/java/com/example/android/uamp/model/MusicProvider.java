@@ -92,7 +92,7 @@ public class MusicProvider {
     /**
      * Get an iterator over the list of genres
      *
-     * @return
+     * @return genres
      */
     public Iterable<String> getGenres() {
         if (mCurrentState != State.INITIALIZED) {
@@ -104,7 +104,6 @@ public class MusicProvider {
     /**
      * Get music tracks of the given genre
      *
-     * @return
      */
     public Iterable<MediaMetadata> getMusicsByGenre(String genre) {
         if (mCurrentState != State.INITIALIZED || !mMusicListByGenre.containsKey(genre)) {
@@ -117,7 +116,6 @@ public class MusicProvider {
      * Very basic implementation of a search that filter music tracks which title containing
      * the given query.
      *
-     * @return
      */
     public Iterable<MediaMetadata> searchMusics(String titleQuery) {
         if (mCurrentState != State.INITIALIZED) {

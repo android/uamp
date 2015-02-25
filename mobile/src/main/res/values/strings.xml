@@ -45,5 +45,6 @@
     <string name="placeholder_message">This is a placeholder for your application code.</string>
     <string name="drawer_allmusic_title">All Music</string>
     <string name="drawer_playlists_title">Playlists</string>
+    <string name="now_playing">Now Playing</string>
 
 </resources>
