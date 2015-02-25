@@ -23,7 +23,7 @@
         android:id="@+id/now_playing_image"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        />
+        android:contentDescription="@string/now_playing" />
 
     <fragment
         android:id="@+id/playback_controls_fragment"

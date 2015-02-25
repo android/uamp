@@ -12,9 +12,9 @@ import android.content.res.TypedArray;
 public class ResourceHelper {
     /**
      * Get a color value from a theme attribute.
-     * @param context
-     * @param attribute
-     * @param defaultColor
+     * @param context used for getting the color.
+     * @param attribute theme attribute.
+     * @param defaultColor default to use.
      * @return color value
      */
     public static int getThemeColor(Context context, int attribute, int defaultColor) {

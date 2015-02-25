@@ -30,7 +30,8 @@
         android:layout_marginRight="@dimen/drawer_item_icon_horizontal_margin"
         android:tintMode="src_in"
         android:tint="@android:color/darker_gray"
-        android:layout_gravity="center_vertical"/>
+        android:layout_gravity="center_vertical"
+        tools:ignore="ContentDescription" />
 
     <TextView
         android:id="@+id/drawer_item_title"
