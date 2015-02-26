@@ -60,13 +60,12 @@ public class PackageValidator {
                 if (eventType == XmlResourceParser.START_TAG
                         && parser.getName().equals("signing_certificate")) {
 
+                    String name = parser.getAttributeValue(null, "name");
+                    String packageName = parser.getAttributeValue(null, "package");
+                    boolean isRelease = parser.getAttributeBooleanValue(null, "release", false);
                     String certificate = parser.nextText().replaceAll("\\s|\\n", "");
 
-                    CallerInfo info = new CallerInfo(
-                        parser.getAttributeValue(null, "name"),
-                        parser.getAttributeValue(null, "package"),
-                        parser.getAttributeBooleanValue(null, "release", false),
-                        certificate);
+                    CallerInfo info = new CallerInfo(name, packageName, isRelease, certificate);
 
                     ArrayList<CallerInfo> infos = validCertificates.get(certificate);
                     if (infos == null) {
