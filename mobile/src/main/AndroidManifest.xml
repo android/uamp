@@ -60,39 +60,12 @@
             android:label="@string/app_name">
         </activity>
 
-        <!-- Main activity for Android TV UI -->
-        <activity
-            android:name=".ui.tv.TvBrowseActivity"
-            android:label="@string/app_name"
-            android:banner="@drawable/banner_tv"
-            android:icon="@drawable/ic_launcher"
-            android:theme="@style/TvTheme" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
-            </intent-filter>
-        </activity>
-
-        <!-- Details activity for Android TV UI -->
-        <activity
-            android:name=".ui.tv.MediaDetailsActivity"
-            android:label="@string/app_name"
-            android:theme="@style/TvTheme" >
-        </activity>
-
         <!-- Proxy activity that opens either the NowPlaying TV or the mobile UI, depending on
-        the current environment -->
+        the current environment
+        TODO:  TV is not yet supported, this is just a placeholder! -->
         <activity
             android:name=".ui.NowPlayingActivity"
-            android:icon="@drawable/ic_launcher"
-            android:theme="@style/TvTheme" >
-        </activity>
-
-        <!-- TV activity for Now Playing -->
-        <activity
-            android:name=".ui.tv.TvNowPlayingActivity"
-            android:icon="@drawable/ic_launcher"
-            android:theme="@style/TvTheme" >
+            android:icon="@drawable/ic_launcher">
         </activity>
 
         <!-- Proxy activity to respond to voice actions -->
@@ -154,22 +127,6 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ui.MusicPlayerActivity"/>
         </activity>
-
-        <activity android:name=".hardware.DemoKitActivity" >
-            <intent-filter>
-                <action android:name="android.hardware.usb.action.USB_ACCESSORY_ATTACHED" />
-            </intent-filter>
-
-            <meta-data
-                android:name="android.hardware.usb.action.USB_ACCESSORY_ATTACHED"
-                android:resource="@xml/accessory_filter" />
-        </activity>
-
-        <service
-            android:name=".hardware.DemoKitService"
-            android:enabled="true"
-            android:exported="false" >
-        </service>
     </application>
 
 </manifest>

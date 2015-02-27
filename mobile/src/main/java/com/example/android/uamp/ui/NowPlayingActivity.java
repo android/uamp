@@ -22,7 +22,6 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.example.android.uamp.ui.tv.TvNowPlayingActivity;
 import com.example.android.uamp.utils.LogHelper;
 
 /**
@@ -43,7 +42,9 @@ public class NowPlayingActivity extends Activity {
         UiModeManager uiModeManager = (UiModeManager) getSystemService(UI_MODE_SERVICE);
         if (uiModeManager.getCurrentModeType() == Configuration.UI_MODE_TYPE_TELEVISION) {
             Log.d(TAG, "Running on a TV Device");
-            newIntent = new Intent(this, TvNowPlayingActivity.class);
+            // TODO: add launch Android TV "Now Playing" activity
+            // newIntent = new Intent(this, TvNowPlayingActivity.class);
+            throw new UnsupportedOperationException("Android TV is not yet supported");
         } else {
             Log.d(TAG, "Running on a non-TV Device");
             newIntent = new Intent(this, MusicPlayerActivity.class);

@@ -232,8 +232,12 @@ public class MediaBrowserFragment extends Fragment {
         // Unsubscribing before subscribing is required if this mediaId already has a subscriber
         // on this MediaBrowser instance. Subscribing to an already subscribed mediaId will replace
         // the callback, but won't trigger the initial callback.onChildrenLoaded.
-        // TODO(mangini): before publishing, check if go/ag/609270 has been publicly released.
-        // If yes, the unsubscribe below and the comment above can be removed.
+        //
+        // This is temporary: A bug is being fixed that will make subscribe
+        // consistently call onChildrenLoaded initially, no matter if it is replacing an existing
+        // subscriber or not. Currently this only happens if the mediaID has no previous
+        // subscriber or if the media content changes on the service side, so we need to
+        // unsubscribe first.
         mMediaFragmentListener.getMediaBrowser().unsubscribe(mMediaId);
 
         mMediaFragmentListener.getMediaBrowser().subscribe(mMediaId, mSubscriptionCallback);
@@ -280,23 +284,10 @@ public class MediaBrowserFragment extends Fragment {
         final String parentId = MediaIDHelper.getParentMediaID(mMediaId);
 
         // MediaBrowser doesn't provide metadata for a given mediaID, only for its children. Since
-        // the mediaId contains the item's hierarchy, we know the item parent mediaId and we can
-        // fetch and iterate over them and find the proper MediaItem, from which we get the title,
-
-        // TODO(mangini): replace the code below by a better solution, based on b/18778785 BEFORE
-        // PUBLISHING! The current API doesn't have a get(mediaID) method,
-        // as described on the bug. The issue is: even if I save the entire MediaDescription when
-        // navigating downwards, navigation upwards will be a problem if the content of that
-        // item changes. Example: user navigates to
-        //      Root -> item1 -> item1.4 -> item 1.4.2 -> item 1.4.2.3
-        // then navigates back:
-        //      item 1.4.2.3 -> item 1.4.2 -> item1.4
-        // MediaDescription for item1.4 was saved on the navigation downwards and is restored from
-        // a Bundle on navigation upwards. However, in the meantime it has changed (for example,
-        // the category icon bitmap was still being downloaded async'y on the downwards navigation).
-        // The fragment showing item1.4 was detached before MediaBrowser notifying it of the new
-        // data. Currently, the only way to request a fresh MediaItem of a given mediaID is by
-        // requesting its parent's children, like the code below.
+        // the mediaId contains the item's hierarchy, we know the item's parent mediaId and we can
+        // fetch and iterate over it and find the proper MediaItem, from which we get the title,
+        // This is temporary - a better solution (a method to get a mediaItem by its mediaID)
+        // is being worked out in the platform and should be available soon.
         LogHelper.d(TAG, "on updateTitle: mediaId=", mMediaId, " parentID=", parentId);
         if (parentId != null) {
             MediaBrowser mediaBrowser = mMediaFragmentListener.getMediaBrowser();
