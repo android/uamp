@@ -15,6 +15,7 @@
   limitations under the License.
   -->
 <resources>
+    <string name="stop_casting">Stop Casting</string>
     <string name="label_pause">Pause</string>
     <string name="label_play">Play</string>
     <string name="label_previous">Previous</string>

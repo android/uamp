@@ -120,9 +120,12 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
     // The key in the extras of the incoming Intent indicating the command that
     // should be executed (see {@link #onStartCommand})
     public static final String CMD_NAME = "CMD_NAME";
-    // A value of a {@link #CMD_NAME} key in the extras of the incoming Intent that
+    // A value of a CMD_NAME key in the extras of the incoming Intent that
     // indicates that the music playback should be paused (see {@link #onStartCommand})
     public static final String CMD_PAUSE = "CMD_PAUSE";
+    // A value of a CMD_NAME key that indicates that the music playback should switch
+    // to local playback from cast playback.
+    public static final String CMD_STOP_CASTING = "CMD_STOP_CASTING";
 
     private static final String TAG = LogHelper.makeLogTag(MusicService.class);
     // Action to thumbs up a media item
@@ -162,7 +165,7 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
             // Now we can switch to CastPlayback
             Playback playback = new CastPlayback(MusicService.this, mMusicProvider);
             mMediaRouter.setMediaSession(mSession);
-            switchToPlayer(playback);
+            switchToPlayer(playback, true);
         }
 
         @Override
@@ -172,7 +175,7 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
             mSession.setExtras(mSessionExtras);
             Playback playback = new LocalPlayback(MusicService.this, mMusicProvider);
             mMediaRouter.setMediaSession(null);
-            switchToPlayer(playback);
+            switchToPlayer(playback, false);
         }
     };
 
@@ -232,9 +235,13 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
         if (startIntent != null) {
             String action = startIntent.getAction();
             String command = startIntent.getStringExtra(CMD_NAME);
-            if (ACTION_CMD.equals(action) && CMD_PAUSE.equals(command)) {
-                if (mPlayback != null && mPlayback.isPlaying()) {
-                    handlePauseRequest();
+            if (ACTION_CMD.equals(action)) {
+                if (CMD_PAUSE.equals(command)) {
+                    if (mPlayback != null && mPlayback.isPlaying()) {
+                        handlePauseRequest();
+                    }
+                } else if (CMD_STOP_CASTING.equals(command)) {
+                    mCastManager.disconnect();
                 }
             }
         }
@@ -759,7 +766,7 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
      * Helper to switch to a different Playback instance
      * @param playback switch to this playback
      */
-    private void switchToPlayer(Playback playback) {
+    private void switchToPlayer(Playback playback, boolean resumePlaying) {
         if (playback == null) {
             throw new IllegalArgumentException("Playback cannot be null");
         }
@@ -775,7 +782,6 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
         playback.start();
         // finally swap the instance
         mPlayback = playback;
-        LogHelper.d(TAG, "SwitchToPlayer PlaybackState:", oldState);
         switch (oldState) {
             case PlaybackState.STATE_BUFFERING:
             case PlaybackState.STATE_CONNECTING:
@@ -783,8 +789,10 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
                 mPlayback.pause();
                 break;
             case PlaybackState.STATE_PLAYING:
-                if (QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, mPlayingQueue)) {
+                if (resumePlaying && QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, mPlayingQueue)) {
                     mPlayback.play(mPlayingQueue.get(mCurrentIndexOnQueue));
+                } else if (!resumePlaying) {
+                    mPlayback.pause();
                 } else {
                     mPlayback.stop(true);
                 }
