@@ -317,7 +317,7 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
                 if (mMediaPlayer != null && !mMediaPlayer.isPlaying()) {
                     LogHelper.d(TAG,"configMediaPlayerState startMediaPlayer. seeking to ",
                         mCurrentPosition);
-                   if (mCurrentPosition == mMediaPlayer.getCurrentPosition()) {
+                    if (mCurrentPosition == mMediaPlayer.getCurrentPosition()) {
                         mMediaPlayer.start();
                         mState = PlaybackState.STATE_PLAYING;
                     } else {
