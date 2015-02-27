@@ -45,11 +45,13 @@ public class MediaNotificationManager extends BroadcastReceiver {
     private static final String TAG = LogHelper.makeLogTag(MediaNotificationManager.class);
 
     private static final int NOTIFICATION_ID = 412;
+    private static final int REQUEST_CODE = 100;
 
     public static final String ACTION_PAUSE = "com.example.android.uamp.pause";
     public static final String ACTION_PLAY = "com.example.android.uamp.play";
     public static final String ACTION_PREV = "com.example.android.uamp.prev";
     public static final String ACTION_NEXT = "com.example.android.uamp.next";
+    public static final String ACTION_STOP_CASTING = "com.exmaple.android.uamp.stop_cast";
 
     private final MusicService mService;
     private MediaSession.Token mSessionToken;
@@ -61,7 +63,13 @@ public class MediaNotificationManager extends BroadcastReceiver {
 
     private NotificationManager mNotificationManager;
 
-    private PendingIntent mPauseIntent, mPlayIntent, mPreviousIntent, mNextIntent, mContentIntent;
+    private PendingIntent mPauseIntent;
+    private PendingIntent mPlayIntent;
+    private PendingIntent mPreviousIntent;
+    private PendingIntent mNextIntent;
+    private PendingIntent mContentIntent;
+
+    private PendingIntent mStopCastIntent;
 
     private int mNotificationColor;
 
@@ -78,18 +86,21 @@ public class MediaNotificationManager extends BroadcastReceiver {
                 .getSystemService(Context.NOTIFICATION_SERVICE);
 
         String pkg = mService.getPackageName();
-        mPauseIntent = PendingIntent.getBroadcast(mService, 100,
+        mPauseIntent = PendingIntent.getBroadcast(mService, REQUEST_CODE,
                 new Intent(ACTION_PAUSE).setPackage(pkg), PendingIntent.FLAG_CANCEL_CURRENT);
-        mPlayIntent = PendingIntent.getBroadcast(mService, 100,
+        mPlayIntent = PendingIntent.getBroadcast(mService, REQUEST_CODE,
                 new Intent(ACTION_PLAY).setPackage(pkg), PendingIntent.FLAG_CANCEL_CURRENT);
-        mPreviousIntent = PendingIntent.getBroadcast(mService, 100,
+        mPreviousIntent = PendingIntent.getBroadcast(mService, REQUEST_CODE,
                 new Intent(ACTION_PREV).setPackage(pkg), PendingIntent.FLAG_CANCEL_CURRENT);
-        mNextIntent = PendingIntent.getBroadcast(mService, 100,
+        mNextIntent = PendingIntent.getBroadcast(mService, REQUEST_CODE,
                 new Intent(ACTION_NEXT).setPackage(pkg), PendingIntent.FLAG_CANCEL_CURRENT);
         Intent openUI = new Intent(mService, MusicPlayerActivity.class);
         openUI.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         openUI.putExtra(MusicPlayerActivity.EXTRA_START_FULLSCREEN, true);
-        mContentIntent = PendingIntent.getActivity(mService, 100, openUI,
+        mContentIntent = PendingIntent.getActivity(mService, REQUEST_CODE, openUI,
+                PendingIntent.FLAG_CANCEL_CURRENT);
+        mStopCastIntent = PendingIntent.getBroadcast(mService, REQUEST_CODE,
+                new Intent(ACTION_STOP_CASTING).setPackage(pkg),
                 PendingIntent.FLAG_CANCEL_CURRENT);
 
         // Cancel all notifications to handle the case where the Service was killed and
@@ -116,6 +127,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
                 filter.addAction(ACTION_PAUSE);
                 filter.addAction(ACTION_PLAY);
                 filter.addAction(ACTION_PREV);
+                filter.addAction(ACTION_STOP_CASTING);
                 mService.registerReceiver(this, filter);
 
                 mService.startForeground(NOTIFICATION_ID, notification);
@@ -158,6 +170,12 @@ public class MediaNotificationManager extends BroadcastReceiver {
                 break;
             case ACTION_PREV:
                 mTransportControls.skipToPrevious();
+                break;
+            case ACTION_STOP_CASTING:
+                Intent i = new Intent(context, MusicService.class);
+                i.setAction(MusicService.ACTION_CMD);
+                i.putExtra(MusicService.CMD_NAME, MusicService.CMD_STOP_CASTING);
+                mService.startService(i);
                 break;
             default:
                 LogHelper.w(TAG, "Unknown intent ignored. Action=", action);
@@ -284,6 +302,8 @@ public class MediaNotificationManager extends BroadcastReceiver {
                 String castInfo = mService.getResources()
                         .getString(R.string.casting_to_device, castName);
                 notificationBuilder.setSubText(castInfo);
+                notificationBuilder.addAction(R.drawable.ic_close_black_24dp,
+                        mService.getString(R.string.stop_casting), mStopCastIntent);
             }
         }
 
