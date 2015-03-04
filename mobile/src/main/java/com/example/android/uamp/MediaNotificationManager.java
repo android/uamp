@@ -88,6 +88,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
                 new Intent(ACTION_NEXT).setPackage(pkg), PendingIntent.FLAG_CANCEL_CURRENT);
         Intent openUI = new Intent(mService, MusicPlayerActivity.class);
         openUI.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        openUI.putExtra(MusicPlayerActivity.EXTRA_START_FULLSCREEN, true);
         mContentIntent = PendingIntent.getActivity(mService, 100, openUI,
                 PendingIntent.FLAG_CANCEL_CURRENT);
 

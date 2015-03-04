@@ -36,4 +36,8 @@
     <dimen name="toolbar_inset_start">60dp</dimen>
     <!-- Margins for the ShowcaseView button -->
     <dimen name="button_margin">50dp</dimen>
+
+    <!-- Margins for full screen activity-->
+    <dimen name="text_view_margin">4dp</dimen>
+    <dimen name="end_text_margin">16dp</dimen>
 </resources>

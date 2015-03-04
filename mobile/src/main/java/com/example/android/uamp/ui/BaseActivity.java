@@ -78,9 +78,7 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
         if (getMediaController() != null) {
             getMediaController().unregisterCallback(mMediaControllerCallback);
         }
-        if (mMediaBrowser != null && mMediaBrowser.isConnected()) {
-            mMediaBrowser.disconnect();
-        }
+        mMediaBrowser.disconnect();
     }
 
     @Override

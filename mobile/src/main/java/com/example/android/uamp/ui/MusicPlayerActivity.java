@@ -35,8 +35,11 @@ public class MusicPlayerActivity extends BaseActivity
         implements MediaBrowserFragment.MediaFragmentListener {
 
     private static final String TAG = LogHelper.makeLogTag(MusicPlayerActivity.class);
-    public static final String EXTRA_PLAY_QUERY="com.example.android.uamp.PLAY_QUERY";
     private static final String SAVED_MEDIA_ID="com.example.android.uamp.MEDIA_ID";
+
+    public static final String EXTRA_PLAY_QUERY="com.example.android.uamp.PLAY_QUERY";
+    public static final String EXTRA_START_FULLSCREEN =
+            "com.example.android.uamp.EXTRA_START_FULLSCREEN";
 
     private String mSearchQuery;
 
@@ -49,6 +52,7 @@ public class MusicPlayerActivity extends BaseActivity
 
         initializeToolbar();
         initializeFromParams(savedInstanceState);
+        startFullScreenActivityIfNeeded(getIntent());
     }
 
     @Override
@@ -80,6 +84,19 @@ public class MusicPlayerActivity extends BaseActivity
             title = getString(R.string.app_name);
         }
         setTitle(title);
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        startFullScreenActivityIfNeeded(intent);
+    }
+
+    private void startFullScreenActivityIfNeeded(Intent intent) {
+        if (intent != null && intent.getBooleanExtra(EXTRA_START_FULLSCREEN, false)) {
+            Intent fullScreenIntent = new Intent(this, FullScreenPlayerActivity.class);
+            fullScreenIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(fullScreenIntent);
+        }
     }
 
     protected void initializeFromParams(Bundle savedInstanceState) {

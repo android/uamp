@@ -397,6 +397,12 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
         }
 
         @Override
+        public void onSeekTo(long position) {
+            LogHelper.d(TAG, "onSeekTo:", position);
+            mPlayback.seekTo((int) position);
+        }
+
+        @Override
         public void onPlayFromMediaId(String mediaId, Bundle extras) {
             LogHelper.d(TAG, "playFromMediaId mediaId:", mediaId, "  extras=", extras);
 
@@ -622,7 +628,6 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
      * @param error if not null, error message to present to the user.
      */
     private void updatePlaybackState(String error) {
-
         LogHelper.d(TAG, "updatePlaybackState, playback state=" + mPlayback.getState());
         long position = PlaybackState.PLAYBACK_POSITION_UNKNOWN;
         if (mPlayback != null && mPlayback.isConnected()) {
@@ -765,14 +770,12 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
         LogHelper.d(TAG, "Current position from " + playback + " is ", pos);
         mPlayback.stop(false);
         playback.setCallback(this);
+        playback.setCurrentStreamPosition(pos < 0 ? 0 : pos);
+        playback.setCurrentMediaId(currentMediaId);
         playback.start();
         // finally swap the instance
         mPlayback = playback;
-        if (pos < 0) {
-            pos = 0;
-        }
-        mPlayback.setCurrentStreamPosition(pos);
-        mPlayback.setCurrentMediaId(currentMediaId);
+        LogHelper.d(TAG, "SwitchToPlayer PlaybackState:", oldState);
         switch (oldState) {
             case PlaybackState.STATE_BUFFERING:
             case PlaybackState.STATE_CONNECTING:
@@ -785,6 +788,8 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
                 } else {
                     mPlayback.stop(true);
                 }
+                break;
+            case PlaybackState.STATE_NONE:
                 break;
             default:
                 LogHelper.d(TAG, "Default called. Old state is ", oldState);

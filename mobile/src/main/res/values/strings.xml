@@ -42,5 +42,6 @@
     <string name="drawer_allmusic_title">All Music</string>
     <string name="drawer_playlists_title">Playlists</string>
     <string name="now_playing">Now Playing</string>
+    <string name="background_image_str">Background image for album art</string>
 
 </resources>
