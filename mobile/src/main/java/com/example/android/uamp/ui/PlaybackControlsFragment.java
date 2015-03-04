@@ -16,11 +16,13 @@
 package com.example.android.uamp.ui;
 
 import android.app.Fragment;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.media.MediaMetadata;
 import android.media.session.MediaController;
 import android.media.session.PlaybackState;
 import android.os.Bundle;
+import android.view.DragEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -82,7 +84,14 @@ public class PlaybackControlsFragment extends Fragment {
         mSubtitle = (TextView) rootView.findViewById(R.id.artist);
         mExtraInfo = (TextView) rootView.findViewById(R.id.extra_info);
         mAlbumArt = (ImageView) rootView.findViewById(R.id.album_art);
-
+        rootView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(), FullScreenPlayerActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+            }
+        });
         return rootView;
     }
 

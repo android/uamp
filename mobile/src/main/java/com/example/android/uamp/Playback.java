@@ -15,8 +15,7 @@
  */
 package com.example.android.uamp;
 
-
-import android.media.session.MediaSession;
+import static android.media.session.MediaSession.QueueItem;
 
 /**
  * Interface representing either Local or Remote Playback. The {@link MusicService} works
@@ -75,12 +74,17 @@ public interface Playback {
     /**
      * @param item to play
      */
-    void play(MediaSession.QueueItem item);
+    void play(QueueItem item);
 
     /**
      * Pause the current playing item
      */
     void pause();
+
+    /**
+     * Seek to the given position
+     */
+    void seekTo(int position);
 
     /**
      * Set the current mediaId. This is only used when switching from one

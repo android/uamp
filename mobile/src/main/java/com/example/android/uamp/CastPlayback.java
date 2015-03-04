@@ -15,7 +15,6 @@
  */
 package com.example.android.uamp;
 
-import android.media.session.MediaSession;
 import android.media.session.PlaybackState;
 import android.net.Uri;
 import android.text.TextUtils;
@@ -23,7 +22,6 @@ import android.text.TextUtils;
 import com.example.android.uamp.model.MusicProvider;
 import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.MediaIDHelper;
-import com.google.android.gms.cast.ApplicationMetadata;
 import com.google.android.gms.cast.CastStatusCodes;
 import com.google.android.gms.cast.MediaInfo;
 import com.google.android.gms.cast.MediaMetadata;
@@ -37,6 +35,8 @@ import com.google.sample.castcompanionlibrary.cast.exceptions.TransientNetworkDi
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import static android.media.session.MediaSession.QueueItem;
 
 /**
  * An implementation of Playback that talks to Cast.
@@ -53,83 +53,15 @@ public class CastPlayback implements Playback {
     private final VideoCastConsumerImpl mCastConsumer = new VideoCastConsumerImpl() {
 
         @Override
-        public void onApplicationConnected(ApplicationMetadata appMetadata, String sessionId,
-                                           boolean wasLaunched) {
-            LogHelper.d(TAG,
-                    "onApplicationConnected called wasLaunched ", wasLaunched, "sessionId ");
-            try {
-                MediaInfo info = mCastManager.getRemoteMediaInformation();
-                if (info != null) {
-                    long currentMediaPos = mCastManager.getCurrentMediaPosition();
-                    LogHelper.d(TAG, "***** MediaInfo onApplicationConnected ", info.getContentId(),
-                            " CurrentMediaPosition ", currentMediaPos);
-
-                }
-            } catch (TransientNetworkDisconnectionException | NoConnectionException e) {
-                LogHelper.e(TAG, e, "Exception getting media information");
-            }
-        }
-
-        @Override
-        public boolean onApplicationConnectionFailed(int errorCode) {
-            LogHelper.d(TAG, "onApplicationConnectionFailed ", errorCode);
-            return true;
-        }
-
-        @Override
-        public void onApplicationDisconnected(int errorCode) {
-            LogHelper.d(TAG, "onApplicationDisconnected ", errorCode);
-        }
-
-        @Override
         public void onRemoteMediaPlayerMetadataUpdated() {
+            LogHelper.d(TAG, "onRemoteMediaPlayerMetadataUpdated");
             updateMetadata();
         }
 
         @Override
         public void onRemoteMediaPlayerStatusUpdated() {
-            int status = mCastManager.getPlaybackStatus();
-            int idleReason = mCastManager.getIdleReason();
-
-            LogHelper.d(TAG, "onRemoteMediaPlayerStatusUpdated ", status);
-
-            // Convert the remote playback states to media playback states.
-            switch (status) {
-                case MediaStatus.PLAYER_STATE_IDLE:
-                    if (idleReason == MediaStatus.IDLE_REASON_FINISHED) {
-                        if (mCallback != null) {
-                            mCallback.onCompletion();
-                        }
-                    }
-                    break;
-                case MediaStatus.PLAYER_STATE_BUFFERING:
-                    mState = PlaybackState.STATE_BUFFERING;
-                    if (mCallback != null) {
-                        mCallback.onPlaybackStatusChanged(mState);
-                    }
-                    break;
-                case MediaStatus.PLAYER_STATE_PLAYING:
-                    mState = PlaybackState.STATE_PLAYING;
-                    updateMetadata();
-                    if (mCallback != null) {
-                        mCallback.onPlaybackStatusChanged(mState);
-                    }
-                    break;
-                case MediaStatus.PLAYER_STATE_PAUSED:
-                    mState = PlaybackState.STATE_PAUSED;
-                    updateMetadata();
-                    if (mCallback != null) {
-                        mCallback.onPlaybackStatusChanged(mState);
-                    }
-                    break;
-                default: // case unknown
-                    break;
-            }
-        }
-
-        @Override
-        public void onDisconnected() {
-            LogHelper.d(TAG, "onDisconnected called on castPlayback");
+            LogHelper.d(TAG, "onRemoteMediaPlayerStatusUpdated");
+            updatePlaybackState();
         }
     };
 
@@ -191,7 +123,7 @@ public class CastPlayback implements Playback {
     }
 
     @Override
-    public void play(MediaSession.QueueItem item) {
+    public void play(QueueItem item) {
         try {
             if (mPlayOnMediaLoadedStatusListener != null) {
                 mCastManager.addVideoCastConsumer(mPlayOnMediaLoadedStatusListener);
@@ -223,6 +155,31 @@ public class CastPlayback implements Playback {
             }
         } catch (JSONException | CastException | TransientNetworkDisconnectionException
                 | NoConnectionException e) {
+            LogHelper.e(TAG, e, "Exception pausing cast playback");
+            if (mCallback != null) {
+                mCallback.onError(e.getMessage());
+            }
+        }
+    }
+
+    @Override
+    public void seekTo(int position) {
+        if (mCurrentMediaId == null) {
+            if (mCallback != null) {
+                mCallback.onError("seekTo cannot be calling in the absence of mediaId.");
+            }
+            return;
+        }
+        try {
+            if (mCastManager.isRemoteMediaLoaded()) {
+                mCastManager.seek(position);
+                mCurrentPosition = position;
+            } else {
+                mCurrentPosition = position;
+                loadMedia(mCurrentMediaId, false);
+            }
+        } catch (TransientNetworkDisconnectionException | NoConnectionException |
+                JSONException e) {
             LogHelper.e(TAG, e, "Exception pausing cast playback");
             if (mCallback != null) {
                 mCallback.onError(e.getMessage());
@@ -269,7 +226,6 @@ public class CastPlayback implements Playback {
         TransientNetworkDisconnectionException, NoConnectionException, JSONException {
         String musicId = MediaIDHelper.extractMusicIDFromMediaID(mediaId);
         android.media.MediaMetadata track = mMusicProvider.getMusic(musicId);
-
         if (!TextUtils.equals(mediaId, mCurrentMediaId)) {
             mCurrentMediaId = mediaId;
             mCurrentPosition = 0;
@@ -296,7 +252,7 @@ public class CastPlayback implements Playback {
         mediaMetadata.putString(MediaMetadata.KEY_SUBTITLE,
                 track.getDescription().getSubtitle().toString());
         mediaMetadata.putString(MediaMetadata.KEY_ALBUM_ARTIST,
-                track.getString(android.media.MediaMetadata.METADATA_KEY_ALBUM));
+                track.getString(android.media.MediaMetadata.METADATA_KEY_ALBUM_ARTIST));
         mediaMetadata.putString(MediaMetadata.KEY_ALBUM_TITLE,
                 track.getString(android.media.MediaMetadata.METADATA_KEY_ALBUM));
         WebImage image = new WebImage(
@@ -343,6 +299,47 @@ public class CastPlayback implements Playback {
             LogHelper.e(TAG, e, "Exception processing update metadata");
         }
 
+    }
+
+    private void updatePlaybackState() {
+        int status = mCastManager.getPlaybackStatus();
+        int idleReason = mCastManager.getIdleReason();
+
+        LogHelper.d(TAG, "onRemoteMediaPlayerStatusUpdated ", status);
+
+        // Convert the remote playback states to media playback states.
+        switch (status) {
+            case MediaStatus.PLAYER_STATE_IDLE:
+                if (idleReason == MediaStatus.IDLE_REASON_FINISHED) {
+                    if (mCallback != null) {
+                        mCallback.onCompletion();
+                    }
+                }
+                break;
+            case MediaStatus.PLAYER_STATE_BUFFERING:
+                mState = PlaybackState.STATE_BUFFERING;
+                if (mCallback != null) {
+                    mCallback.onPlaybackStatusChanged(mState);
+                }
+                break;
+            case MediaStatus.PLAYER_STATE_PLAYING:
+                mState = PlaybackState.STATE_PLAYING;
+                updateMetadata();
+                if (mCallback != null) {
+                    mCallback.onPlaybackStatusChanged(mState);
+                }
+                break;
+            case MediaStatus.PLAYER_STATE_PAUSED:
+                mState = PlaybackState.STATE_PAUSED;
+                updateMetadata();
+                if (mCallback != null) {
+                    mCallback.onPlaybackStatusChanged(mState);
+                }
+                break;
+            default: // case unknown
+                LogHelper.d(TAG, "State default : ", status);
+                break;
+        }
     }
 
     /**

@@ -22,7 +22,6 @@ import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.media.MediaMetadata;
 import android.media.MediaPlayer;
-import android.media.session.MediaSession;
 import android.media.session.PlaybackState;
 import android.net.wifi.WifiManager;
 import android.os.PowerManager;
@@ -38,6 +37,7 @@ import static android.media.MediaPlayer.OnCompletionListener;
 import static android.media.MediaPlayer.OnErrorListener;
 import static android.media.MediaPlayer.OnPreparedListener;
 import static android.media.MediaPlayer.OnSeekCompleteListener;
+import static android.media.session.MediaSession.QueueItem;
 
 /**
  * A class that implements local media playback using {@link android.media.MediaPlayer}
@@ -150,7 +150,7 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
     }
 
     @Override
-    public void play(MediaSession.QueueItem item) {
+    public void play(QueueItem item) {
         mPlayOnFocusGain = true;
         tryToGetAudioFocus();
         registerAudioNoisyReceiver();
@@ -221,6 +221,24 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
             mCallback.onPlaybackStatusChanged(mState);
         }
         unregisterAudioNoisyReceiver();
+    }
+
+    @Override
+    public void seekTo(int position) {
+        LogHelper.d(TAG, "seekTo called with ", position);
+
+        if (mMediaPlayer == null) {
+            // If we do not have a current media player, simply update the current position
+            mCurrentPosition = position;
+        } else {
+            if (mMediaPlayer.isPlaying()) {
+                mState = PlaybackState.STATE_BUFFERING;
+            }
+            mMediaPlayer.seekTo(position);
+            if (mCallback != null) {
+                mCallback.onPlaybackStatusChanged(mState);
+            }
+        }
     }
 
     @Override
@@ -299,17 +317,15 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
                 if (mMediaPlayer != null && !mMediaPlayer.isPlaying()) {
                     LogHelper.d(TAG,"configMediaPlayerState startMediaPlayer. seeking to ",
                         mCurrentPosition);
-                    // TODO(nageshs): Ideally only a seekTo(pos) should have worked but for some
-                    // reason calling seekTo(X) on an existing mediaPlayer instance that has not
-                    // been reset causes the stream to play from somewhere in the beginning!
-                    if (mCurrentPosition == mMediaPlayer.getCurrentPosition()) {
+                   if (mCurrentPosition == mMediaPlayer.getCurrentPosition()) {
                         mMediaPlayer.start();
+                        mState = PlaybackState.STATE_PLAYING;
                     } else {
                         mMediaPlayer.seekTo(mCurrentPosition);
+                        mState = PlaybackState.STATE_BUFFERING;
                     }
                 }
                 mPlayOnFocusGain = false;
-                mState = PlaybackState.STATE_PLAYING;
             }
         }
         if (mCallback != null) {
@@ -358,7 +374,13 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
     public void onSeekComplete(MediaPlayer mp) {
         LogHelper.d(TAG, "onSeekComplete from MediaPlayer:", mp.getCurrentPosition());
         mCurrentPosition = mp.getCurrentPosition();
-        mMediaPlayer.start();
+        if (mState == PlaybackState.STATE_BUFFERING) {
+            mMediaPlayer.start();
+            mState = PlaybackState.STATE_PLAYING;
+        }
+        if (mCallback != null) {
+            mCallback.onPlaybackStatusChanged(mState);
+        }
     }
 
     /**

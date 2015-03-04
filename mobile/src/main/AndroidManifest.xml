@@ -150,6 +150,18 @@
             </intent-filter>
         </activity>
 
+        <!-- A full screen activity showing controls and a seek bar for
+             the current playing music -->
+        <activity
+            android:name=".ui.FullScreenPlayerActivity"
+            android:label="@string/app_name"
+            android:launchMode="singleTop"
+            android:parentActivityName=".ui.MusicPlayerActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ui.MusicPlayerActivity"/>
+        </activity>
+
         <activity android:name=".hardware.DemoKitActivity" >
             <intent-filter>
                 <action android:name="android.hardware.usb.action.USB_ACCESSORY_ATTACHED" />
