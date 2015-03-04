@@ -299,9 +299,9 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
                 if (mMediaPlayer != null && !mMediaPlayer.isPlaying()) {
                     LogHelper.d(TAG,"configMediaPlayerState startMediaPlayer. seeking to ",
                         mCurrentPosition);
-                    // TODO(nageshs): Ideally only a seekTo(pos) should've worked but for some
+                    // TODO(nageshs): Ideally only a seekTo(pos) should have worked but for some
                     // reason calling seekTo(X) on an existing mediaPlayer instance that has not
-                    // been reset causes the stream to play from somewhere in the begining!
+                    // been reset causes the stream to play from somewhere in the beginning!
                     if (mCurrentPosition == mMediaPlayer.getCurrentPosition()) {
                         mMediaPlayer.start();
                     } else {

@@ -5,10 +5,6 @@ This sample shows how to implement an audio media app that works
 across multiple form factors and provide a consistent user experience
 on Android phones, tablets, Auto, Wear, TV and Cast devices.
 
-Introduction
-------------
-
-
 
 Pre-requisites
 --------------
@@ -24,8 +20,7 @@ This sample uses the Gradle build system. To build this project, use the
 Screenshots
 -----------
 
-<!-- TODO(mangini): Update these to point to screenshots. -->
-![Description](screenshots/image1.png) ![Description](screenshots/image2.png)
+![Description](screenshots/image1.png) ![Description](screenshots/image2.png) ![Description](screenshots/image3.png)
 
 Support
 -------
@@ -34,7 +29,7 @@ Support
 - Stack Overflow: http://stackoverflow.com/questions/tagged/android
 
 If you've found an error in this sample, please file an issue:
-https://github.com/googlesamples/android-uamp
+https://github.com/googlesamples/android-UniversalMusicPlayer
 
 Patches are encouraged, and may be submitted by forking this project and
 submitting a pull request through GitHub. Please see CONTRIBUTING.md for more details.

@@ -15,10 +15,8 @@
   limitations under the License.
   -->
 <resources>
-
     <string name="label_pause">Pause</string>
     <string name="label_play">Play</string>
     <string name="label_previous">Previous</string>
     <string name="label_next">Next</string>
-    <string name="error_empty_metadata">Empty metadata!</string>
 </resources>

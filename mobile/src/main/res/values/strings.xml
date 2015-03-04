@@ -23,7 +23,6 @@
     <string name="browse_genre_subtitle">Songs by genre</string>
     <string name="browse_musics_by_genre_subtitle">%1$s songs</string>
     <string name="random_queue_title">Random music</string>
-    <string name="error_cannot_skip">Cannot skip</string>
     <string name="error_no_connection">Cannot connect to server. Please, check your Internet connectivity.</string>
     <string name="error_loading_media">Error Loading Media</string>
     <string name="casting_to_device">Casting to %1$s</string>
@@ -31,13 +30,10 @@
     <string name="currently_playing_artist">Artist of currently playing song</string>
     <string name="currently_playing_extra_info">Extra info for currently playing song</string>
     <string name="play_item">Play item</string>
-    <string name="skip_previous">Skip to previous</string>
     <string name="play_pause">play or pause</string>
-    <string name="skip_next">Skip to next</string>
     <string name="touch_to_cast">Touch to Cast</string>
     <string name="cast_application_id">6FB2BA68</string>  <!-- use CC1AD845 for default receiver -->
     <string name="home_title">Home</string>
-    <string name="action_settings">Settings</string>
     <string name="related_content_header">You may also like</string>
     <string name="action_listen">Listen</string>
     <string name="open_content_drawer">Open the main menu</string>

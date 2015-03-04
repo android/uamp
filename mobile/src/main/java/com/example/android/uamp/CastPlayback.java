@@ -320,7 +320,7 @@ public class CastPlayback implements Playback {
     private void updateMetadata() {
         // Sync: We get the customData from the remote media information and update the local
         // metadata if it happens to be different from the one we are currently using.
-        // This can happen when the app was either restarted/diconnected + connected, or if the
+        // This can happen when the app was either restarted/disconnected + connected, or if the
         // app joins an existing session while the Chromecast was playing a queue.
         try {
             MediaInfo mediaInfo = mCastManager.getRemoteMediaInformation();

@@ -44,7 +44,7 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Since our app icon has the same color as colorPrimary, our entry in the Recents Apps
+        // Since our app icon has the same color as colorPrimary, our entry in the Recent Apps
         // list gets weird. We need to change either the icon or the color of the TaskDescription.
         ActivityManager.TaskDescription taskDesc = new ActivityManager.TaskDescription(
             getTitle().toString(),
@@ -89,7 +89,7 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
     }
 
     protected void onMediaControllerConnected() {
-        // empty implementation, can be overriden by clients.
+        // empty implementation, can be overridden by clients.
     }
 
     protected void showPlaybackControls() {
