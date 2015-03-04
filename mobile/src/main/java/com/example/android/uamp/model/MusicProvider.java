@@ -135,7 +135,7 @@ public class MusicProvider {
     /**
      * Return the MediaMetadata for the given musicID.
      *
-     * @param musicId The unique, non-hierarquical music ID.
+     * @param musicId The unique, non-hierarchical music ID.
      *
      */
     public MediaMetadata getMusic(String musicId) {
@@ -294,7 +294,6 @@ public class MusicProvider {
      * Download a JSON file from a server, parse the content and return the JSON
      * object.
      *
-     * @param urlString
      * @return result JSONObject containing the parsed representation.
      */
     private JSONObject parseUrl(String urlString) {

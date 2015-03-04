@@ -26,7 +26,6 @@
 
     <!-- navigation drawer -->
     <dimen name="drawer_item_icon_horizontal_margin">12dp</dimen>
-    <dimen name="drawer_item_left_margin">16dp</dimen>
     <dimen name="drawer_item_right_margin">56dp</dimen>
     <dimen name="drawer_item_height">48dp</dimen>
 
