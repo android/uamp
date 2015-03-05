@@ -134,22 +134,6 @@
             android:name=
                 "com.google.sample.castcompanionlibrary.cast.reconnection.ReconnectionService"/>
 
-        <activity
-            android:name=
-                "com.google.sample.castcompanionlibrary.cast.player.VideoCastControllerActivity"
-            android:label="@string/app_name"
-            android:launchMode="singleTask"
-            android:parentActivityName=".ui.MusicPlayerActivity"
-            android:screenOrientation="portrait">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ui.MusicPlayerActivity" />
-
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-            </intent-filter>
-        </activity>
-
         <!-- A full screen activity showing controls and a seek bar for
              the current playing music -->
         <activity
