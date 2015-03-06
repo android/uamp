@@ -16,6 +16,7 @@
 package com.example.android.uamp.ui;
 
 import android.content.ComponentName;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.media.MediaDescription;
@@ -24,26 +25,19 @@ import android.media.browse.MediaBrowser;
 import android.media.session.MediaController;
 import android.media.session.MediaSession;
 import android.media.session.PlaybackState;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
-import android.support.v7.app.ActionBarActivity;
-import android.support.v7.widget.Toolbar;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.example.android.uamp.AlbumArtCache;
 import com.example.android.uamp.MusicService;
 import com.example.android.uamp.R;
-import com.example.android.uamp.UAMPApplication;
-import com.example.android.uamp.utils.BitmapHelper;
 import com.example.android.uamp.utils.LogHelper;
-import com.google.sample.castcompanionlibrary.cast.VideoCastManager;
 import com.google.sample.castcompanionlibrary.utils.Utils;
 
 import java.util.concurrent.Executors;
@@ -51,14 +45,14 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import static android.view.View.VISIBLE;
 import static android.view.View.INVISIBLE;
+import static android.view.View.VISIBLE;
 
 /**
  * A full screen player that shows the current playing music with a background image
  * depicting the album art. The activity also has controls to seek/pause/play the audio.
  */
-public class FullScreenPlayerActivity extends ActionBarActivity {
+public class FullScreenPlayerActivity extends ActionBarCastActivity {
     private static final String TAG = LogHelper.makeLogTag(FullScreenPlayerActivity.class);
     private static final long PROGRESS_UPDATE_INTERNAL = 1000;
     private static final long PROGRESS_UPDATE_INITIAL_INTERVAL = 100;
@@ -76,10 +70,23 @@ public class FullScreenPlayerActivity extends ActionBarActivity {
     private Drawable mPlayDrawable;
     private ImageView mBackgroundImage;
 
+    private String mCurrentArtUrl;
     private Handler mHandler = new Handler();
-    private AsyncTask<String, Void, Bitmap> mFetchImageTask;
-    private VideoCastManager mCastManager;
     private MediaBrowser mMediaBrowser;
+
+    private final Runnable mUpdateProgressTask = new Runnable() {
+        @Override
+        public void run() {
+            updateProgress();
+        }
+    };
+
+    private final ScheduledExecutorService mExecutorService =
+        Executors.newSingleThreadScheduledExecutor();
+
+    private ScheduledFuture<?> mScheduleFuture;
+    private PlaybackState mLastPlaybackState;
+
     private MediaController.Callback mCallback = new MediaController.Callback() {
         @Override
         public void onPlaybackStateChanged(PlaybackState state) {
@@ -89,7 +96,10 @@ public class FullScreenPlayerActivity extends ActionBarActivity {
 
         @Override
         public void onMetadataChanged(MediaMetadata metadata) {
-            updateMetadata(metadata);
+            if (metadata != null) {
+                updateMediaDescription(metadata.getDescription());
+                updateDuration(metadata);
+            }
         }
     };
 
@@ -103,43 +113,17 @@ public class FullScreenPlayerActivity extends ActionBarActivity {
             if (token == null) {
                 throw new IllegalArgumentException("No Session token");
             }
-            MediaController mediaController =
-                    new MediaController(FullScreenPlayerActivity.this, token);
-            setMediaController(mediaController);
-            mediaController.registerCallback(mCallback);
-            if (mediaController.getMetadata() == null) {
-                finish();
-            }
-            PlaybackState state = mediaController.getPlaybackState();
-            updatePlaybackState(state);
-            updateMetadata(mediaController.getMetadata());
-            updateProgress();
-            if (state != null &&
-                    (state.getState() == PlaybackState.STATE_PLAYING ||
-                            state.getState() == PlaybackState.STATE_BUFFERING)) {
-                scheduleSeekbarUpdate();
-            }
+            connectToSession(token);
         }
     };
-
-    private final Runnable mUpdateProgressTask = new Runnable() {
-        @Override
-        public void run() {
-            updateProgress();
-        }
-    };
-
-    private final ScheduledExecutorService mExecutorService =
-            Executors.newSingleThreadScheduledExecutor();
-
-    private ScheduledFuture<?> mScheduleFuture;
-    private PlaybackState mLastPlaybackState;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_full_player);
+        initializeToolbar();
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle("");
 
         mBackgroundImage = (ImageView) findViewById(R.id.background_image);
         mPauseDrawable = getResources().getDrawable(R.drawable.ic_pause_white_48dp);
@@ -153,11 +137,6 @@ public class FullScreenPlayerActivity extends ActionBarActivity {
         mLine3 = (TextView) findViewById(R.id.line3);
         mLoading = (ProgressBar) findViewById(R.id.progressBar1);
         mControllers = findViewById(R.id.controllers);
-
-        setupActionBar();
-        mCastManager = ((UAMPApplication) getApplication()).getCastManager(this);
-        mMediaBrowser = new MediaBrowser(this,
-                new ComponentName(this, MusicService.class), mConnectionCallback, null);
 
         mPlayPause.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -199,6 +178,46 @@ public class FullScreenPlayerActivity extends ActionBarActivity {
                 scheduleSeekbarUpdate();
             }
         });
+
+        // Only update from the intent if we are not recreating from a config change:
+        if (savedInstanceState == null) {
+            updateFromParams(getIntent());
+        }
+
+        mMediaBrowser = new MediaBrowser(this,
+            new ComponentName(this, MusicService.class), mConnectionCallback, null);
+    }
+
+    private void connectToSession(MediaSession.Token token) {
+        MediaController mediaController = new MediaController(FullScreenPlayerActivity.this, token);
+        if (mediaController.getMetadata() == null) {
+            finish();
+            return;
+        }
+        setMediaController(mediaController);
+        mediaController.registerCallback(mCallback);
+        PlaybackState state = mediaController.getPlaybackState();
+        updatePlaybackState(state);
+        MediaMetadata metadata = mediaController.getMetadata();
+        if (metadata != null) {
+            updateMediaDescription(metadata.getDescription());
+            updateDuration(metadata);
+        }
+        updateProgress();
+        if (state != null && (state.getState() == PlaybackState.STATE_PLAYING ||
+                state.getState() == PlaybackState.STATE_BUFFERING)) {
+            scheduleSeekbarUpdate();
+        }
+    }
+
+    private void updateFromParams(Intent intent) {
+        if (intent != null) {
+            MediaDescription description = intent.getParcelableExtra(
+                MusicPlayerActivity.EXTRA_CURRENT_MEDIA_DESCRIPTION);
+            if (description != null) {
+                updateMediaDescription(description);
+            }
+        }
     }
 
     private void scheduleSeekbarUpdate() {
@@ -224,25 +243,20 @@ public class FullScreenPlayerActivity extends ActionBarActivity {
     @Override
     public void onStart() {
         super.onStart();
-        mMediaBrowser.connect();
+        if (mMediaBrowser != null) {
+            mMediaBrowser.connect();
+        }
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        mMediaBrowser.disconnect();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        mCastManager.decrementUiCounter();
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        mCastManager.incrementUiCounter();
+        if (mMediaBrowser != null) {
+            mMediaBrowser.disconnect();
+        }
+        if (getMediaController() != null) {
+            getMediaController().unregisterCallback(mCallback);
+        }
     }
 
     @Override
@@ -252,75 +266,50 @@ public class FullScreenPlayerActivity extends ActionBarActivity {
         mExecutorService.shutdown();
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        super.onCreateOptionsMenu(menu);
-        getMenuInflater().inflate(R.menu.main, menu);
-        mCastManager.addMediaRouterButton(menu, R.id.media_route_menu_item);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == android.R.id.home) {
-            finish();
+    private void fetchImageAsync(MediaDescription description) {
+        String artUrl = description.getIconUri().toString();
+        mCurrentArtUrl = artUrl;
+        AlbumArtCache cache = AlbumArtCache.getInstance();
+        Bitmap art = cache.getBigImage(artUrl);
+        if (art == null) {
+            art = description.getIconBitmap();
         }
-        return true;
-    }
-
-    private void setupActionBar() {
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        toolbar.setTitle("");
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-    }
-
-    private void fetchImageAsync(MediaMetadata metadata) {
-        MediaDescription description = metadata.getDescription();
-        Bitmap art = description.getIconBitmap();
-        // cancel earlier async task before starting a new one.
-        if (mFetchImageTask != null) {
-            mFetchImageTask.cancel(true);
-        }
-
         if (art != null) {
+            // if we have the art cached or from the MediaDescription, use it:
             mBackgroundImage.setImageBitmap(art);
         } else {
-            mFetchImageTask = new AsyncTask<String, Void, Bitmap>() {
-
+            // otherwise, fetch a high res version and update:
+            cache.fetch(artUrl, new AlbumArtCache.FetchListener() {
                 @Override
-                protected Bitmap doInBackground(String... params) {
-                    try {
-                        return BitmapHelper.fetchAndRescaleBitmap(params[0],
-                                BitmapHelper.MEDIA_ART_BIG_WIDTH, BitmapHelper.MEDIA_ART_BIG_HEIGHT);
-                    } catch (Exception ex) {
-                        LogHelper.e(TAG, ex, "Exception fetching image");
-                        return null;
-                    }
-                }
-
-                @Override
-                protected void onPostExecute(Bitmap bitmap) {
-                    if (bitmap != null) {
+                public void onFetched(String artUrl, Bitmap bitmap, Bitmap icon) {
+                    // sanity check, in case a new fetch request has been done while
+                    // the previous hasn't yet returned:
+                    if (artUrl.equals(mCurrentArtUrl)) {
                         mBackgroundImage.setImageBitmap(bitmap);
                     }
                 }
-            };
-            mFetchImageTask.execute(description.getIconUri().toString());
+            });
         }
     }
 
-    private void updateMetadata(MediaMetadata metadata) {
+    private void updateMediaDescription(MediaDescription description) {
+        if (description == null) {
+            return;
+        }
+        LogHelper.d(TAG, "updateMediaDescription called ");
+        mLine1.setText(description.getTitle());
+        mLine2.setText(description.getSubtitle());
+        fetchImageAsync(description);
+    }
+
+    private void updateDuration(MediaMetadata metadata) {
         if (metadata == null) {
             return;
         }
-        LogHelper.d(TAG, "updateMetadata called ");
-        mLine1.setText(metadata.getString(MediaMetadata.METADATA_KEY_TITLE));
-        mLine2.setText(metadata.getString(MediaMetadata.METADATA_KEY_ARTIST));
+        LogHelper.d(TAG, "updateDuration called ");
         int duration = (int) metadata.getLong(MediaMetadata.METADATA_KEY_DURATION);
         mSeekbar.setMax(duration);
         mEnd.setText(Utils.formatMillis(duration));
-        fetchImageAsync(metadata);
     }
 
     private void updatePlaybackState(PlaybackState state) {

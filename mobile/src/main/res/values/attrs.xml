@@ -14,12 +14,8 @@
   See the License for the specific language governing permissions and
   limitations under the License.
   -->
-<android.support.v7.widget.Toolbar
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="?attr/actionBarSize"
-    android:layout_alignParentStart="true"
-    android:layout_alignParentTop="true"
-    android:background="?attr/colorPrimary"
-    android:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-    android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"/>
+<resources>
+    <declare-styleable name="ScrimInsetsView">
+        <attr name="insetForeground" format="reference|color" />
+    </declare-styleable>
+</resources>

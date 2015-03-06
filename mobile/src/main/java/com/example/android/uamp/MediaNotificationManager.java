@@ -67,7 +67,6 @@ public class MediaNotificationManager extends BroadcastReceiver {
     private PendingIntent mPlayIntent;
     private PendingIntent mPreviousIntent;
     private PendingIntent mNextIntent;
-    private PendingIntent mContentIntent;
 
     private PendingIntent mStopCastIntent;
 
@@ -94,11 +93,6 @@ public class MediaNotificationManager extends BroadcastReceiver {
                 new Intent(ACTION_PREV).setPackage(pkg), PendingIntent.FLAG_CANCEL_CURRENT);
         mNextIntent = PendingIntent.getBroadcast(mService, REQUEST_CODE,
                 new Intent(ACTION_NEXT).setPackage(pkg), PendingIntent.FLAG_CANCEL_CURRENT);
-        Intent openUI = new Intent(mService, MusicPlayerActivity.class);
-        openUI.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        openUI.putExtra(MusicPlayerActivity.EXTRA_START_FULLSCREEN, true);
-        mContentIntent = PendingIntent.getActivity(mService, REQUEST_CODE, openUI,
-                PendingIntent.FLAG_CANCEL_CURRENT);
         mStopCastIntent = PendingIntent.getBroadcast(mService, REQUEST_CODE,
                 new Intent(ACTION_STOP_CASTING).setPackage(pkg),
                 PendingIntent.FLAG_CANCEL_CURRENT);
@@ -202,6 +196,17 @@ public class MediaNotificationManager extends BroadcastReceiver {
         }
     }
 
+    private PendingIntent createContentIntent(MediaDescription description) {
+        Intent openUI = new Intent(mService, MusicPlayerActivity.class);
+        openUI.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        openUI.putExtra(MusicPlayerActivity.EXTRA_START_FULLSCREEN, true);
+        if (description != null) {
+            openUI.putExtra(MusicPlayerActivity.EXTRA_CURRENT_MEDIA_DESCRIPTION, description);
+        }
+        return PendingIntent.getActivity(mService, REQUEST_CODE, openUI,
+                PendingIntent.FLAG_CANCEL_CURRENT);
+    }
+
     private final MediaController.Callback mCb = new MediaController.Callback() {
         @Override
         public void onPlaybackStateChanged(PlaybackState state) {
@@ -268,17 +273,18 @@ public class MediaNotificationManager extends BroadcastReceiver {
         MediaDescription description = mMetadata.getDescription();
 
         String fetchArtUrl = null;
-        Bitmap art = description.getIconBitmap();
-        if (art == null && description.getIconUri() != null) {
+        Bitmap art = null;
+        if (description.getIconUri() != null) {
             // This sample assumes the iconUri will be a valid URL formatted String, but
             // it can actually be any valid Android Uri formatted String.
             // async fetch the album art icon
             String artUrl = description.getIconUri().toString();
-            art = mService.getAlbumArtCache().get(artUrl);
+            art = AlbumArtCache.getInstance().getBigImage(artUrl);
             if (art == null) {
                 fetchArtUrl = artUrl;
                 // use a placeholder art while the remote art is being downloaded
-                art = BitmapFactory.decodeResource(mService.getResources(), R.drawable.ic_default_art);
+                art = BitmapFactory.decodeResource(mService.getResources(),
+                    R.drawable.ic_default_art);
             }
         }
 
@@ -291,7 +297,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
                 .setSmallIcon(R.drawable.ic_notification)
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
                 .setUsesChronometer(true)
-                .setContentIntent(mContentIntent)
+                .setContentIntent(createContentIntent(description))
                 .setContentTitle(description.getTitle())
                 .setContentText(description.getSubtitle())
                 .setLargeIcon(art);
@@ -308,7 +314,6 @@ public class MediaNotificationManager extends BroadcastReceiver {
         }
 
         setNotificationPlaybackState(notificationBuilder);
-
         if (fetchArtUrl != null) {
             fetchBitmapFromURLAsync(fetchArtUrl, notificationBuilder);
         }
@@ -362,13 +367,13 @@ public class MediaNotificationManager extends BroadcastReceiver {
 
     private void fetchBitmapFromURLAsync(final String bitmapUrl,
                                          final Notification.Builder builder) {
-        mService.getAlbumArtCache().fetch(bitmapUrl, new AlbumArtCache.FetchListener() {
+        AlbumArtCache.getInstance().fetch(bitmapUrl, new AlbumArtCache.FetchListener() {
             @Override
-            public void onFetched(String artUrl, Bitmap bitmap) {
-                if (bitmap != null && mMetadata != null && mMetadata.getDescription() != null &&
-                        bitmapUrl.equals(mMetadata.getDescription().getIconUri().toString())) {
+            public void onFetched(String artUrl, Bitmap bitmap, Bitmap icon) {
+                if (mMetadata != null && mMetadata.getDescription() != null &&
+                    artUrl.equals(mMetadata.getDescription().getIconUri().toString())) {
                     // If the media is still the same, update the notification:
-                    LogHelper.d(TAG, "fetchBitmapFromURLAsync: set bitmap to ", bitmapUrl);
+                    LogHelper.d(TAG, "fetchBitmapFromURLAsync: set bitmap to ", artUrl);
                     builder.setLargeIcon(bitmap);
                     mNotificationManager.notify(NOTIFICATION_ID, builder.build());
                 }

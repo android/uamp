@@ -31,6 +31,7 @@ import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
@@ -39,6 +40,7 @@ import com.example.android.uamp.R;
 import com.example.android.uamp.UAMPApplication;
 import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.PrefUtils;
+import com.example.android.uamp.utils.ResourceHelper;
 import com.github.amlcurran.showcaseview.ShowcaseView;
 import com.github.amlcurran.showcaseview.targets.ViewTarget;
 import com.google.sample.castcompanionlibrary.cast.VideoCastManager;
@@ -174,7 +176,9 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-        mDrawerToggle.syncState();
+        if (mDrawerToggle != null) {
+            mDrawerToggle.syncState();
+        }
     }
 
     @Override
@@ -192,7 +196,9 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        mDrawerToggle.onConfigurationChanged(newConfig);
+        if (mDrawerToggle != null) {
+            mDrawerToggle.onConfigurationChanged(newConfig);
+        }
     }
 
     @Override
@@ -213,7 +219,7 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (mDrawerToggle.onOptionsItemSelected(item)) {
+        if (mDrawerToggle != null && mDrawerToggle.onOptionsItemSelected(item)) {
             return true;
         }
         // If not handled by drawerToggle, home needs to be handled by returning to previous
@@ -227,7 +233,7 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
     @Override
     public void onBackPressed() {
         // If the drawer is open, back will close it
-        if (mDrawerLayout.isDrawerOpen(Gravity.START)) {
+        if (mDrawerLayout != null && mDrawerLayout.isDrawerOpen(Gravity.START)) {
             mDrawerLayout.closeDrawers();
             return;
         }
@@ -261,40 +267,59 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
         }
         mToolbar.inflateMenu(R.menu.main);
 
-        mDrawerList = (ListView) findViewById(R.id.drawerList);
-        if (mDrawerList == null) {
-            throw new IllegalStateException("Layout is required to include a ListView with " +
-                "id 'drawerList'");
-        }
-
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
-        if (mToolbar == null) {
-            throw new IllegalStateException("Layout is required to include a DrawerLayout with " +
-                "id 'drawerLayout'");
+        if (mDrawerLayout != null) {
+            mDrawerList = (ListView) findViewById(R.id.drawer_list);
+            if (mDrawerList == null) {
+                throw new IllegalStateException("A layout with a drawerLayout is required to" +
+                    "include a ListView with id 'drawerList'");
+            }
+
+            // Create an ActionBarDrawerToggle that will handle opening/closing of the drawer:
+            mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
+                mToolbar, R.string.open_content_drawer, R.string.close_content_drawer);
+            mDrawerLayout.setDrawerListener(mDrawerListener);
+            mDrawerLayout.setStatusBarBackgroundColor(
+                ResourceHelper.getThemeColor(this, R.attr.colorPrimary, android.R.color.black));
+            populateDrawerItems();
+            setSupportActionBar(mToolbar);
+            updateDrawerToggle();
+        } else {
+            setSupportActionBar(mToolbar);
         }
 
-        // Create an ActionBarDrawerToggle that will handle opening/closing of the drawer:
-        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
-            mToolbar, R.string.open_content_drawer, R.string.close_content_drawer);
-        mDrawerLayout.setDrawerListener(mDrawerListener);
-        populateDrawerItems();
-        setSupportActionBar(mToolbar);
-        updateDrawerToggle();
         mToolbarInitialized = true;
     }
 
     private void populateDrawerItems() {
         mDrawerMenuContents = new DrawerMenuContents(this);
-
+        final int selectedPosition = mDrawerMenuContents.getPosition(this.getClass());
+        final int unselectedColor = getResources().getColor(R.color.white);
+        final int selectedColor = getResources().getColor(R.color.drawer_item_selected_background);
         SimpleAdapter adapter = new SimpleAdapter(this, mDrawerMenuContents.getItems(),
-            R.layout.drawer_list_item,
-            new String[]{DrawerMenuContents.FIELD_TITLE, DrawerMenuContents.FIELD_ICON},
-            new int[]{R.id.drawer_item_title, R.id.drawer_item_icon});
+                R.layout.drawer_list_item,
+                new String[]{DrawerMenuContents.FIELD_TITLE, DrawerMenuContents.FIELD_ICON},
+                new int[]{R.id.drawer_item_title, R.id.drawer_item_icon}) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                View view = super.getView(position, convertView, parent);
+                int color = unselectedColor;
+                if (position == selectedPosition) {
+                    color = selectedColor;
+                }
+                view.setBackgroundColor(color);
+                return view;
+            }
+        };
 
         mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
            @Override
            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-               mItemToOpenWhenDrawerCloses = position;
+               if (position != selectedPosition) {
+                   view.setBackgroundColor(getResources().getColor(
+                       R.color.drawer_item_selected_background));
+                   mItemToOpenWhenDrawerCloses = position;
+               }
                mDrawerLayout.closeDrawers();
            }
         });

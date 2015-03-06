@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <!--
   Copyright (C) 2014 The Android Open Source Project
 
@@ -33,7 +34,7 @@
             android:paddingLeft="@dimen/error_horizontal_padding"
             android:paddingTop="@dimen/error_vertical_padding"
             android:paddingBottom="@dimen/error_vertical_padding"
-            android:background="#ffff1600"
+            android:background="@color/error_message_background"
             android:gravity="center"
             tools:text="Connectivity error!"
             android:textColor="@android:color/white"

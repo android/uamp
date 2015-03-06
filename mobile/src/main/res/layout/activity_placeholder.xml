@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <!--
   Copyright (C) 2014 The Android Open Source Project
 
@@ -13,59 +14,62 @@
   See the License for the specific language governing permissions and
   limitations under the License.
   -->
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v4.widget.DrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:custom="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawerLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MusicPlayerActivity" >
+    android:fitsSystemWindows="true"
+    tools:context=".MusicPlayerActivity">
 
-    <include android:id="@+id/toolbar"
-             layout="@layout/include_toolbar"/>
-
-    <android.support.v4.widget.DrawerLayout
-        android:id="@+id/drawerLayout"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/toolbar" >
+        android:layout_height="match_parent">
 
-        <RelativeLayout
+        <include android:id="@+id/toolbar"
+                 layout="@layout/include_toolbar"/>
+
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <android.support.v7.widget.CardView
-                android:id="@+id/controls"
-                android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:layout_alignParentTop="true"
+            android:layout_above="@+id/controls_container"
+            android:layout_below="@+id/toolbar"
+            android:gravity="center">
+            <ImageView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                custom:cardElevation="8dp"/>
+                android:layout_gravity="center"
+                android:src="@drawable/ic_info_outline_grey600_48dp"
+                tools:ignore="ContentDescription" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="@string/placeholder_message"
+                android:layout_marginTop="12dp"/>
+        </LinearLayout>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:layout_alignParentTop="true"
-                android:layout_above="@id/controls"
-                android:gravity="center">
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:src="@drawable/ic_info_outline_grey600_48dp"
-                    tools:ignore="ContentDescription" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:text="@string/placeholder_message"
-                    android:layout_marginTop="12dp"/>
-            </LinearLayout>
+        <android.support.v7.widget.CardView
+            android:id="@+id/controls_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            custom:cardElevation="8dp">
 
-        </RelativeLayout>
+            <fragment android:name="com.example.android.uamp.ui.PlaybackControlsFragment"
+                      android:id="@+id/fragment_playback_controls"
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:layout_alignParentBottom="true"/>
 
-        <include android:id="@+id/drawerList"
-             layout="@layout/include_drawerlist"/>
+        </android.support.v7.widget.CardView>
 
-    </android.support.v4.widget.DrawerLayout>
+    </RelativeLayout>
 
-</RelativeLayout>
+    <include layout="@layout/include_drawerlist"/>
+
+</android.support.v4.widget.DrawerLayout>
