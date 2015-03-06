@@ -15,7 +15,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/pageView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -28,58 +27,13 @@ limitations under the License.
         android:layout_height="fill_parent"
         android:scaleType="centerCrop"
         android:contentDescription="@string/background_image_str" />
+
     <RelativeLayout
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
-        android:background="@drawable/cast_player_bg_gradient_light" >
-        <RelativeLayout
-            android:id="@+id/controllers"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_alignParentBottom="true"
-            android:visibility="invisible" >
-
-            <ImageView
-                android:id="@+id/imageView1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:src="@drawable/ic_play_arrow_black_48dp" />
-
-            <TextView
-                android:id="@+id/startText"
-                android:layout_width="wrap_content"
-                android:layout_height="fill_parent"
-                android:layout_marginStart="@dimen/text_view_margin"
-                android:layout_toEndOf="@+id/imageView1"
-                android:gravity="center_vertical"
-                android:maxLines="1"
-                android:textColor="@color/white" />
-
-            <TextView
-                android:id="@+id/endText"
-                android:layout_width="wrap_content"
-                android:layout_height="fill_parent"
-                android:layout_marginEnd="@dimen/end_text_margin"
-                android:layout_alignParentEnd="true"
-                android:gravity="center_vertical"
-                android:layout_alignWithParentIfMissing="true"
-                android:maxLines="1"
-                android:textColor="@color/white" />
-
-            <SeekBar
-                android:id="@+id/seekBar1"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
-                android:layout_gravity="center"
-                android:layout_marginLeft="5dp"
-                android:layout_marginRight="5dp"
-                android:layout_toStartOf="@+id/endText"
-                android:layout_toEndOf="@+id/startText" />
-        </RelativeLayout>
+        android:background="@drawable/fullscreen_bg_gradient" >
 
         <TextView
             android:id="@+id/line1"
@@ -89,6 +43,8 @@ limitations under the License.
             android:ellipsize="end"
             android:gravity="center_horizontal"
             android:maxLines="1"
+            android:shadowColor="@color/black"
+            android:shadowRadius="20"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:textColor="#E5FFFFFF" />
 
@@ -102,7 +58,9 @@ limitations under the License.
             android:gravity="center_horizontal"
             android:maxLines="1"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:textColor="#E5AAAAAA" />
+            android:shadowColor="@color/black"
+            android:shadowRadius="20"
+            android:textColor="#E5CCCCCC" />
 
         <TextView
             android:id="@+id/line3"
@@ -114,7 +72,90 @@ limitations under the License.
             android:gravity="center_horizontal"
             android:maxLines="1"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:textColor="#E5AAAAAA" />
+            android:shadowColor="@color/black"
+            android:shadowRadius="20"
+            android:textColor="#E5CCCCCC" />
+
+        <LinearLayout
+            android:id="@+id/controllers"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:visibility="invisible">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="48dp">
+
+                <TextView
+                    android:id="@+id/startText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="fill_parent"
+                    android:layout_marginStart="@dimen/text_view_margin"
+                    android:layout_alignParentStart="true"
+                    android:gravity="center_vertical"
+                    android:maxLines="1"
+                    android:textColor="@color/white" />
+
+                <SeekBar
+                    android:id="@+id/seekBar1"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_gravity="center"
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginRight="5dp"
+                    android:layout_toStartOf="@+id/endText"
+                    android:layout_toEndOf="@+id/startText" />
+
+                <TextView
+                    android:id="@+id/endText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="fill_parent"
+                    android:layout_marginEnd="@dimen/end_text_margin"
+                    android:layout_alignParentEnd="true"
+                    android:gravity="center_vertical"
+                    android:layout_alignWithParentIfMissing="true"
+                    android:maxLines="1"
+                    android:textColor="@color/white" />
+
+            </RelativeLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="48dp">
+
+                <ImageView
+                    android:id="@+id/prev"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="?android:selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_skip_previous_white_48dp"
+                    android:contentDescription="@string/skip_prev"/>
+
+                <ImageView
+                    android:id="@+id/imageView1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="2"
+                    android:background="?android:selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_play_arrow_white_48dp"
+                    android:contentDescription="@string/play_pause"/>
+
+                <ImageView
+                    android:id="@+id/next"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="?android:selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_skip_next_white_48dp"
+                    android:contentDescription="@string/skip_next"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
 
     </RelativeLayout>
 
@@ -135,6 +176,5 @@ limitations under the License.
         android:background="@drawable/actionbar_bg_gradient_light"
         android:popupTheme="@style/ThemeOverlay.AppCompat.Light"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"/>
-
 
 </RelativeLayout>

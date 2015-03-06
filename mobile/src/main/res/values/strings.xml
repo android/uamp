@@ -31,6 +31,8 @@
     <string name="currently_playing_extra_info">Extra info for currently playing song</string>
     <string name="play_item">Play item</string>
     <string name="play_pause">play or pause</string>
+    <string name="skip_next">skip to next</string>
+    <string name="skip_prev">skip to previous</string>
     <string name="touch_to_cast">Touch to Cast</string>
     <string name="cast_application_id">6FB2BA68</string>  <!-- use CC1AD845 for default receiver -->
     <string name="home_title">Home</string>
