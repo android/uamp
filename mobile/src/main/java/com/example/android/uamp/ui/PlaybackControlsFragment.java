@@ -22,7 +22,6 @@ import android.media.MediaMetadata;
 import android.media.session.MediaController;
 import android.media.session.PlaybackState;
 import android.os.Bundle;
-import android.view.DragEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,6 +29,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.android.uamp.AlbumArtCache;
 import com.example.android.uamp.MusicService;
 import com.example.android.uamp.R;
 import com.example.android.uamp.utils.LogHelper;
@@ -89,6 +89,11 @@ public class PlaybackControlsFragment extends Fragment {
             public void onClick(View v) {
                 Intent intent = new Intent(getActivity(), FullScreenPlayerActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                MediaMetadata metadata = getActivity().getMediaController().getMetadata();
+                if (metadata != null) {
+                    intent.putExtra(MusicPlayerActivity.EXTRA_CURRENT_MEDIA_DESCRIPTION,
+                        metadata.getDescription());
+                }
                 startActivity(intent);
             }
         });
@@ -115,6 +120,7 @@ public class PlaybackControlsFragment extends Fragment {
 
     public void onConnected() {
         MediaController controller = getActivity().getMediaController();
+        LogHelper.d(TAG, "onConnected, mediaController==null? ", controller == null);
         if (controller != null) {
             onMetadataChanged(controller.getMetadata());
             onPlaybackStateChanged(controller.getPlaybackState());
@@ -135,11 +141,20 @@ public class PlaybackControlsFragment extends Fragment {
 
         mTitle.setText(metadata.getDescription().getTitle());
         mSubtitle.setText(metadata.getDescription().getSubtitle());
-        Bitmap albumArt = metadata.getDescription().getIconBitmap();
-        if (albumArt != null) {
-            LogHelper.d(TAG, "album art of w=", albumArt.getWidth(), " h=", albumArt.getHeight());
-        }
-        mAlbumArt.setImageBitmap(albumArt);
+        String artUrl = metadata.getDescription().getIconUri().toString();
+        AlbumArtCache.getInstance().fetch(artUrl, new AlbumArtCache.FetchListener() {
+                @Override
+                public void onFetched(String artUrl, Bitmap bitmap, Bitmap icon) {
+                    if (icon != null) {
+                        LogHelper.d(TAG, "album art icon of w=", icon.getWidth(),
+                            " h=", icon.getHeight());
+                        if (isAdded()) {
+                            mAlbumArt.setImageBitmap(icon);
+                        }
+                    }
+                }
+            }
+        );
     }
 
     public void setExtraInfo(String extraInfo) {

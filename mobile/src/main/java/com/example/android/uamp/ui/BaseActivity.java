@@ -36,13 +36,16 @@ import com.example.android.uamp.utils.ResourceHelper;
  */
 public abstract class BaseActivity extends ActionBarCastActivity implements MediaBrowserProvider {
 
-    private static final String TAG = LogHelper.makeLogTag(MusicPlayerActivity.class);
+    private static final String TAG = LogHelper.makeLogTag(BaseActivity.class);
 
     private MediaBrowser mMediaBrowser;
+    private PlaybackControlsFragment mControlsFragment;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        LogHelper.d(TAG, "Activity onCreate");
 
         // Since our app icon has the same color as colorPrimary, our entry in the Recent Apps
         // list gets weird. We need to change either the icon or the color of the TaskDescription.
@@ -52,22 +55,25 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
             ResourceHelper.getThemeColor(this, R.attr.colorPrimary, android.R.color.darker_gray));
         setTaskDescription(taskDesc);
 
-        // Connect a media browser just to get the media session token. Other approach could be
-        // binding to the MediaBrowserService directly, but MediaBrowser does exactly that.
+        // Connect a media browser just to get the media session token. There are other ways
+        // this can be done, for example by sharing the session token directly.
         mMediaBrowser = new MediaBrowser(this,
             new ComponentName(this, MusicService.class), mConnectionCallback, null);
-
-        // If we are here due to a orientation change, hide the controls and let
-        // the mediaController playbackState and metadata decide whether it is needed.
-        if (savedInstanceState != null) {
-            hidePlaybackControls();
-        }
     }
 
     @Override
     protected void onStart() {
         super.onStart();
         LogHelper.d(TAG, "Activity onStart");
+
+        mControlsFragment = (PlaybackControlsFragment) getFragmentManager()
+            .findFragmentById(R.id.fragment_playback_controls);
+        if (mControlsFragment == null) {
+            throw new IllegalStateException("Mising fragment with id 'controls'. Cannot continue.");
+        }
+
+        hidePlaybackControls();
+
         mMediaBrowser.connect();
     }
 
@@ -92,28 +98,21 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
 
     protected void showPlaybackControls() {
         LogHelper.d(TAG, "showPlaybackControls");
-        PlaybackControlsFragment controlsFragment = (PlaybackControlsFragment)
-            getFragmentManager().findFragmentById(R.id.controls);
-        if (controlsFragment == null && NetworkHelper.isOnline(this)) {
-            controlsFragment = new PlaybackControlsFragment();
+        if (NetworkHelper.isOnline(this)) {
             getFragmentManager().beginTransaction()
                 .setCustomAnimations(
                     R.animator.slide_in_from_bottom, R.animator.slide_out_to_bottom,
                     R.animator.slide_in_from_bottom, R.animator.slide_out_to_bottom)
-                .add(R.id.controls, controlsFragment)
+                .show(mControlsFragment)
                 .commit();
         }
     }
 
     protected void hidePlaybackControls() {
         LogHelper.d(TAG, "hidePlaybackControls");
-        PlaybackControlsFragment controlsFragment = (PlaybackControlsFragment)
-            getFragmentManager().findFragmentById(R.id.controls);
-        if (controlsFragment != null) {
-            getFragmentManager().beginTransaction()
-                .remove(controlsFragment)
-                .commit();
-        }
+        getFragmentManager().beginTransaction()
+            .hide(mControlsFragment)
+            .commit();
     }
 
     /**
@@ -152,10 +151,8 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
             hidePlaybackControls();
         }
 
-        PlaybackControlsFragment playbackFragment = (PlaybackControlsFragment)
-            getFragmentManager().findFragmentById(R.id.controls);
-        if (playbackFragment != null) {
-            playbackFragment.onConnected();
+        if (mControlsFragment != null) {
+            mControlsFragment.onConnected();
         }
 
         onMediaControllerConnected();

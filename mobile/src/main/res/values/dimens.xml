@@ -27,7 +27,9 @@
     <!-- navigation drawer -->
     <dimen name="drawer_item_icon_horizontal_margin">12dp</dimen>
     <dimen name="drawer_item_right_margin">56dp</dimen>
+    <dimen name="drawer_item_icon_margin_end">32dp</dimen>
     <dimen name="drawer_item_height">48dp</dimen>
+    <dimen name="drawer_item_horizontal_padding">16dp</dimen>
 
     <!-- media browser listview -->
     <dimen name="media_item_height">72dp</dimen>

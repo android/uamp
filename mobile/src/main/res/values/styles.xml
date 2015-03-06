@@ -15,25 +15,22 @@
   limitations under the License.
   -->
 <resources>
+
     <style name="UAmpAppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:windowTranslucentStatus">true</item>
         <item name="android:windowContentTransitions">true</item>
 
-        <!-- colorPrimary is used for:
-               - Phone: Action bar (App bar)
-               - Auto: Notification icon and bottom facet bar icons and overflow actions
-        -->
+        <!-- colorPrimary is used for Notification icon and bottom facet bar icons
+        and overflow actions -->
         <item name="colorPrimary">#ffff5722</item>
 
-        <!-- colorPrimaryDark is used for:
-               - Phone: Status bar and contextual app bars
-               - Auto: background when there is no album art
-        -->
-        <item name="colorPrimaryDark">#ffD84315</item>
+        <!-- colorPrimaryDark is used for background -->
+        <item name="colorPrimaryDark">#ffbf360c</item>
 
-        <!-- colorAccent is used for:
-               - Phone: Accents on UI controls, like checkbox and text fields
-               - Auto: Accents like floating action button highlight, progress on playbar
-        -->
+        <!-- colorAccent is sparingly used for accents, like floating action button highlight,
+        progress on playbar-->
         <item name="colorAccent">#ffff5722</item>
     </style>
 

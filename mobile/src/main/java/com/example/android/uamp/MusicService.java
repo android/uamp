@@ -36,6 +36,7 @@ import android.support.v7.media.MediaRouter;
 
 import com.example.android.uamp.model.MusicProvider;
 import com.example.android.uamp.ui.NowPlayingActivity;
+import com.example.android.uamp.utils.BitmapHelper;
 import com.example.android.uamp.utils.CarHelper;
 import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.MediaIDHelper;
@@ -136,7 +137,6 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
     // Music catalog manager
     private MusicProvider mMusicProvider;
     private MediaSession mSession;
-    private AlbumArtCache mAlbumArtCache;
     // "Now playing" queue:
     private List<MediaSession.QueueItem> mPlayingQueue;
     private int mCurrentIndexOnQueue;
@@ -192,7 +192,6 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
 
         mPlayingQueue = new ArrayList<>();
         mMusicProvider = new MusicProvider();
-        mAlbumArtCache = new AlbumArtCache();
         mPackageValidator = new PackageValidator(this);
 
         // Start a new MediaSession
@@ -608,14 +607,25 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
         if (track.getDescription().getIconBitmap() == null &&
                 track.getDescription().getIconUri() != null) {
             String albumUri = track.getDescription().getIconUri().toString();
-            mAlbumArtCache.fetch(albumUri, new AlbumArtCache.FetchListener() {
+            AlbumArtCache.getInstance().fetch(albumUri, new AlbumArtCache.FetchListener() {
                 @Override
-                public void onFetched(String artUrl, Bitmap result) {
+                public void onFetched(String artUrl, Bitmap bitmap, Bitmap icon) {
                     MediaSession.QueueItem queueItem = mPlayingQueue.get(mCurrentIndexOnQueue);
                     MediaMetadata track = mMusicProvider.getMusic(trackId);
                     track = new MediaMetadata.Builder(track)
-                            .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, result)
-                            .build();
+
+                        // set high resolution bitmap in METADATA_KEY_ALBUM_ART. This is used, for
+                        // example, on the lockscreen background when the media session is active.
+                        .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, bitmap)
+
+                        // set small version of the album art in the DISPLAY_ICON. This is used on
+                        // the MediaDescription and thus it should be small to be serialized if
+                        // necessary..
+                        .putBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON, icon)
+
+                        .build();
+
+                    MediaDescription md;
                     mMusicProvider.updateMusic(trackId, track);
 
                     // If we are still playing the same music
@@ -714,10 +724,6 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
             }
         }
         return null;
-    }
-
-    public AlbumArtCache getAlbumArtCache() {
-         return mAlbumArtCache;
     }
 
     /**

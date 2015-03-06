@@ -316,7 +316,10 @@ public class MediaBrowserFragment extends Fragment {
                         for (MediaBrowser.MediaItem item: children) {
                             LogHelper.d(TAG, "child ", item.getMediaId());
                             if (item.getMediaId().equals(mMediaId)) {
-                                mMediaFragmentListener.setToolbarTitle(item.getDescription().getTitle());
+                                if (mMediaFragmentListener != null) {
+                                    mMediaFragmentListener.setToolbarTitle(
+                                        item.getDescription().getTitle());
+                                }
                                 return;
                             }
                         }

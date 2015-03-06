@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <!--
   Copyright (C) 2014 The Android Open Source Project
 
@@ -13,14 +14,25 @@
   See the License for the specific language governing permissions and
   limitations under the License.
   -->
-<ListView
+<com.example.android.uamp.ui.ScrimInsetsRelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:custom="http://schemas.android.com/apk/res-auto"
     android:layout_width="240dp"
     android:layout_height="match_parent"
     android:layout_gravity="start"
-    android:background="@android:color/white"
-    android:divider="#e5e5e5"
-    android:dividerHeight="1dp"
-    android:drawSelectorOnTop="true"
-    android:headerDividersEnabled="true">
-</ListView>
+    android:background="@color/white"
+    android:fitsSystemWindows="true"
+    custom:insetForeground="#4000">
+    <ImageView
+        android:id="@+id/drawer_header"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:background="@color/drawer_header_background"/>
+    <ListView
+        android:id="@+id/drawer_list"
+        android:layout_below="@id/drawer_header"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:listSelector="?android:selectableItemBackground"
+        android:drawSelectorOnTop="true"/>
+</com.example.android.uamp.ui.ScrimInsetsRelativeLayout>

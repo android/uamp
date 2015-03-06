@@ -52,6 +52,15 @@ public class DrawerMenuContents {
         return activities[position];
     }
 
+    public int getPosition(Class activityClass) {
+        for (int i=0; i<activities.length; i++) {
+            if (activities[i].equals(activityClass)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     private Map<String, ?> populateDrawerItem(String title, int icon) {
         HashMap<String, Object> item = new HashMap<>();
         item.put(FIELD_TITLE, title);

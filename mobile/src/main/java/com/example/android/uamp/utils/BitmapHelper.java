@@ -27,12 +27,15 @@ import java.net.URL;
 public class BitmapHelper {
     private static final String TAG = LogHelper.makeLogTag(BitmapHelper.class);
 
-    // Bitmap size for album art in media notifications when there are no more than 3 playback actions
-    public static final int MEDIA_ART_BIG_WIDTH = 128;
-    public static final int MEDIA_ART_BIG_HEIGHT = 128;
-
     // Max read limit that we allow our input stream to mark/reset.
     private static final int MAX_READ_LIMIT_PER_IMG = 1024 * 1024;
+
+    public static Bitmap scaleBitmap(Bitmap src, int maxWidth, int maxHeight) {
+       double scaleFactor = Math.min(
+           ((double) maxWidth)/src.getWidth(), ((double) maxHeight)/src.getHeight());
+        return Bitmap.createScaledBitmap(src,
+            (int) (src.getWidth() * scaleFactor), (int) (src.getHeight() * scaleFactor), false);
+    }
 
     public static Bitmap scaleBitmap(int scaleFactor, InputStream is) {
         // Get the dimensions of the bitmap

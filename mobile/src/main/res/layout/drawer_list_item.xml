@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <!--
   Copyright (C) 2014 The Android Open Source Project
 
@@ -18,7 +19,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:minHeight="@dimen/drawer_item_height"
-    android:layout_marginEnd="@dimen/drawer_item_right_margin"
+    android:paddingEnd="@dimen/drawer_item_horizontal_padding"
+    android:paddingStart="@dimen/drawer_item_horizontal_padding"
     android:orientation="horizontal">
 
     <ImageView
@@ -26,16 +28,16 @@
         tools:src="@drawable/ic_allmusic_black_24dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="@dimen/drawer_item_icon_horizontal_margin"
-        android:layout_marginRight="@dimen/drawer_item_icon_horizontal_margin"
+        android:layout_marginEnd="@dimen/drawer_item_icon_margin_end"
         android:tintMode="src_in"
-        android:tint="@android:color/darker_gray"
+        android:tint="@color/drawer_item_tint_color"
         android:layout_gravity="center_vertical"
         tools:ignore="ContentDescription" />
 
     <TextView
         android:id="@+id/drawer_item_title"
         tools:text="Music library"
+        android:textColor="@color/drawer_item_tint_color"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"/>
