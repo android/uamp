@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 Google Inc.
+ * Copyright (C) 2014 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,20 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.example.android.uamp.ui;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.support.annotation.NonNull;
 import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
 import android.widget.RelativeLayout;
 
+import com.example.android.uamp.R;
+
 /**
- * A layout that draws something in the insets passed to {@link #fitSystemWindows(Rect)}, i.e. the area above UI chrome
- * (status and navigation bars, overlay action bars).
+ * A layout that draws something in the insets passed to {@link #fitSystemWindows(Rect)}, i.e.
+ * the area above UI chrome (status and navigation bars, overlay action bars).
  */
 public class ScrimInsetsRelativeLayout extends RelativeLayout {
     private Drawable mInsetForeground;
@@ -51,19 +54,20 @@ public class ScrimInsetsRelativeLayout extends RelativeLayout {
     }
 
     private void init(Context context, AttributeSet attrs, int defStyle) {
-//        final TypedArray a = context.obtainStyledAttributes(attrs,
-//                R.styleable.ScrimInsetsView, defStyle, 0);
-//        if (a == null) {
-//            return;
-//        }
-//        mInsetForeground = a.getDrawable(R.styleable.ScrimInsetsView_insetForeground);
-//        a.recycle();
-//
-//        setWillNotDraw(true);
+        final TypedArray a = context.obtainStyledAttributes(attrs,
+                R.styleable.ScrimInsetsView, defStyle, 0);
+        if (a == null) {
+            return;
+        }
+        mInsetForeground = a.getDrawable(R.styleable.ScrimInsetsView_insetForeground);
+        a.recycle();
+
+        setWillNotDraw(true);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
-    protected boolean fitSystemWindows(Rect insets) {
+    protected boolean fitSystemWindows(@NonNull Rect insets) {
         mInsets = new Rect(insets);
         setWillNotDraw(mInsetForeground == null);
         ViewCompat.postInvalidateOnAnimation(this);
@@ -74,7 +78,7 @@ public class ScrimInsetsRelativeLayout extends RelativeLayout {
     }
 
     @Override
-    public void draw(Canvas canvas) {
+    public void draw(@NonNull Canvas canvas) {
         super.draw(canvas);
 
         int width = getWidth();
@@ -124,10 +128,10 @@ public class ScrimInsetsRelativeLayout extends RelativeLayout {
     }
 
     /**
-     * Allows the calling container to specify a callback for custom processing when insets change (i.e. when
-     * {@link #fitSystemWindows(Rect)} is called. This is useful for setting padding on UI elements based on
-     * UI chrome insets (e.g. a Google Map or a ListView). When using with ListView or GridView, remember to set
-     * clipToPadding to false.
+     * Allows the calling container to specify a callback for custom processing when insets change
+     * (i.e. when {@link #fitSystemWindows(Rect)} is called. This is useful for setting padding on
+     * UI elements based on UI chrome insets (e.g. a Google Map or a ListView). When using with
+     * ListView or GridView, remember to set clipToPadding to false.
      */
     public void setOnInsetsCallback(OnInsetsCallback onInsetsCallback) {
         mOnInsetsCallback = onInsetsCallback;

@@ -57,6 +57,8 @@ public class FullScreenPlayerActivity extends ActionBarCastActivity {
     private static final long PROGRESS_UPDATE_INTERNAL = 1000;
     private static final long PROGRESS_UPDATE_INITIAL_INTERVAL = 100;
 
+    private ImageView mSkipPrev;
+    private ImageView mSkipNext;
     private ImageView mPlayPause;
     private TextView mStart;
     private TextView mEnd;
@@ -129,6 +131,8 @@ public class FullScreenPlayerActivity extends ActionBarCastActivity {
         mPauseDrawable = getResources().getDrawable(R.drawable.ic_pause_white_48dp);
         mPlayDrawable = getResources().getDrawable(R.drawable.ic_play_arrow_white_48dp);
         mPlayPause = (ImageView) findViewById(R.id.imageView1);
+        mSkipNext = (ImageView) findViewById(R.id.next);
+        mSkipPrev = (ImageView) findViewById(R.id.prev);
         mStart = (TextView) findViewById(R.id.startText);
         mEnd = (TextView) findViewById(R.id.endText);
         mSeekbar = (SeekBar) findViewById(R.id.seekBar1);
@@ -137,6 +141,24 @@ public class FullScreenPlayerActivity extends ActionBarCastActivity {
         mLine3 = (TextView) findViewById(R.id.line3);
         mLoading = (ProgressBar) findViewById(R.id.progressBar1);
         mControllers = findViewById(R.id.controllers);
+
+        mSkipNext.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MediaController.TransportControls controls =
+                    getMediaController().getTransportControls();
+                controls.skipToNext();
+            }
+        });
+
+        mSkipPrev.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MediaController.TransportControls controls =
+                    getMediaController().getTransportControls();
+                controls.skipToPrevious();
+            }
+        });
 
         mPlayPause.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -357,6 +379,11 @@ public class FullScreenPlayerActivity extends ActionBarCastActivity {
             default:
                 LogHelper.d(TAG, "Unhandled state ", state.getState());
         }
+
+        mSkipNext.setVisibility((state.getActions() & PlaybackState.ACTION_SKIP_TO_NEXT) == 0
+            ? INVISIBLE : VISIBLE );
+        mSkipPrev.setVisibility((state.getActions() & PlaybackState.ACTION_SKIP_TO_PREVIOUS) == 0
+            ? INVISIBLE : VISIBLE );
     }
 
     private void updateProgress() {
