@@ -56,7 +56,7 @@ public class QueueHelper {
         if (categoryType.equals(MEDIA_ID_MUSICS_BY_GENRE)) {
             tracks = musicProvider.getMusicsByGenre(categoryValue);
         } else if (categoryType.equals(MEDIA_ID_MUSICS_BY_SEARCH)) {
-            tracks = musicProvider.searchMusics(categoryValue);
+            tracks = musicProvider.searchMusic(categoryValue);
         }
 
         if (tracks == null) {
@@ -72,7 +72,7 @@ public class QueueHelper {
 
         LogHelper.d(TAG, "Creating playing queue for musics from search ", query);
 
-        return convertToQueue(musicProvider.searchMusics(query), MEDIA_ID_MUSICS_BY_SEARCH, query);
+        return convertToQueue(musicProvider.searchMusic(query), MEDIA_ID_MUSICS_BY_SEARCH, query);
     }
 
 

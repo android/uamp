@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Utility class to get a list of MusicTrack's based on a server-side JSON
@@ -64,8 +63,6 @@ public class MusicProvider {
     private static final String JSON_TOTAL_TRACK_COUNT = "totalTrackCount";
     private static final String JSON_DURATION = "duration";
 
-    private final ReentrantLock initializationLock = new ReentrantLock();
-
     // Categorized caches for music track data:
     private ConcurrentMap<String, List<MediaMetadata>> mMusicListByGenre;
     private final ConcurrentMap<String, MutableMediaMetadata> mMusicListById;
@@ -76,8 +73,7 @@ public class MusicProvider {
         NON_INITIALIZED, INITIALIZING, INITIALIZED
     }
 
-    private State mCurrentState = State.NON_INITIALIZED;
-
+    private volatile State mCurrentState = State.NON_INITIALIZED;
 
     public interface Callback {
         void onMusicCatalogReady(boolean success);
@@ -117,7 +113,7 @@ public class MusicProvider {
      * the given query.
      *
      */
-    public Iterable<MediaMetadata> searchMusics(String titleQuery) {
+    public Iterable<MediaMetadata> searchMusic(String titleQuery) {
         if (mCurrentState != State.INITIALIZED) {
             return Collections.emptyList();
         }
@@ -136,7 +132,6 @@ public class MusicProvider {
      * Return the MediaMetadata for the given musicID.
      *
      * @param musicId The unique, non-hierarchical music ID.
-     *
      */
     public MediaMetadata getMusic(String musicId) {
         return mMusicListById.containsKey(musicId) ? mMusicListById.get(musicId).metadata : null;
@@ -179,8 +174,8 @@ public class MusicProvider {
      * Get the list of music tracks from a server and caches the track information
      * for future reference, keying tracks by musicId and grouping by genre.
      */
-    public void retrieveMedia(final Callback callback) {
-        LogHelper.d(TAG, "retrieveMedia called");
+    public void retrieveMediaAsync(final Callback callback) {
+        LogHelper.d(TAG, "retrieveMediaAsync called");
         if (mCurrentState == State.INITIALIZED) {
             // Nothing to do, execute callback immediately
             callback.onMusicCatalogReady(true);
@@ -188,16 +183,23 @@ public class MusicProvider {
         }
 
         // Asynchronously load the music catalog in a separate thread
-        new AsyncTask<Void, Void, Void>() {
+        new AsyncTask<Void, Void, State>() {
             @Override
-            protected Void doInBackground(Void... params) {
-                retrieveMediaAsync(callback);
-                return null;
+            protected State doInBackground(Void... params) {
+                retrieveMedia();
+                return mCurrentState;
+            }
+
+            @Override
+            protected void onPostExecute(State current) {
+                if (callback != null) {
+                    callback.onMusicCatalogReady(current == State.INITIALIZED);
+                }
             }
         }.execute();
     }
 
-    private void buildListsByGenre() {
+    private synchronized void buildListsByGenre() {
         ConcurrentMap<String, List<MediaMetadata>> newMusicListByGenre = new ConcurrentHashMap<>();
 
         for (MutableMediaMetadata m : mMusicListById.values()) {
@@ -212,16 +214,17 @@ public class MusicProvider {
         mMusicListByGenre = newMusicListByGenre;
     }
 
-    private void retrieveMediaAsync(Callback callback) {
-        initializationLock.lock();
+    private synchronized void retrieveMedia() {
         try {
             if (mCurrentState == State.NON_INITIALIZED) {
                 mCurrentState = State.INITIALIZING;
 
                 int slashPos = CATALOG_URL.lastIndexOf('/');
                 String path = CATALOG_URL.substring(0, slashPos + 1);
-                JSONObject jsonObj = parseUrl(CATALOG_URL);
-
+                JSONObject jsonObj = fetchJSONFromUrl(CATALOG_URL);
+                if (jsonObj == null) {
+                    return;
+                }
                 JSONArray tracks = jsonObj.getJSONArray(JSON_MUSIC);
                 if (tracks != null) {
                     for (int j = 0; j < tracks.length(); j++) {
@@ -233,17 +236,13 @@ public class MusicProvider {
                 }
                 mCurrentState = State.INITIALIZED;
             }
-        } catch (RuntimeException | JSONException e) {
+        } catch (JSONException e) {
             LogHelper.e(TAG, e, "Could not retrieve music list");
         } finally {
             if (mCurrentState != State.INITIALIZED) {
                 // Something bad happened, so we reset state to NON_INITIALIZED to allow
                 // retries (eg if the network connection is temporary unavailable)
                 mCurrentState = State.NON_INITIALIZED;
-            }
-            initializationLock.unlock();
-            if (callback != null) {
-                callback.onMusicCatalogReady(mCurrentState == State.INITIALIZED);
             }
         }
     }
@@ -296,7 +295,7 @@ public class MusicProvider {
      *
      * @return result JSONObject containing the parsed representation.
      */
-    private JSONObject parseUrl(String urlString) {
+    private JSONObject fetchJSONFromUrl(String urlString) {
         InputStream is = null;
         try {
             URL url = new URL(urlString);
