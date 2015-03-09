@@ -294,7 +294,7 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
             // Use result.detach to allow calling result.sendResult from another thread:
             result.detach();
 
-            mMusicProvider.retrieveMedia(new MusicProvider.Callback() {
+            mMusicProvider.retrieveMediaAsync(new MusicProvider.Callback() {
                 @Override
                 public void onMusicCatalogReady(boolean success) {
                     if (success) {
