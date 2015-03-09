@@ -22,6 +22,7 @@ import android.media.MediaMetadata;
 import android.media.session.MediaController;
 import android.media.session.PlaybackState;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -46,7 +47,7 @@ public class PlaybackControlsFragment extends Fragment {
     private TextView mSubtitle;
     private TextView mExtraInfo;
     private ImageView mAlbumArt;
-
+    private String mArtUrl;
     // Receive callbacks from the MediaController. Here we update our state such as which queue
     // is being shown, the current title and description and the PlaybackState.
     private MediaController.Callback mCallback = new MediaController.Callback() {
@@ -142,19 +143,31 @@ public class PlaybackControlsFragment extends Fragment {
         mTitle.setText(metadata.getDescription().getTitle());
         mSubtitle.setText(metadata.getDescription().getSubtitle());
         String artUrl = metadata.getDescription().getIconUri().toString();
-        AlbumArtCache.getInstance().fetch(artUrl, new AlbumArtCache.FetchListener() {
-                @Override
-                public void onFetched(String artUrl, Bitmap bitmap, Bitmap icon) {
-                    if (icon != null) {
-                        LogHelper.d(TAG, "album art icon of w=", icon.getWidth(),
-                            " h=", icon.getHeight());
-                        if (isAdded()) {
-                            mAlbumArt.setImageBitmap(icon);
-                        }
-                    }
-                }
+        if (!TextUtils.equals(artUrl, mArtUrl)) {
+            mArtUrl = artUrl;
+            Bitmap art = metadata.getDescription().getIconBitmap();
+            AlbumArtCache cache = AlbumArtCache.getInstance();
+            if (art == null) {
+                art = cache.getIconImage(mArtUrl);
             }
-        );
+            if (art != null) {
+                mAlbumArt.setImageBitmap(art);
+            } else {
+                cache.fetch(artUrl, new AlbumArtCache.FetchListener() {
+                            @Override
+                            public void onFetched(String artUrl, Bitmap bitmap, Bitmap icon) {
+                                if (icon != null) {
+                                    LogHelper.d(TAG, "album art icon of w=", icon.getWidth(),
+                                            " h=", icon.getHeight());
+                                    if (isAdded()) {
+                                        mAlbumArt.setImageBitmap(icon);
+                                    }
+                                }
+                            }
+                        }
+                );
+            }
+        }
     }
 
     public void setExtraInfo(String extraInfo) {
