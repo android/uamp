@@ -22,16 +22,27 @@
         <item name="android:windowTranslucentStatus">true</item>
         <item name="android:windowContentTransitions">true</item>
 
-        <!-- colorPrimary is used for Notification icon and bottom facet bar icons
-        and overflow actions -->
         <item name="colorPrimary">#ffff5722</item>
+        <item name="colorPrimaryDark">#ffbf360c</item>
+        <item name="colorAccent">#ffff5722</item>
+    </style>
 
-        <!-- colorPrimaryDark is used for background -->
+
+    <style name="CarTheme" parent="UAmpAppTheme">
+        <!-- colorPrimaryDark is currently used in Android Auto for:
+             - App background
+             - Drawer right side ("more" custom actions) background
+             - Notification icon badge tinting
+             - Overview “now playing” icon tinting
+         -->
         <item name="colorPrimaryDark">#ffbf360c</item>
 
-        <!-- colorAccent is sparingly used for accents, like floating action button highlight,
-        progress on playbar-->
-        <item name="colorAccent">#ffff5722</item>
+        <!-- colorAccent is used in Android Auto for:
+             - Spinner
+             - progress bar
+             - floating action button background (Play/Pause in media apps)
+         -->
+        <item name="colorAccent">@color/bt_accent</item>
     </style>
 
 </resources>
