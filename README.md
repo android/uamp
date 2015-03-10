@@ -20,15 +20,14 @@ This sample uses the Gradle build system. To build this project, use the
 Screenshots
 -----------
 
-![Phone](screenshots/image1.png "On a phone")
-![Media notification](screenshots/image2.png "MediaStyle notification")
-![Lock screen](screenshots/image3.png "Lockscreen background and controls")
-![Full screen player](screenshots/fullscreen_player.png "A basic full screen activity")
-![Cast dialog](screenshots/cast_1.png "Casting to Google Cast devices")
-![Android Auto](screenshots/auto_1.png "Running on an Android Auto car")
+![Phone](screenshots/phone.png "On a phone")
+![Lock screen](screenshots/phone_lockscreen.png "Lockscreen background and controls")
+![Full screen player](screenshots/phone_fullscreen_player.png "A basic full screen activity")
+![Cast dialog](screenshots/phone_cast_dialog.png "Casting to Google Cast devices")
+![Android Auto](screenshots/android_auto.png "Running on an Android Auto car")
 
-![Android Wear watch face](screenshots/watch_1.png "MediaStyle notifications on an Android Wear watch")
-![Android Wear controls](screenshots/watch_2.png "Media playback controls on an Android Wear watch")
+![Android Wear watch face](screenshots/android_wear_1.png "MediaStyle notifications on an Android Wear watch")
+![Android Wear controls](screenshots/android_wear_2.png "Media playback controls on an Android Wear watch")
 
 Support
 -------
