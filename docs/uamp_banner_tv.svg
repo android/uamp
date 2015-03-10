@@ -136,8 +136,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.98994949"
-     inkscape:cx="1044.764"
-     inkscape:cy="334.78708"
+     inkscape:cx="1223.7604"
+     inkscape:cy="268.43886"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -167,13 +167,13 @@
        d="m 793.39917,778.04854 400.00003,0 0,-225 -400.00003,0 0,225 z"
        style="fill:#ff5722;fill-opacity:1;fill-rule:nonzero;stroke:none"
        id="path3014"
-       inkscape:export-filename="/usr/local/google/home/mangini/uamp/uamp/mobile/src/main/res/drawable-xhdpi/banner_tv.png"
+       inkscape:export-filename="/tmp/banner.png"
        inkscape:export-xdpi="72"
        inkscape:export-ydpi="72" />
     <g
        id="g3016"
        transform="matrix(1.25,0,0,-1.25,793.39917,778.04854)"
-       inkscape:export-filename="/usr/local/google/home/mangini/uamp/uamp/mobile/src/main/res/drawable-xhdpi/banner_tv.png"
+       inkscape:export-filename="/tmp/banner.png"
        inkscape:export-xdpi="72"
        inkscape:export-ydpi="72">
       <g
@@ -221,7 +221,7 @@
     <g
        id="g3082"
        transform="matrix(1.25,0,0,-1.25,793.39917,778.04854)"
-       inkscape:export-filename="/usr/local/google/home/mangini/uamp/uamp/mobile/src/main/res/drawable-xhdpi/banner_tv.png"
+       inkscape:export-filename="/tmp/banner.png"
        inkscape:export-xdpi="72"
        inkscape:export-ydpi="72">
       <g
@@ -241,22 +241,28 @@
     <text
        id="text3094"
        x="974.64917"
-       y="692.48877"
+       y="639.96088"
        style="font-size:15px"
-       inkscape:export-filename="/usr/local/google/home/mangini/uamp/uamp/mobile/src/main/res/drawable-xhdpi/banner_tv.png"
+       inkscape:export-filename="/tmp/banner.png"
        inkscape:export-xdpi="72"
        inkscape:export-ydpi="72">
       <tspan
-         style="font-size:76.6969986px;font-variant:normal;font-weight:bold;font-stretch:condensed;writing-mode:lr-tb;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;font-family:Roboto Condensed;-inkscape-font-specification:RobotoCondensed-Bold"
-         x="974.64917 1012.3841 1056.3851 1113.2943"
+         style="font-size:40px;font-variant:normal;font-weight:bold;font-stretch:condensed;writing-mode:lr-tb;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;font-family:Roboto Condensed;-inkscape-font-specification:RobotoCondensed-Bold"
          sodipodi:role="line"
          id="tspan3096"
-         y="692.48877">uAmp</tspan>
+         x="974.64917"
+         y="639.96088">Universal</tspan>
+      <tspan
+         style="font-size:40px;font-variant:normal;font-weight:bold;font-stretch:condensed;writing-mode:lr-tb;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;font-family:Roboto Condensed;-inkscape-font-specification:RobotoCondensed-Bold"
+         sodipodi:role="line"
+         x="974.64917"
+         y="689.96088"
+         id="tspan3050">MusicPlayer</tspan>
     </text>
     <g
        id="g3098"
        transform="matrix(1.25,0,0,-1.25,793.39917,778.04854)"
-       inkscape:export-filename="/usr/local/google/home/mangini/uamp/uamp/mobile/src/main/res/drawable-xhdpi/banner_tv.png"
+       inkscape:export-filename="/tmp/banner.png"
        inkscape:export-xdpi="72"
        inkscape:export-ydpi="72">
       <g
