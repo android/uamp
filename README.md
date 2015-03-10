@@ -3,7 +3,7 @@ Universal Android Music Player Sample
 
 This sample shows how to implement an audio media app that works
 across multiple form factors and provide a consistent user experience
-on Android phones, tablets, Auto, Wear, TV and Cast devices.
+on Android phones, tablets, Android Auto, Android Wear and Cast devices.
 
 
 Pre-requisites
@@ -20,7 +20,15 @@ This sample uses the Gradle build system. To build this project, use the
 Screenshots
 -----------
 
-![Description](screenshots/image1.png) ![Description](screenshots/image2.png) ![Description](screenshots/image3.png)
+![Phone](screenshots/image1.png "On a phone")
+![Media notification](screenshots/image2.png "MediaStyle notification")
+![Lock screen](screenshots/image3.png "Lockscreen background and controls")
+![Full screen player](screenshots/fullscreen_player.png "A basic full screen activity")
+![Cast dialog](screenshots/cast_1.png "Casting to Google Cast devices")
+![Android Auto](screenshots/auto_1.png "Running on an Android Auto car")
+
+![Android Wear watch face](screenshots/watch_1.png "MediaStyle notifications on an Android Wear watch")
+![Android Wear controls](screenshots/watch_2.png "Media playback controls on an Android Wear watch")
 
 Support
 -------
