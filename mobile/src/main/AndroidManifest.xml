@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2014 The Android Open Source Project
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+  -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.example.android.uamp" >
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <uses-feature
+        android:name="android.software.leanback"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="false" />
+
+    <application
+        android:name=".UAMPApplication"
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/UAmpAppTheme" >
+
+        <meta-data
+            android:name="com.google.android.gms.car.application"
+            android:resource="@xml/automotive_app_desc" />
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+
+        <!-- Main activity for music browsing on phone -->
+        <activity
+            android:name=".ui.MusicPlayerActivity"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Placeholder activity for phone UI -->
+        <activity
+            android:name=".ui.PlaceholderActivity"
+            android:label="@string/app_name">
+        </activity>
+
+        <!-- Proxy activity that opens either the NowPlaying TV or the mobile UI, depending on
+        the current environment
+        TODO:  TV is not yet supported, this is just a placeholder! -->
+        <activity
+            android:name=".ui.NowPlayingActivity"
+            android:icon="@drawable/ic_launcher">
+        </activity>
+
+        <!-- Proxy activity to respond to voice actions -->
+        <activity
+            android:name=".voiceaction.VoiceActionsActivity"
+            android:exported="true"
+            android:launchMode="singleTask" >
+
+            <!-- Use this intent filter to get voice searches, like "Play The Beatles" -->
+            <intent-filter>
+                <action android:name="android.media.action.MEDIA_PLAY_FROM_SEARCH" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <!--
+             (OPTIONAL) use this meta data to indicate which icon should be
+             used in Android Auto media notifications (for example, when the
+             music changes and the user is looking at another app)
+        -->
+        <meta-data
+            android:name="com.google.android.gms.car.notification.SmallIcon"
+            android:resource="@drawable/ic_notification" />
+
+        <!--
+             (OPTIONAL) use this meta data to override the theme from which Android Auto will
+             look for colors. If you don't set this, Android Auto will look
+             for color attributes in your application theme.
+        -->
+        <meta-data
+            android:name="com.google.android.gms.car.application.theme"
+            android:resource="@style/CarTheme" />
+
+        <!-- Main music service, provides media browsing and media playback services to
+         consumers through MediaBrowserService and MediaSession. Consumers connect to it through
+         MediaBrowser (for browsing) and MediaController (for play session control) -->
+        <service
+            android:name=".MusicService"
+            android:exported="true"
+            tools:ignore="ExportedService">
+            <intent-filter>
+                <action android:name="android.media.browse.MediaBrowserService" />
+            </intent-filter>
+        </service>
+
+        <!-- Service that keeps track of reconnecting to Cast when wifi is enabled. -->
+        <service
+            android:name=
+                "com.google.sample.castcompanionlibrary.cast.reconnection.ReconnectionService"/>
+
+        <!-- A full screen activity showing controls and a seek bar for
+             the current playing music -->
+        <activity
+            android:name=".ui.FullScreenPlayerActivity"
+            android:label="@string/app_name"
+            android:launchMode="singleTop"
+            android:parentActivityName=".ui.MusicPlayerActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ui.MusicPlayerActivity"/>
+        </activity>
+    </application>
+
+</manifest>

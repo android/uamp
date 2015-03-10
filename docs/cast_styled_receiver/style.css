@@ -1,0 +1,23 @@
+.background {
+  background-image: linear-gradient(#000000, #250900);
+}
+
+.logo {
+  /* max 1280x400, padding-top: 25% */
+  background-image: url(uamp_cast_logo.png);
+  background-size: auto 30%;
+}
+
+.progressBar {
+  background-color: #FF5A26;
+}
+
+.splash {
+  /* max 1280x400, padding-top: 25% */
+  background-image: url(uamp_cast_splash.png);
+}
+
+.watermark {
+  background-image: url(uamp_cast_watermark.png);
+  background-size: auto 57px;
+}
