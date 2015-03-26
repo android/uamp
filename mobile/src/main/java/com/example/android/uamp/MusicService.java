@@ -33,6 +33,7 @@ import android.os.Message;
 import android.os.SystemClock;
 import android.service.media.MediaBrowserService;
 import android.support.v7.media.MediaRouter;
+import android.text.TextUtils;
 
 import com.example.android.uamp.model.MusicProvider;
 import com.example.android.uamp.ui.NowPlayingActivity;
@@ -507,15 +508,26 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
         public void onPlayFromSearch(String query, Bundle extras) {
             LogHelper.d(TAG, "playFromSearch  query=", query);
 
-            mPlayingQueue = QueueHelper.getPlayingQueueFromSearch(query, mMusicProvider);
+            if (TextUtils.isEmpty(query)) {
+                // A generic search like "Play music" sends an empty query
+                // and it's expected that we start playing something. What will be played depends
+                // on the app: favorite playlist, "I'm feeling lucky", most recent, etc.
+                mPlayingQueue = QueueHelper.getRandomQueue(mMusicProvider);
+            } else {
+                mPlayingQueue = QueueHelper.getPlayingQueueFromSearch(query, mMusicProvider);
+            }
+
             LogHelper.d(TAG, "playFromSearch  playqueue.length=" + mPlayingQueue.size());
             mSession.setQueue(mPlayingQueue);
 
             if (mPlayingQueue != null && !mPlayingQueue.isEmpty()) {
-                // start playing from the beginning of the queue
+                // immediately start playing from the beginning of the search results
                 mCurrentIndexOnQueue = 0;
 
                 handlePlayRequest();
+            } else {
+                // if nothing was found, we need to warn the user and stop playing
+                handleStopRequest(getString(R.string.no_search_results));
             }
         }
     }
