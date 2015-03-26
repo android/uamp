@@ -140,7 +140,6 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
     // "Now playing" queue:
     private List<MediaSession.QueueItem> mPlayingQueue;
     private int mCurrentIndexOnQueue;
-    // Current local media player state
     private MediaNotificationManager mMediaNotificationManager;
     // Indicates whether the service was started.
     private boolean mServiceStarted;
@@ -502,7 +501,6 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
             } else {
                 LogHelper.e(TAG, "Unsupported action: ", action);
             }
-
         }
 
         @Override
