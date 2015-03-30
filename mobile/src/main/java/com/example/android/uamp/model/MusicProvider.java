@@ -35,6 +35,7 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -118,9 +119,9 @@ public class MusicProvider {
             return Collections.emptyList();
         }
         ArrayList<MediaMetadata> result = new ArrayList<>();
-        titleQuery = titleQuery.toLowerCase();
+        titleQuery = titleQuery.toLowerCase(Locale.US);
         for (MutableMediaMetadata track : mMusicListById.values()) {
-            if (track.metadata.getString(MediaMetadata.METADATA_KEY_TITLE).toLowerCase()
+            if (track.metadata.getString(MediaMetadata.METADATA_KEY_TITLE).toLowerCase(Locale.US)
                     .contains(titleQuery)) {
                 result.add(track.metadata);
             }

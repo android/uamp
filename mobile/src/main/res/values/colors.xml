@@ -22,4 +22,6 @@
     <color name="error_message_background">#ffff1600</color>
     <color name="drawer_item_selected_background">#feee</color>
     <color name="drawer_item_tint_color">#ff333333</color>
+    <color name="fullscreen_secondary_line_color">#E5CCCCCC</color>
+    <color name="fullscreen_line_color">#E5FFFFFF</color>
 </resources>

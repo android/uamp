@@ -113,8 +113,7 @@
 
         <!-- Service that keeps track of reconnecting to Cast when wifi is enabled. -->
         <service
-            android:name=
-                "com.google.sample.castcompanionlibrary.cast.reconnection.ReconnectionService"/>
+            android:name="com.google.android.libraries.cast.companionlibrary.cast.reconnection.ReconnectionService"/>
 
         <!-- A full screen activity showing controls and a seek bar for
              the current playing music -->

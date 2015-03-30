@@ -20,7 +20,7 @@
     android:layout_width="240dp"
     android:layout_height="match_parent"
     android:layout_gravity="start"
-    android:background="@color/white"
+    android:background="@android:color/white"
     android:elevation="16dp"
     android:fitsSystemWindows="true"
     android:clickable="true"
