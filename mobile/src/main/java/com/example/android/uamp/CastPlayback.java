@@ -22,16 +22,15 @@ import android.text.TextUtils;
 import com.example.android.uamp.model.MusicProvider;
 import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.MediaIDHelper;
-import com.google.android.gms.cast.CastStatusCodes;
 import com.google.android.gms.cast.MediaInfo;
 import com.google.android.gms.cast.MediaMetadata;
 import com.google.android.gms.cast.MediaStatus;
 import com.google.android.gms.common.images.WebImage;
-import com.google.sample.castcompanionlibrary.cast.VideoCastManager;
-import com.google.sample.castcompanionlibrary.cast.callbacks.VideoCastConsumerImpl;
-import com.google.sample.castcompanionlibrary.cast.exceptions.CastException;
-import com.google.sample.castcompanionlibrary.cast.exceptions.NoConnectionException;
-import com.google.sample.castcompanionlibrary.cast.exceptions.TransientNetworkDisconnectionException;
+import com.google.android.libraries.cast.companionlibrary.cast.VideoCastManager;
+import com.google.android.libraries.cast.companionlibrary.cast.callbacks.VideoCastConsumerImpl;
+import com.google.android.libraries.cast.companionlibrary.cast.exceptions.CastException;
+import com.google.android.libraries.cast.companionlibrary.cast.exceptions.NoConnectionException;
+import com.google.android.libraries.cast.companionlibrary.cast.exceptions.TransientNetworkDisconnectionException;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -49,7 +48,6 @@ public class CastPlayback implements Playback {
     private static final String ITEM_ID = "itemId";
 
     private final MusicProvider mMusicProvider;
-    private final MusicService mService;
     private final VideoCastConsumerImpl mCastConsumer = new VideoCastConsumerImpl() {
 
         @Override
@@ -73,16 +71,13 @@ public class CastPlayback implements Playback {
     private volatile int mCurrentPosition;
     private volatile String mCurrentMediaId;
 
-    public CastPlayback(MusicService service, MusicProvider musicProvider) {
+    public CastPlayback(MusicProvider musicProvider) {
         this.mMusicProvider = musicProvider;
-        this.mService = service;
     }
 
     @Override
     public void start() {
-        mCastManager = ((UAMPApplication) mService.getApplication())
-                .getCastManager(mService.getApplicationContext());
-
+        mCastManager = VideoCastManager.getInstance();
         mCastManager.addVideoCastConsumer(mCastConsumer);
     }
 
@@ -200,7 +195,7 @@ public class CastPlayback implements Playback {
     @Override
     public boolean isPlaying() {
         try {
-            return mCastManager.isConnected() && mCastManager.isRemoteMoviePlaying();
+            return mCastManager.isConnected() && mCastManager.isRemoteMediaPlaying();
         } catch (TransientNetworkDisconnectionException | NoConnectionException e) {
             LogHelper.e(TAG, e, "Exception calling isRemoteMoviePlaying");
         }

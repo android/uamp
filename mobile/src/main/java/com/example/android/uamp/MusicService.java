@@ -37,14 +37,13 @@ import android.text.TextUtils;
 
 import com.example.android.uamp.model.MusicProvider;
 import com.example.android.uamp.ui.NowPlayingActivity;
-import com.example.android.uamp.utils.BitmapHelper;
 import com.example.android.uamp.utils.CarHelper;
 import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.MediaIDHelper;
 import com.example.android.uamp.utils.QueueHelper;
 import com.google.android.gms.cast.ApplicationMetadata;
-import com.google.sample.castcompanionlibrary.cast.VideoCastManager;
-import com.google.sample.castcompanionlibrary.cast.callbacks.VideoCastConsumerImpl;
+import com.google.android.libraries.cast.companionlibrary.cast.VideoCastManager;
+import com.google.android.libraries.cast.companionlibrary.cast.callbacks.VideoCastConsumerImpl;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -111,7 +110,6 @@ import static com.example.android.uamp.utils.MediaIDHelper.createBrowseCategoryM
  * @see <a href="README.md">README.md</a> for more details.
  *
  */
-
 public class MusicService extends MediaBrowserService implements Playback.Callback {
 
     // Extra on MediaSession that contains the Cast device name currently connected to
@@ -163,7 +161,7 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
             mSessionExtras.putString(EXTRA_CONNECTED_CAST, mCastManager.getDeviceName());
             mSession.setExtras(mSessionExtras);
             // Now we can switch to CastPlayback
-            Playback playback = new CastPlayback(MusicService.this, mMusicProvider);
+            Playback playback = new CastPlayback(mMusicProvider);
             mMediaRouter.setMediaSession(mSession);
             switchToPlayer(playback, true);
         }
@@ -219,8 +217,7 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
         updatePlaybackState(null);
 
         mMediaNotificationManager = new MediaNotificationManager(this);
-        mCastManager = ((UAMPApplication)getApplication()).getCastManager(getApplicationContext());
-
+        mCastManager = VideoCastManager.getInstance();
         mCastManager.addVideoCastConsumer(mCastConsumer);
         mMediaRouter = MediaRouter.getInstance(getApplicationContext());
     }
@@ -261,7 +258,7 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
         // Service is being killed, so make sure we release our resources
         handleStopRequest(null);
 
-        mCastManager = ((UAMPApplication)getApplication()).getCastManager(getApplicationContext());
+        mCastManager = VideoCastManager.getInstance();
         mCastManager.removeVideoCastConsumer(mCastConsumer);
 
         mDelayedStopHandler.removeCallbacksAndMessages(null);

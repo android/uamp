@@ -48,5 +48,6 @@
     <string name="now_playing">Now Playing</string>
     <string name="background_image_str">Background image for album art</string>
     <string name="no_search_results">No search results.</string>
-
+    <string name="loading">Loading…</string>
+    <string name="media_route_menu_title">Play on…</string>
 </resources>

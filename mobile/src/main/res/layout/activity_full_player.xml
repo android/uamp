@@ -18,7 +18,7 @@ limitations under the License.
     android:id="@+id/pageView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/black"
+    android:background="@android:color/black"
     android:fitsSystemWindows="true">
 
     <ImageView
@@ -43,10 +43,10 @@ limitations under the License.
             android:ellipsize="end"
             android:gravity="center_horizontal"
             android:maxLines="1"
-            android:shadowColor="@color/black"
+            android:shadowColor="@android:color/black"
             android:shadowRadius="20"
             android:textAppearance="?android:attr/textAppearanceLarge"
-            android:textColor="#E5FFFFFF" />
+            android:textColor="@color/fullscreen_line_color" />
 
         <TextView
             android:id="@+id/line2"
@@ -58,9 +58,9 @@ limitations under the License.
             android:gravity="center_horizontal"
             android:maxLines="1"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:shadowColor="@color/black"
+            android:shadowColor="@android:color/black"
             android:shadowRadius="20"
-            android:textColor="#E5CCCCCC" />
+            android:textColor="@color/fullscreen_secondary_line_color" />
 
         <TextView
             android:id="@+id/line3"
@@ -72,9 +72,9 @@ limitations under the License.
             android:gravity="center_horizontal"
             android:maxLines="1"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:shadowColor="@color/black"
+            android:shadowColor="@android:color/black"
             android:shadowRadius="20"
-            android:textColor="#E5CCCCCC" />
+            android:textColor="@color/fullscreen_secondary_line_color" />
 
         <LinearLayout
             android:id="@+id/controllers"
@@ -96,7 +96,7 @@ limitations under the License.
                     android:layout_alignParentStart="true"
                     android:gravity="center_vertical"
                     android:maxLines="1"
-                    android:textColor="@color/white" />
+                    android:textColor="@android:color/white" />
 
                 <SeekBar
                     android:id="@+id/seekBar1"
@@ -118,7 +118,7 @@ limitations under the License.
                     android:gravity="center_vertical"
                     android:layout_alignWithParentIfMissing="true"
                     android:maxLines="1"
-                    android:textColor="@color/white" />
+                    android:textColor="@android:color/white" />
 
             </RelativeLayout>
 

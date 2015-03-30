@@ -19,6 +19,7 @@ import android.app.ActivityOptions;
 import android.app.FragmentManager;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.widget.DrawerLayout;
@@ -37,14 +38,13 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 
 import com.example.android.uamp.R;
-import com.example.android.uamp.UAMPApplication;
 import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.PrefUtils;
 import com.example.android.uamp.utils.ResourceHelper;
 import com.github.amlcurran.showcaseview.ShowcaseView;
 import com.github.amlcurran.showcaseview.targets.ViewTarget;
-import com.google.sample.castcompanionlibrary.cast.VideoCastManager;
-import com.google.sample.castcompanionlibrary.cast.callbacks.VideoCastConsumerImpl;
+import com.google.android.libraries.cast.companionlibrary.cast.VideoCastManager;
+import com.google.android.libraries.cast.companionlibrary.cast.callbacks.VideoCastConsumerImpl;
 
 /**
  * Abstract activity with toolbar, navigation drawer and cast support. Needs to be extended by
@@ -160,7 +160,7 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
         // Ensure that Google Play Service is available.
         VideoCastManager.checkGooglePlayServices(this);
 
-        mCastManager = ((UAMPApplication) getApplication()).getCastManager(this);
+        mCastManager = VideoCastManager.getInstance();
         mCastManager.reconnectSessionIfPossible();
     }
 
@@ -294,7 +294,7 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
     private void populateDrawerItems() {
         mDrawerMenuContents = new DrawerMenuContents(this);
         final int selectedPosition = mDrawerMenuContents.getPosition(this.getClass());
-        final int unselectedColor = getResources().getColor(R.color.white);
+        final int unselectedColor = Color.WHITE;
         final int selectedColor = getResources().getColor(R.color.drawer_item_selected_background);
         SimpleAdapter adapter = new SimpleAdapter(this, mDrawerMenuContents.getItems(),
                 R.layout.drawer_list_item,
