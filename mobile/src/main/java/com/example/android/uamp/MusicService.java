@@ -33,7 +33,6 @@ import android.os.Message;
 import android.os.SystemClock;
 import android.service.media.MediaBrowserService;
 import android.support.v7.media.MediaRouter;
-import android.text.TextUtils;
 
 import com.example.android.uamp.model.MusicProvider;
 import com.example.android.uamp.ui.NowPlayingActivity;
@@ -506,30 +505,33 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
         }
 
         @Override
-        public void onPlayFromSearch(String query, Bundle extras) {
-            LogHelper.d(TAG, "playFromSearch  query=", query);
+        public void onPlayFromSearch(final String query, final Bundle extras) {
+            LogHelper.d(TAG, "playFromSearch  query=", query, " extras=", extras);
 
-            if (TextUtils.isEmpty(query)) {
-                // A generic search like "Play music" sends an empty query
-                // and it's expected that we start playing something. What will be played depends
-                // on the app: favorite playlist, "I'm feeling lucky", most recent, etc.
-                mPlayingQueue = QueueHelper.getRandomQueue(mMusicProvider);
-            } else {
-                mPlayingQueue = QueueHelper.getPlayingQueueFromSearch(query, mMusicProvider);
-            }
+            mPlayback.setState(PlaybackState.STATE_CONNECTING);
 
-            LogHelper.d(TAG, "playFromSearch  playqueue.length=" + mPlayingQueue.size());
-            mSession.setQueue(mPlayingQueue);
+            // Voice searches may occur before the media catalog has been
+            // prepared. We only handle the search after the musicProvider is ready.
+            mMusicProvider.retrieveMediaAsync(new MusicProvider.Callback() {
+                @Override
+                public void onMusicCatalogReady(boolean success) {
+                    mPlayingQueue = QueueHelper.getPlayingQueueFromSearch(query, extras,
+                        mMusicProvider);
 
-            if (mPlayingQueue != null && !mPlayingQueue.isEmpty()) {
-                // immediately start playing from the beginning of the search results
-                mCurrentIndexOnQueue = 0;
+                    LogHelper.d(TAG, "playFromSearch  playqueue.length=" + mPlayingQueue.size());
+                    mSession.setQueue(mPlayingQueue);
 
-                handlePlayRequest();
-            } else {
-                // if nothing was found, we need to warn the user and stop playing
-                handleStopRequest(getString(R.string.no_search_results));
-            }
+                    if (mPlayingQueue != null && !mPlayingQueue.isEmpty()) {
+                        // immediately start playing from the beginning of the search results
+                        mCurrentIndexOnQueue = 0;
+
+                        handlePlayRequest();
+                    } else {
+                        // if nothing was found, we need to warn the user and stop playing
+                        handleStopRequest(getString(R.string.no_search_results));
+                    }
+                }
+            });
         }
     }
 
@@ -636,7 +638,6 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
 
                         .build();
 
-                    MediaDescription md;
                     mMusicProvider.updateMusic(trackId, track);
 
                     // If we are still playing the same music
