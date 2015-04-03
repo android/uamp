@@ -18,13 +18,15 @@ package com.example.android.uamp.utils;
 
 import android.media.MediaMetadata;
 import android.media.session.MediaSession;
+import android.os.Bundle;
 
+import com.example.android.uamp.VoiceSearchParams;
 import com.example.android.uamp.model.MusicProvider;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static com.example.android.uamp.utils.MediaIDHelper.MEDIA_ID_MUSICS_BY_GENRE;
 import static com.example.android.uamp.utils.MediaIDHelper.MEDIA_ID_MUSICS_BY_SEARCH;
@@ -56,7 +58,7 @@ public class QueueHelper {
         if (categoryType.equals(MEDIA_ID_MUSICS_BY_GENRE)) {
             tracks = musicProvider.getMusicsByGenre(categoryValue);
         } else if (categoryType.equals(MEDIA_ID_MUSICS_BY_SEARCH)) {
-            tracks = musicProvider.searchMusic(categoryValue);
+            tracks = musicProvider.searchMusicBySongTitle(categoryValue);
         }
 
         if (tracks == null) {
@@ -68,11 +70,44 @@ public class QueueHelper {
     }
 
     public static List<MediaSession.QueueItem> getPlayingQueueFromSearch(String query,
-            MusicProvider musicProvider) {
+            Bundle queryParams, MusicProvider musicProvider) {
 
-        LogHelper.d(TAG, "Creating playing queue for musics from search ", query);
+        LogHelper.d(TAG, "Creating playing queue for musics from search: ", query,
+            " params=", queryParams);
 
-        return convertToQueue(musicProvider.searchMusic(query), MEDIA_ID_MUSICS_BY_SEARCH, query);
+        VoiceSearchParams params = new VoiceSearchParams(query, queryParams);
+
+        LogHelper.d(TAG, "VoiceSearchParams: ", params);
+
+        if (params.isAny) {
+            // If isAny is true, we will play anything. This is app-dependent, and can be,
+            // for example, favorite playlists, "I'm feeling lucky", most recent, etc.
+            return getRandomQueue(musicProvider);
+        }
+
+        Iterable<MediaMetadata> result = null;
+        if (params.isAlbumFocus) {
+            result = musicProvider.searchMusicByAlbum(params.album);
+        } else if (params.isGenreFocus) {
+            result = musicProvider.getMusicsByGenre(params.genre);
+        } else if (params.isArtistFocus) {
+            result = musicProvider.searchMusicByArtist(params.artist);
+        } else if (params.isSongFocus) {
+            result = musicProvider.searchMusicBySongTitle(params.song);
+        }
+
+        // If there was no results using media focus parameter, we do an unstructured query.
+        // This is useful when the user is searching for something that looks like an artist
+        // to Google, for example, but is not. For example, a user searching for Madonna on
+        // a PodCast application wouldn't get results if we only looked at the
+        // Artist (podcast author). Then, we can instead do an unstructured search.
+        if (params.isUnstructured || result == null || !result.iterator().hasNext()) {
+            // To keep it simple for this example, we do unstructured searches on the
+            // song title only. A real world application could search on other fields as well.
+            result = musicProvider.searchMusicBySongTitle(query);
+        }
+
+        return convertToQueue(result, MEDIA_ID_MUSICS_BY_SEARCH, query);
     }
 
 
@@ -126,21 +161,27 @@ public class QueueHelper {
     }
 
     /**
-     * Create a random queue. For simplicity sake, instead of a random queue, we create a
-     * queue using the first genre.
+     * Create a random queue.
      *
      * @param musicProvider the provider used for fetching music.
      * @return list containing {@link MediaSession.QueueItem}'s
      */
     public static List<MediaSession.QueueItem> getRandomQueue(MusicProvider musicProvider) {
-        Iterator<String> genres = musicProvider.getGenres().iterator();
-        if (!genres.hasNext()) {
-            return Collections.emptyList();
-        }
-        String genre = genres.next();
-        Iterable<MediaMetadata> tracks = musicProvider.getMusicsByGenre(genre);
+        List<MediaMetadata> result = new ArrayList<>();
 
-        return convertToQueue(tracks, MEDIA_ID_MUSICS_BY_GENRE, genre);
+        for (String genre: musicProvider.getGenres()) {
+            Iterable<MediaMetadata> tracks = musicProvider.getMusicsByGenre(genre);
+            for (MediaMetadata track: tracks) {
+                if (ThreadLocalRandom.current().nextBoolean()) {
+                    result.add(track);
+                }
+            }
+        }
+        LogHelper.d(TAG, "getRandomQueue: result.size=", result.size());
+
+        Collections.shuffle(result);
+
+        return convertToQueue(result, MEDIA_ID_MUSICS_BY_SEARCH, "random");
     }
 
     public static boolean isIndexPlayable(int index, List<MediaSession.QueueItem> queue) {

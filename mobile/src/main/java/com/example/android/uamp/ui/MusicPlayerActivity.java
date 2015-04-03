@@ -16,6 +16,7 @@
 package com.example.android.uamp.ui;
 
 import android.app.FragmentTransaction;
+import android.app.SearchManager;
 import android.content.Intent;
 import android.media.browse.MediaBrowser;
 import android.os.Bundle;
@@ -37,16 +38,18 @@ public class MusicPlayerActivity extends BaseActivity
     private static final String TAG = LogHelper.makeLogTag(MusicPlayerActivity.class);
     private static final String SAVED_MEDIA_ID="com.example.android.uamp.MEDIA_ID";
 
-    public static final String EXTRA_PLAY_QUERY="com.example.android.uamp.PLAY_QUERY";
     public static final String EXTRA_START_FULLSCREEN =
             "com.example.android.uamp.EXTRA_START_FULLSCREEN";
 
-    // Optionally used with @{link EXTRA_START_FULLSCREEN} to carry a session token,
-    // speeding up the mediacontroller connection.
+    /**
+     * Optionally used with {@link #EXTRA_START_FULLSCREEN} to carry a MediaDescription to
+     * the {@link FullScreenPlayerActivity}, speeding up the screen rendering
+     * while the {@link android.media.session.MediaController} is connecting.
+     */
     public static final String EXTRA_CURRENT_MEDIA_DESCRIPTION =
         "com.example.android.uamp.CURRENT_MEDIA_DESCRIPTION";
 
-    private String mSearchQuery;
+    private Bundle mVoiceSearchParams;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -56,7 +59,7 @@ public class MusicPlayerActivity extends BaseActivity
         setContentView(R.layout.activity_player);
 
         initializeToolbar();
-        initializeFromParams(savedInstanceState);
+        initializeFromParams(savedInstanceState, getIntent());
 
         // Only check if a full screen player is needed on the first time:
         if (savedInstanceState == null) {
@@ -97,6 +100,8 @@ public class MusicPlayerActivity extends BaseActivity
 
     @Override
     protected void onNewIntent(Intent intent) {
+        LogHelper.d(TAG, "onNewIntent, intent=" + intent);
+        initializeFromParams(null, intent);
         startFullScreenActivityIfNeeded(intent);
     }
 
@@ -111,15 +116,16 @@ public class MusicPlayerActivity extends BaseActivity
         }
     }
 
-    protected void initializeFromParams(Bundle savedInstanceState) {
+    protected void initializeFromParams(Bundle savedInstanceState, Intent intent) {
         String mediaId = null;
-        // check if we were started from a "Play XYZ" voice search
-        Intent intent = this.getIntent();
+        // check if we were started from a "Play XYZ" voice search. If so, we save the extras
+        // (which contain the query details) in a parameter, so we can reuse it later, when the
+        // MediaSession is connected.
         if (intent.getAction() != null
-            && intent.getAction().equals(MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH)
-            && intent.hasExtra(EXTRA_PLAY_QUERY)) {
-            LogHelper.d(TAG, "Starting from play query=", mSearchQuery);
-            mSearchQuery = intent.getStringExtra(EXTRA_PLAY_QUERY);
+            && intent.getAction().equals(MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH)) {
+            mVoiceSearchParams = intent.getExtras();
+            LogHelper.d(TAG, "Starting from voice search query=",
+                mVoiceSearchParams.getString(SearchManager.QUERY));
         } else {
             if (savedInstanceState != null) {
                 // If there is a saved media ID, use it
@@ -164,12 +170,13 @@ public class MusicPlayerActivity extends BaseActivity
 
     @Override
     protected void onMediaControllerConnected() {
-        if (mSearchQuery != null) {
+        if (mVoiceSearchParams != null) {
             // If there is a bootstrap parameter to start from a search query, we
             // send it to the media session and set it to null, so it won't play again
             // when the activity is stopped/started or recreated:
-            getMediaController().getTransportControls().playFromSearch(mSearchQuery, null);
-            mSearchQuery = null;
+            String query = mVoiceSearchParams.getString(SearchManager.QUERY);
+            getMediaController().getTransportControls().playFromSearch(query, mVoiceSearchParams);
+            mVoiceSearchParams = null;
         }
         getBrowseFragment().onConnected();
     }
