@@ -1,0 +1,26 @@
+# GOOGLE SAMPLE PACKAGING DATA
+#
+# This file is used by Google as part of our samples packaging process.
+# End users may safely ignore this file. It has no relevance to other systems.
+---
+status:       PUBLISHED
+technologies: [Android, Android Auto, ChromeCast, Google Cast, Android Wear]
+categories:   [Getting Started, Media, UI]
+languages:    [Java]
+solutions:    [Mobile]
+
+github:       googlesamples/android-UniversalMusicPlayer
+
+level:        INTERMEDIATE
+
+icon: screenshots/icon-web.png
+
+api_refs:
+    - android:android.media.session.MediaSession
+    - android:android.media.session.MediaSession.Callback
+    - android:android.media.session.MediaController
+    - android:android.service.media.MediaBrowserService
+    - android:android.media.browse.MediaBrowser
+    - android:android.app.Notification.MediaStyle
+
+license: apache2-android
