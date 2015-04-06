@@ -15,7 +15,7 @@ level:        INTERMEDIATE
 
 icon: screenshots/icon-web.png
 
-api_refs:
+apiRefs:
     - android:android.media.session.MediaSession
     - android:android.media.session.MediaSession.Callback
     - android:android.media.session.MediaController
