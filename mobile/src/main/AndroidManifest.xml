@@ -23,6 +23,8 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
+    <!-- Set android.software.leanback to false, so the APK will be available to both
+    TV and regular devices. -->
     <uses-feature
         android:name="android.software.leanback"
         android:required="false" />
@@ -35,7 +37,8 @@
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/UAmpAppTheme" >
+        android:theme="@style/UAmpAppTheme"
+        android:banner="@drawable/banner_tv">
 
         <meta-data
             android:name="com.google.android.gms.car.application"
@@ -67,12 +70,33 @@
         </activity>
 
         <!-- Proxy activity that opens either the NowPlaying TV or the mobile UI, depending on
-        the current environment
-        TODO:  TV is not yet supported, this is just a placeholder! -->
+        the current environment -->
         <activity
             android:name=".ui.NowPlayingActivity"
             android:icon="@drawable/ic_launcher">
         </activity>
+
+        <!-- Main activity for Android TV user interface -->
+        <activity
+            android:name=".ui.tv.TvBrowseActivity"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.UAmp.TVLeanback" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".ui.tv.TvVerticalGridActivity"
+            android:theme="@style/Theme.UAmp.TVLeanback"
+            android:parentActivityName=".ui.tv.TvBrowseActivity" />
+
+        <!-- Android TV UI when playing a song -->
+        <activity
+            android:name=".ui.tv.TvPlaybackActivity"
+            android:theme="@style/Theme.UAmp.TVLeanback"
+            android:parentActivityName=".ui.tv.TvBrowseActivity" />
 
         <!--
              (OPTIONAL) use this meta data to indicate which icon should be
