@@ -40,6 +40,7 @@ import com.example.android.uamp.utils.CarHelper;
 import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.MediaIDHelper;
 import com.example.android.uamp.utils.QueueHelper;
+import com.example.android.uamp.utils.WearHelper;
 import com.google.android.gms.cast.ApplicationMetadata;
 import com.google.android.libraries.cast.companionlibrary.cast.VideoCastManager;
 import com.google.android.libraries.cast.companionlibrary.cast.callbacks.VideoCastConsumerImpl;
@@ -211,6 +212,8 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
 
         mSessionExtras = new Bundle();
         CarHelper.setSlotReservationFlags(mSessionExtras, true, true, true);
+        WearHelper.setSlotReservationFlags(mSessionExtras, true, true);
+        WearHelper.setUseBackgroundFromTheme(mSessionExtras, true);
         mSession.setExtras(mSessionExtras);
 
         updatePlaybackState(null);
@@ -284,6 +287,12 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
             // Optional: if your app needs to adapt ads, music library or anything else that
             // needs to run differently when connected to the car, this is where you should handle
             // it.
+        }
+        //noinspection StatementWithEmptyBody
+        if (WearHelper.isValidWearCompanionPackage(clientPackageName)) {
+            // Optional: if your app needs to adapt the music library for when browsing from a
+            // Wear device, you should return a different MEDIA ROOT here, and then,
+            // on onLoadChildren, handle it accordingly.
         }
         return new BrowserRoot(MEDIA_ID_ROOT, null);
     }
@@ -702,8 +711,12 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
             }
             LogHelper.d(TAG, "updatePlaybackState, setting Favorite custom action of music ",
                     musicId, " current favorite=", mMusicProvider.isFavorite(musicId));
-            stateBuilder.addCustomAction(CUSTOM_ACTION_THUMBS_UP, getString(R.string.favorite),
-                    favoriteIcon);
+            Bundle customActionExtras = new Bundle();
+            WearHelper.setShowCustomActionOnWear(customActionExtras, true);
+            stateBuilder.addCustomAction(new PlaybackState.CustomAction.Builder(
+                    CUSTOM_ACTION_THUMBS_UP, getString(R.string.favorite), favoriteIcon)
+                    .setExtras(customActionExtras)
+                    .build());
         }
     }
 

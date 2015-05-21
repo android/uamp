@@ -92,6 +92,16 @@
             android:name="com.google.android.gms.car.application.theme"
             android:resource="@style/CarTheme" />
 
+        <!--
+             (OPTIONAL) use this meta data to override the theme from which Android Wear will
+             look for colors. Currently, only background color of the media cards can be set, via
+             colorPrimaryDark. If you don't set this custom theme, Android Wear will look
+             for colorPrimaryDark attribute in your application theme.
+        -->
+        <meta-data
+            android:name="com.google.android.wearable.media.theme"
+            android:resource="@style/WearTheme" />
+
         <!-- Main music service, provides media browsing and media playback services to
          consumers through MediaBrowserService and MediaSession. Consumers connect to it through
          MediaBrowser (for browsing) and MediaController (for play session control) -->

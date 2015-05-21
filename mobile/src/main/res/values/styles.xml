@@ -45,4 +45,13 @@
         <item name="colorAccent">@color/bt_accent</item>
     </style>
 
+    <style name="WearTheme" parent="UAmpAppTheme">
+        <!-- colorPrimaryDark is currently used on Android Wear for:
+             - Card background on media browse
+             - Card background on 4-way media controls
+         -->
+        <item name="colorPrimaryDark">#ffbf360c</item>
+    </style>
+
+
 </resources>

@@ -91,6 +91,62 @@ limitations under the License.
         yfhWkMizOeIXcayVAQdNn5zpBkuay1skGOjQQ5kTbDcDzigO2R2rqn6HCd9l5Z0W
         IQ==
     </signing_certificate>
+    <signing_certificate name="Android Wear" release="false"
+        package="com.google.android.wearable.app">
+        MIIDvzCCAqegAwIBAgIJANqYw9kVc9PvMA0GCSqGSIb3DQEBBQUAMHYxCzAJBgNV
+        BAYTAlVTMRMwEQYDVQQIDApDYWxpZm9ybmlhMRYwFAYDVQQHDA1Nb3VudGFpbiBW
+        aWV3MRQwEgYDVQQKDAtHb29nbGUgSW5jLjEQMA4GA1UECwwHQW5kcm9pZDESMBAG
+        A1UEAwwJQ2xvY2tXb3JrMB4XDTE0MDMwNzIyMDExOFoXDTQxMDcyMzIyMDExOFow
+        djELMAkGA1UEBhMCVVMxEzARBgNVBAgMCkNhbGlmb3JuaWExFjAUBgNVBAcMDU1v
+        dW50YWluIFZpZXcxFDASBgNVBAoMC0dvb2dsZSBJbmMuMRAwDgYDVQQLDAdBbmRy
+        b2lkMRIwEAYDVQQDDAlDbG9ja1dvcmswggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAw
+        ggEKAoIBAQDcHW9LKO04MBSynIL22v/THd57jB5jCEBlC1ixZaNqrrYscVOVLgRF
+        Ca+CH5S6n08YZMOntdZTzAAVnQAQ4eVm+jeq/xg2Xa57SoXdsfODzEdwoj6VYpH+
+        tXLBaTFar0706qWuhh/N1ufl6tQxE3RGRgx8KPsyLJKVXFx6qJV3w3A/l+CYt362
+        oG6sa3LqoK0hCrAqH9z8dmJ0dEGpPzzqihb0jJciweMyQTJ+wsn3MDEujRvv7ikL
+        RRo0iSys71sUctbZfvlUKMyK1e8EuMTx9Q3SQtVdclhmhVBbXksbHlmtjB2FL6CC
+        SBVnO8bmQynsxOrU24RkqWsxg5+f28kHAgMBAAGjUDBOMB0GA1UdDgQWBBSEhUcQ
+        hKQ8s+r4P6shYqCVAM4sejAfBgNVHSMEGDAWgBSEhUcQhKQ8s+r4P6shYqCVAM4s
+        ejAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBBQUAA4IBAQAHOWILon0qD1SIQ60b
+        YI4cKdkBKIHq/D/WKF9fYmqXPvBX5pfusqxcouYFyj0z9ZCZa4sAMsRH5lAPJb0X
+        yvmVAzmDQMjubNy1O+3ksfJI59AgmZ6B58rqpTLP2pn+SqXtQEBORPdb79J/yts1
+        uLIblHhGXhci8nr7KwtuFY5ExKsMT2V7Gdd9j1PJz7nuLU9FtlTgEryN6YHkwuLD
+        055RkwPYrk0swchijXhXrnU/HXsCo6cFeMYF4wUcbB2pSRrOE7uI0H2BfdSUJlGX
+        hK6WlaRHNQ2J60BekPKr82auL8pY0va/Hb9LHEie4KABVN/PAiUS9aHHIp5zHePw
+        R9b4
+    </signing_certificate>
+    <signing_certificate name="Android Wear" release="true"
+        package="com.google.android.wearable.app">
+        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
+    </signing_certificate>
     <signing_certificate name="Media Browser Service Simulator" release="true"
                          package="com.google.android.mediasimulator">
         MIIDvTCCAqWgAwIBAgIJAMePnkuTQTAGMA0GCSqGSIb3DQEBBQUAMHUxCzAJBgNV
