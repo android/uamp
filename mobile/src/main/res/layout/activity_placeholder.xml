@@ -31,27 +31,14 @@
         <include android:id="@+id/toolbar"
                  layout="@layout/include_toolbar"/>
 
-        <LinearLayout
+        <TextView
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:layout_alignParentTop="true"
-            android:layout_above="@+id/controls_container"
-            android:layout_below="@+id/toolbar"
-            android:gravity="center">
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:src="@drawable/ic_info_outline_grey600_48dp"
-                tools:ignore="ContentDescription" />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="@string/placeholder_message"
-                android:layout_marginTop="12dp"/>
-        </LinearLayout>
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_centerInParent="true"
+            android:gravity="center"
+            android:text="@string/placeholder_message"
+            android:drawableTop="@drawable/ic_info_outline_grey600_48dp"/>
 
         <android.support.v7.widget.CardView
             android:id="@+id/controls_container"
@@ -64,7 +51,8 @@
                       android:id="@+id/fragment_playback_controls"
                       android:layout_width="match_parent"
                       android:layout_height="wrap_content"
-                      android:layout_alignParentBottom="true"/>
+                      android:layout_alignParentBottom="true"
+                tools:layout="@layout/fragment_playback_controls" />
 
         </android.support.v7.widget.CardView>
 

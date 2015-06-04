@@ -37,6 +37,7 @@ public class MusicPlayerActivity extends BaseActivity
 
     private static final String TAG = LogHelper.makeLogTag(MusicPlayerActivity.class);
     private static final String SAVED_MEDIA_ID="com.example.android.uamp.MEDIA_ID";
+    private static final String FRAGMENT_TAG = "uamp_list_container";
 
     public static final String EXTRA_START_FULLSCREEN =
             "com.example.android.uamp.EXTRA_START_FULLSCREEN";
@@ -146,7 +147,7 @@ public class MusicPlayerActivity extends BaseActivity
             transaction.setCustomAnimations(
                 R.animator.slide_in_from_right, R.animator.slide_out_to_left,
                 R.animator.slide_in_from_left, R.animator.slide_out_to_right);
-            transaction.replace(R.id.container, fragment);
+            transaction.replace(R.id.container, fragment, FRAGMENT_TAG);
             // If this is not the top level media (root), we add it to the fragment back stack,
             // so that actionbar toggle and Back will work appropriately:
             if (mediaId != null) {
@@ -165,7 +166,7 @@ public class MusicPlayerActivity extends BaseActivity
     }
 
     private MediaBrowserFragment getBrowseFragment() {
-        return (MediaBrowserFragment) getFragmentManager().findFragmentById(R.id.container);
+        return (MediaBrowserFragment) getFragmentManager().findFragmentByTag(FRAGMENT_TAG);
     }
 
     @Override

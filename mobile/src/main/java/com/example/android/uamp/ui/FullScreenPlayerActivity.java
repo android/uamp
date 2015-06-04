@@ -128,8 +128,8 @@ public class FullScreenPlayerActivity extends ActionBarCastActivity {
         getSupportActionBar().setTitle("");
 
         mBackgroundImage = (ImageView) findViewById(R.id.background_image);
-        mPauseDrawable = getDrawable(R.drawable.ic_pause_white_48dp);
-        mPlayDrawable = getDrawable(R.drawable.ic_play_arrow_white_48dp);
+        mPauseDrawable = getDrawable(R.drawable.uamp_ic_pause_white_48dp);
+        mPlayDrawable = getDrawable(R.drawable.uamp_ic_play_arrow_white_48dp);
         mPlayPause = (ImageView) findViewById(R.id.imageView1);
         mSkipNext = (ImageView) findViewById(R.id.next);
         mSkipPrev = (ImageView) findViewById(R.id.prev);
