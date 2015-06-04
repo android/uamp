@@ -23,8 +23,8 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.MediaRouteButton;
 import android.support.v7.media.MediaRouter;
 import android.support.v7.widget.Toolbar;
@@ -56,7 +56,7 @@ import com.google.android.libraries.cast.companionlibrary.cast.callbacks.VideoCa
  * a {@link android.support.v4.widget.DrawerLayout} with id 'drawerLayout' and
  * a {@link android.widget.ListView} with id 'drawerList'.
  */
-public abstract class ActionBarCastActivity extends ActionBarActivity {
+public abstract class ActionBarCastActivity extends AppCompatActivity {
 
     private static final String TAG = LogHelper.makeLogTag(ActionBarCastActivity.class);
 
@@ -140,7 +140,8 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
         @Override
         public void onDrawerOpened(View drawerView) {
             if (mDrawerToggle != null) mDrawerToggle.onDrawerOpened(drawerView);
-            getSupportActionBar().setTitle(R.string.app_name);
+            if (getSupportActionBar() != null) getSupportActionBar()
+                    .setTitle(R.string.app_name);
         }
     };
 
@@ -332,9 +333,11 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
         }
         boolean isRoot = getFragmentManager().getBackStackEntryCount() == 0;
         mDrawerToggle.setDrawerIndicatorEnabled(isRoot);
-        getSupportActionBar().setDisplayShowHomeEnabled(!isRoot);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(!isRoot);
-        getSupportActionBar().setHomeButtonEnabled(!isRoot);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayShowHomeEnabled(!isRoot);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(!isRoot);
+            getSupportActionBar().setHomeButtonEnabled(!isRoot);
+        }
         if (isRoot) {
             mDrawerToggle.syncState();
         }
