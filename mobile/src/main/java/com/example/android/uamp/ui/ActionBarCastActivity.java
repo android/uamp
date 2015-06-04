@@ -124,6 +124,7 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
 
                 Class activityClass = mDrawerMenuContents.getActivity(position);
                 startActivity(new Intent(ActionBarCastActivity.this, activityClass), extras);
+                finish();
             }
         }
 
