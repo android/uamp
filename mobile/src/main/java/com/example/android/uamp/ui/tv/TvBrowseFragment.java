@@ -22,6 +22,7 @@ import android.media.browse.MediaBrowser;
 import android.media.browse.MediaBrowser.MediaItem;
 import android.media.session.MediaController;
 import android.media.session.MediaSession;
+import android.media.session.MediaSession.QueueItem;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v17.leanback.app.BrowseFragment;
@@ -39,38 +40,39 @@ import com.example.android.uamp.R;
 import com.example.android.uamp.utils.LogHelper;
 
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 
 /**
  * Browse media categories and current playing queue.
- *
+ * <p/>
  * WARNING: This sample's UI is implemented for a specific MediaBrowser tree structure.
  * It expects a tree that is three levels deep under root:
- *  - level 0: root
- *  - level 1: categories of categories (like "by genre", "by artist", "playlists")
- *  - level 2: song categories (like "by genre -> Rock", "by  artist -> artistname" or
- *             "playlists -> my favorite music")
- *  - level 3: the actual music
- *
+ * - level 0: root
+ * - level 1: categories of categories (like "by genre", "by artist", "playlists")
+ * - level 2: song categories (like "by genre -> Rock", "by  artist -> artistname" or
+ * "playlists -> my favorite music")
+ * - level 3: the actual music
+ * <p/>
  * If you are reusing this TV code, make sure you adapt it to your MediaBrowser structure, in case
  * it is not the same.
- *
- *
+ * <p/>
+ * <p/>
  * It uses a {@link MediaBrowser} to connect to the {@link com.example.android.uamp.MusicService}.
  * Once connected, the fragment subscribes to get the children of level 1 and then, for each
  * children, it adds a ListRow and subscribes for its children, which, when received, are
  * added to the ListRow. These items (like "Rock"), when clicked, will open a
  * TvVerticalGridActivity that lists all songs of the specified category on a grid-like UI.
- *
+ * <p/>
  * This fragment also shows the MediaSession queue ("now playing" list), in case there is
  * something playing.
- *
  */
 public class TvBrowseFragment extends BrowseFragment {
 
     private static final String TAG = LogHelper.makeLogTag(TvBrowseFragment.class);
 
     private ArrayObjectAdapter mRowsAdapter;
+    private ArrayObjectAdapter mListRowAdapter;
     private MediaFragmentListener mMediaFragmentListener;
 
     private MediaBrowser mMediaBrowser;
@@ -81,59 +83,105 @@ public class TvBrowseFragment extends BrowseFragment {
     private final MediaController.Callback mMediaControllerCallback = new MediaController.Callback() {
         @Override
         public void onMetadataChanged(MediaMetadata metadata) {
-            super.onMetadataChanged(metadata);
             if (metadata != null) {
+                MediaController mediaController = getActivity().getMediaController();
+                long activeQueueId;
+                if (mediaController.getPlaybackState() == null) {
+                    activeQueueId = QueueItem.UNKNOWN_ID;
+                } else {
+                    activeQueueId = mediaController.getPlaybackState().getActiveQueueItemId();
+                }
+                updateNowPlayingList(mediaController.getQueue(), activeQueueId);
                 mRowsAdapter.notifyArrayItemRangeChanged(0, mRowsAdapter.size());
             }
         }
+
+        @Override
+        public void onQueueChanged(List<QueueItem> queue) {
+            // queue has changed somehow
+            MediaController mediaController = getActivity().getMediaController();
+
+            long activeQueueId;
+            if (mediaController.getPlaybackState() == null) {
+                activeQueueId = QueueItem.UNKNOWN_ID;
+            } else {
+                activeQueueId = mediaController.getPlaybackState().getActiveQueueItemId();
+            }
+            updateNowPlayingList(queue, activeQueueId);
+            mRowsAdapter.notifyArrayItemRangeChanged(0, mRowsAdapter.size());
+        }
     };
+
+    private void updateNowPlayingList(List<QueueItem> queue, long activeQueueId) {
+        mListRowAdapter.clear();
+        if (activeQueueId != QueueItem.UNKNOWN_ID) {
+            Iterator<QueueItem> iterator = queue.iterator();
+            while (iterator.hasNext()) {
+                QueueItem queueItem = iterator.next();
+                if (activeQueueId != queueItem.getQueueId()) {
+                    iterator.remove();
+                } else {
+                    break;
+                }
+            }
+        }
+        mListRowAdapter.addAll(0, queue);
+    }
 
     private final MediaBrowser.SubscriptionCallback mSubscriptionCallback =
             new MediaBrowser.SubscriptionCallback() {
 
-        @Override
-        public void onChildrenLoaded(@NonNull String parentId,
-                                     @NonNull List<MediaBrowser.MediaItem> children) {
+                @Override
+                public void onChildrenLoaded(@NonNull String parentId,
+                                             @NonNull List<MediaBrowser.MediaItem> children) {
 
-            mRowsAdapter.clear();
-            CardPresenter cardPresenter = new CardPresenter();
+                    mRowsAdapter.clear();
+                    CardPresenter cardPresenter = new CardPresenter();
 
-            for (int i = 0; i < children.size(); i++) {
-                MediaItem item = children.get(i);
-                String title = (String) item.getDescription().getTitle();
-                HeaderItem header = new HeaderItem(i, title);
-                ArrayObjectAdapter listRowAdapter = new ArrayObjectAdapter(cardPresenter);
-                mRowsAdapter.add(new ListRow(header, listRowAdapter));
+                    for (int i = 0; i < children.size(); i++) {
+                        MediaItem item = children.get(i);
+                        String title = (String) item.getDescription().getTitle();
+                        HeaderItem header = new HeaderItem(i, title);
+                        ArrayObjectAdapter listRowAdapter = new ArrayObjectAdapter(cardPresenter);
+                        mRowsAdapter.add(new ListRow(header, listRowAdapter));
 
-                if (item.isPlayable()) {
-                    listRowAdapter.add(item);
-                } else if (item.isBrowsable()) {
-                    subscribeToMediaId(item.getMediaId(),
-                            new RowSubscriptionCallback(listRowAdapter));
-                } else {
-                    LogHelper.e(TAG, "Item should be playable or browsable.");
+                        if (item.isPlayable()) {
+                            listRowAdapter.add(item);
+                        } else if (item.isBrowsable()) {
+                            subscribeToMediaId(item.getMediaId(),
+                                    new RowSubscriptionCallback(listRowAdapter));
+                        } else {
+                            LogHelper.e(TAG, "Item should be playable or browsable.");
+                        }
+                    }
+
+                    MediaController mediaController = getActivity().getMediaController();
+
+                    if (mediaController.getQueue() != null
+                            && !mediaController.getQueue().isEmpty()) {
+                        // add Now Playing queue to Browse Home
+                        HeaderItem header = new HeaderItem(
+                                children.size(), getString(R.string.now_playing));
+                        mListRowAdapter = new ArrayObjectAdapter(cardPresenter);
+                        mRowsAdapter.add(new ListRow(header, mListRowAdapter));
+                        long activeQueueId;
+                        if (mediaController.getPlaybackState() == null) {
+                            activeQueueId = QueueItem.UNKNOWN_ID;
+                        } else {
+                            activeQueueId = mediaController.getPlaybackState()
+                                    .getActiveQueueItemId();
+                        }
+                        updateNowPlayingList(mediaController.getQueue(), activeQueueId);
+                    }
+
+                    mRowsAdapter.notifyArrayItemRangeChanged(0, children.size());
                 }
-            }
 
-            MediaController mediaController = new MediaController(
-                    getActivity().getApplicationContext(), mMediaBrowser.getSessionToken());
-            if (mediaController.getQueue() != null && !mediaController.getQueue().isEmpty()) {
-                // add Now Playing queue to Browse Home
-                HeaderItem header = new HeaderItem(
-                        children.size(), getString(R.string.now_playing));
-                ArrayObjectAdapter listRowAdapter = new ArrayObjectAdapter(cardPresenter);
-                mRowsAdapter.add(new ListRow(header, listRowAdapter));
-                listRowAdapter.addAll(0, mediaController.getQueue());
-            }
-
-            mRowsAdapter.notifyArrayItemRangeChanged(0, children.size());
-        }
-
-        @Override
-        public void onError(@NonNull String id) {
-            LogHelper.e(TAG, "SubscriptionCallback subscription onError, id=" + id);
-        }
-    };
+                @Override
+                public void onError(@NonNull String id) {
+                    LogHelper.e(TAG, "SubscriptionCallback subscription onError, id=" + id);
+                }
+            };
 
     /**
      * This callback fills content for a single Row in the BrowseFragment.
@@ -158,7 +206,7 @@ public class TvBrowseFragment extends BrowseFragment {
 
         @Override
         public void onError(@NonNull String id) {
-            LogHelper.e(TAG, "RowSubscriptionCallback subscription onError, id=",  id);
+            LogHelper.e(TAG, "RowSubscriptionCallback subscription onError, id=", id);
         }
     }
 
@@ -231,11 +279,11 @@ public class TvBrowseFragment extends BrowseFragment {
         }
     }
 
-        @Override
+    @Override
     public void onStop() {
         super.onStop();
         if (mMediaBrowser != null && mMediaBrowser.isConnected()) {
-            for (String mediaId: mSubscribedMediaIds) {
+            for (String mediaId : mSubscribedMediaIds) {
                 mMediaBrowser.unsubscribe(mediaId);
             }
             mSubscribedMediaIds.clear();
