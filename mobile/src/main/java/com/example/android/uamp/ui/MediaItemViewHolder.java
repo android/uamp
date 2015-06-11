@@ -86,7 +86,7 @@ public class MediaItemViewHolder {
                     holder.mImageView.setImageDrawable(animation);
                     holder.mImageView.setImageTintList(sColorStatePlaying);
                     holder.mImageView.setVisibility(View.VISIBLE);
-                    animation.start();
+                    if (animation != null) animation.start();
                     break;
                 case STATE_PAUSED:
                     holder.mImageView.setImageDrawable(

@@ -28,6 +28,7 @@ import android.media.session.PlaybackState;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
+import android.support.annotation.NonNull;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -73,7 +74,7 @@ public class FullScreenPlayerActivity extends ActionBarCastActivity {
     private ImageView mBackgroundImage;
 
     private String mCurrentArtUrl;
-    private Handler mHandler = new Handler();
+    private final Handler mHandler = new Handler();
     private MediaBrowser mMediaBrowser;
 
     private final Runnable mUpdateProgressTask = new Runnable() {
@@ -89,9 +90,9 @@ public class FullScreenPlayerActivity extends ActionBarCastActivity {
     private ScheduledFuture<?> mScheduleFuture;
     private PlaybackState mLastPlaybackState;
 
-    private MediaController.Callback mCallback = new MediaController.Callback() {
+    private final MediaController.Callback mCallback = new MediaController.Callback() {
         @Override
-        public void onPlaybackStateChanged(PlaybackState state) {
+        public void onPlaybackStateChanged(@NonNull PlaybackState state) {
             LogHelper.d(TAG, "onPlaybackstate changed", state);
             updatePlaybackState(state);
         }
@@ -105,17 +106,12 @@ public class FullScreenPlayerActivity extends ActionBarCastActivity {
         }
     };
 
-    private MediaBrowser.ConnectionCallback mConnectionCallback =
+    private final MediaBrowser.ConnectionCallback mConnectionCallback =
             new MediaBrowser.ConnectionCallback() {
         @Override
         public void onConnected() {
             LogHelper.d(TAG, "onConnected");
-
-            MediaSession.Token token = mMediaBrowser.getSessionToken();
-            if (token == null) {
-                throw new IllegalArgumentException("No Session token");
-            }
-            connectToSession(token);
+            connectToSession(mMediaBrowser.getSessionToken());
         }
     };
 
@@ -124,8 +120,10 @@ public class FullScreenPlayerActivity extends ActionBarCastActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_full_player);
         initializeToolbar();
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle("");
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setTitle("");
+        }
 
         mBackgroundImage = (ImageView) findViewById(R.id.background_image);
         mPauseDrawable = getDrawable(R.drawable.uamp_ic_pause_white_48dp);
@@ -164,21 +162,23 @@ public class FullScreenPlayerActivity extends ActionBarCastActivity {
             @Override
             public void onClick(View v) {
                 PlaybackState state = getMediaController().getPlaybackState();
-                MediaController.TransportControls controls =
-                        getMediaController().getTransportControls();
-                switch (state.getState()) {
-                    case PlaybackState.STATE_PLAYING: // fall through
-                    case PlaybackState.STATE_BUFFERING:
-                        controls.pause();
-                        stopSeekbarUpdate();
-                        break;
-                    case PlaybackState.STATE_PAUSED:
-                    case PlaybackState.STATE_STOPPED:
-                        controls.play();
-                        scheduleSeekbarUpdate();
-                        break;
-                    default:
-                        LogHelper.d(TAG, "onClick with state ", state.getState());
+                if (state != null) {
+                    MediaController.TransportControls controls =
+                            getMediaController().getTransportControls();
+                    switch (state.getState()) {
+                        case PlaybackState.STATE_PLAYING: // fall through
+                        case PlaybackState.STATE_BUFFERING:
+                            controls.pause();
+                            stopSeekbarUpdate();
+                            break;
+                        case PlaybackState.STATE_PAUSED:
+                        case PlaybackState.STATE_STOPPED:
+                            controls.play();
+                            scheduleSeekbarUpdate();
+                            break;
+                        default:
+                            LogHelper.d(TAG, "onClick with state ", state.getState());
+                    }
                 }
             }
         });
@@ -288,7 +288,10 @@ public class FullScreenPlayerActivity extends ActionBarCastActivity {
         mExecutorService.shutdown();
     }
 
-    private void fetchImageAsync(MediaDescription description) {
+    private void fetchImageAsync(@NonNull MediaDescription description) {
+        if (description.getIconUri() == null) {
+            return;
+        }
         String artUrl = description.getIconUri().toString();
         mCurrentArtUrl = artUrl;
         AlbumArtCache cache = AlbumArtCache.getInstance();
@@ -339,14 +342,13 @@ public class FullScreenPlayerActivity extends ActionBarCastActivity {
             return;
         }
         mLastPlaybackState = state;
-        String castName = getMediaController()
-                .getExtras().getString(MusicService.EXTRA_CONNECTED_CAST);
-        String line3Text = "";
-        if (castName != null) {
-            line3Text = getResources()
-                    .getString(R.string.casting_to_device, castName);
+        if (getMediaController() != null && getMediaController().getExtras() != null) {
+            String castName = getMediaController()
+                    .getExtras().getString(MusicService.EXTRA_CONNECTED_CAST);
+            String line3Text = castName == null ? "" : getResources()
+                        .getString(R.string.casting_to_device, castName);
+            mLine3.setText(line3Text);
         }
-        mLine3.setText(line3Text);
 
         switch (state.getState()) {
             case PlaybackState.STATE_PLAYING:

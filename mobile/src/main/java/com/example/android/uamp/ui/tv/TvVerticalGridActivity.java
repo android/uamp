@@ -76,7 +76,7 @@ public class TvVerticalGridActivity extends Activity
         return mMediaBrowser;
     }
 
-    private MediaBrowser.ConnectionCallback mConnectionCallback =
+    private final MediaBrowser.ConnectionCallback mConnectionCallback =
             new MediaBrowser.ConnectionCallback() {
                 @Override
                 public void onConnected() {
