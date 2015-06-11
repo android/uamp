@@ -71,7 +71,7 @@ public class TvPlaybackActivity extends Activity {
 
     }
 
-    private MediaBrowser.ConnectionCallback mConnectionCallback =
+    private final MediaBrowser.ConnectionCallback mConnectionCallback =
             new MediaBrowser.ConnectionCallback() {
                 @Override
                 public void onConnected() {
@@ -105,7 +105,7 @@ public class TvPlaybackActivity extends Activity {
      * Receive callbacks from the MediaController. Here we update our state such as which queue
      * is being shown, the current title and description and the PlaybackState.
      */
-    private MediaController.Callback mMediaControllerCallback = new MediaController.Callback() {
+    private final MediaController.Callback mMediaControllerCallback = new MediaController.Callback() {
         @Override
         public void onPlaybackStateChanged(@NonNull PlaybackState state) {
             LogHelper.d(TAG, "onPlaybackStateChanged, state=", state);

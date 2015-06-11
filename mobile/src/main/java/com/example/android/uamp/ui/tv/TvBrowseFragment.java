@@ -71,7 +71,6 @@ public class TvBrowseFragment extends BrowseFragment {
     private static final String TAG = LogHelper.makeLogTag(TvBrowseFragment.class);
 
     private ArrayObjectAdapter mRowsAdapter;
-    private String mMediaId;
     private MediaFragmentListener mMediaFragmentListener;
 
     private MediaBrowser mMediaBrowser;
@@ -79,7 +78,7 @@ public class TvBrowseFragment extends BrowseFragment {
 
     // Receive callbacks from the MediaController. Here we update our state such as which queue
     // is being shown, the current title and description and the PlaybackState.
-    private MediaController.Callback mMediaControllerCallback = new MediaController.Callback() {
+    private final MediaController.Callback mMediaControllerCallback = new MediaController.Callback() {
         @Override
         public void onMetadataChanged(MediaMetadata metadata) {
             super.onMetadataChanged(metadata);
@@ -89,7 +88,7 @@ public class TvBrowseFragment extends BrowseFragment {
         }
     };
 
-    private MediaBrowser.SubscriptionCallback mSubscriptionCallback =
+    private final MediaBrowser.SubscriptionCallback mSubscriptionCallback =
             new MediaBrowser.SubscriptionCallback() {
 
         @Override
@@ -252,21 +251,16 @@ public class TvBrowseFragment extends BrowseFragment {
         mMediaFragmentListener = null;
     }
 
-    public String getMediaId() {
-        return mMediaId;
-    }
-
     public void initializeWithMediaId(String mediaId) {
         LogHelper.d(TAG, "subscribeToData");
-        mMediaId = mediaId;
         // fetch browsing information to fill the listview:
         mMediaBrowser = mMediaFragmentListener.getMediaBrowser();
 
-        if (mMediaId == null) {
-            mMediaId = mMediaBrowser.getRoot();
+        if (mediaId == null) {
+            mediaId = mMediaBrowser.getRoot();
         }
 
-        subscribeToMediaId(mMediaId, mSubscriptionCallback);
+        subscribeToMediaId(mediaId, mSubscriptionCallback);
 
         // Add MediaController callback so we can redraw the list when metadata changes:
         if (getActivity().getMediaController() != null) {

@@ -74,7 +74,7 @@ public abstract class ActionBarCastActivity extends AppCompatActivity {
 
     private int mItemToOpenWhenDrawerCloses = -1;
 
-    private VideoCastConsumerImpl mCastConsumer = new VideoCastConsumerImpl() {
+    private final VideoCastConsumerImpl mCastConsumer = new VideoCastConsumerImpl() {
 
         @Override
         public void onFailed(int resourceId, int statusCode) {
@@ -113,7 +113,7 @@ public abstract class ActionBarCastActivity extends AppCompatActivity {
         }
     };
 
-    private DrawerLayout.DrawerListener mDrawerListener = new DrawerLayout.DrawerListener() {
+    private final DrawerLayout.DrawerListener mDrawerListener = new DrawerLayout.DrawerListener() {
         @Override
         public void onDrawerClosed(View drawerView) {
             if (mDrawerToggle != null) mDrawerToggle.onDrawerClosed(drawerView);
@@ -146,7 +146,7 @@ public abstract class ActionBarCastActivity extends AppCompatActivity {
         }
     };
 
-    private FragmentManager.OnBackStackChangedListener mBackStackChangedListener =
+    private final FragmentManager.OnBackStackChangedListener mBackStackChangedListener =
         new FragmentManager.OnBackStackChangedListener() {
             @Override
             public void onBackStackChanged() {

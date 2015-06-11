@@ -127,7 +127,7 @@ public class CardPresenter extends Presenter {
     }
 
     private static class CardViewHolder extends Presenter.ViewHolder {
-        private ImageCardView mCardView;
+        private final ImageCardView mCardView;
 
         public CardViewHolder(View view) {
             super(view);

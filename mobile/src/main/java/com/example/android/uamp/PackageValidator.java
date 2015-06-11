@@ -65,7 +65,7 @@ public class PackageValidator {
                     boolean isRelease = parser.getAttributeBooleanValue(null, "release", false);
                     String certificate = parser.nextText().replaceAll("\\s|\\n", "");
 
-                    CallerInfo info = new CallerInfo(name, packageName, isRelease, certificate);
+                    CallerInfo info = new CallerInfo(name, packageName, isRelease);
 
                     ArrayList<CallerInfo> infos = validCertificates.get(certificate);
                     if (infos == null) {
@@ -146,14 +146,11 @@ public class PackageValidator {
         final String name;
         final String packageName;
         final boolean release;
-        final String signingCertificate;
 
-        public CallerInfo(String name, String packageName, boolean release,
-                          String signingCertificate) {
+        public CallerInfo(String name, String packageName, boolean release) {
             this.name = name;
             this.packageName = packageName;
             this.release = release;
-            this.signingCertificate = signingCertificate;
         }
     }
 }

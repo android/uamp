@@ -27,6 +27,7 @@ import android.media.session.MediaController;
 import android.media.session.PlaybackState;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -63,7 +64,7 @@ public class MediaBrowserFragment extends Fragment {
     private MediaFragmentListener mMediaFragmentListener;
     private View mErrorView;
     private TextView mErrorMessage;
-    private BroadcastReceiver mConnectivityChangeReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver mConnectivityChangeReceiver = new BroadcastReceiver() {
         private boolean oldOnline = false;
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -84,7 +85,7 @@ public class MediaBrowserFragment extends Fragment {
 
     // Receive callbacks from the MediaController. Here we update our state such as which queue
     // is being shown, the current title and description and the PlaybackState.
-    private MediaController.Callback mMediaControllerCallback = new MediaController.Callback() {
+    private final MediaController.Callback mMediaControllerCallback = new MediaController.Callback() {
         @Override
         public void onMetadataChanged(MediaMetadata metadata) {
             super.onMetadataChanged(metadata);
@@ -97,7 +98,7 @@ public class MediaBrowserFragment extends Fragment {
         }
 
         @Override
-        public void onPlaybackStateChanged(PlaybackState state) {
+        public void onPlaybackStateChanged(@NonNull PlaybackState state) {
             super.onPlaybackStateChanged(state);
             LogHelper.d(TAG, "Received state change: ", state);
             checkForUserVisibleErrors(false);
@@ -105,10 +106,11 @@ public class MediaBrowserFragment extends Fragment {
         }
     };
 
-    private MediaBrowser.SubscriptionCallback mSubscriptionCallback =
+    private final MediaBrowser.SubscriptionCallback mSubscriptionCallback =
         new MediaBrowser.SubscriptionCallback() {
             @Override
-            public void onChildrenLoaded(String parentId, List<MediaBrowser.MediaItem> children) {
+            public void onChildrenLoaded(@NonNull String parentId,
+                                         @NonNull List<MediaBrowser.MediaItem> children) {
                 try {
                     LogHelper.d(TAG, "fragment onChildrenLoaded, parentId=" + parentId +
                         "  count=" + children.size());
@@ -124,7 +126,7 @@ public class MediaBrowserFragment extends Fragment {
             }
 
             @Override
-            public void onError(String id) {
+            public void onError(@NonNull String id) {
                 LogHelper.e(TAG, "browse fragment subscription onError, id=" + id);
                 Toast.makeText(getActivity(), R.string.error_loading_media, Toast.LENGTH_LONG).show();
                 checkForUserVisibleErrors(true);
@@ -259,6 +261,7 @@ public class MediaBrowserFragment extends Fragment {
             MediaController controller = getActivity().getMediaController();
             if (controller != null
                 && controller.getMetadata() != null
+                && controller.getPlaybackState() != null
                 && controller.getPlaybackState().getState() == PlaybackState.STATE_ERROR
                 && controller.getPlaybackState().getErrorMessage() != null) {
                 mErrorMessage.setText(controller.getPlaybackState().getErrorMessage());
@@ -300,8 +303,8 @@ public class MediaBrowserFragment extends Fragment {
                 mediaBrowser.unsubscribe(parentId);
                 mediaBrowser.subscribe(parentId, new MediaBrowser.SubscriptionCallback() {
                     @Override
-                    public void onChildrenLoaded(String parentId,
-                             List<MediaBrowser.MediaItem> children) {
+                    public void onChildrenLoaded(@NonNull String parentId,
+                             @NonNull List<MediaBrowser.MediaItem> children) {
                         LogHelper.d(TAG, "Got ", children.size(), " children for ", parentId,
                             ". Looking for ", mMediaId);
                         for (MediaBrowser.MediaItem item: children) {
@@ -318,7 +321,7 @@ public class MediaBrowserFragment extends Fragment {
                     }
 
                     @Override
-                    public void onError(String id) {
+                    public void onError(@NonNull String id) {
                         super.onError(id);
                         LogHelper.d(TAG, "subscribe error: id=", id);
                     }
@@ -337,31 +340,32 @@ public class MediaBrowserFragment extends Fragment {
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             MediaBrowser.MediaItem item = getItem(position);
-            int state = MediaItemViewHolder.STATE_NONE;
+            int itemState = MediaItemViewHolder.STATE_NONE;
             if (item.isPlayable()) {
-                state = MediaItemViewHolder.STATE_PLAYABLE;
+                itemState = MediaItemViewHolder.STATE_PLAYABLE;
                 MediaController controller = ((Activity) getContext()).getMediaController();
                 if (controller != null && controller.getMetadata() != null) {
                     String currentPlaying = controller.getMetadata().getDescription().getMediaId();
                     String musicId = MediaIDHelper.extractMusicIDFromMediaID(
                             item.getDescription().getMediaId());
                     if (currentPlaying != null && currentPlaying.equals(musicId)) {
-                        if (controller.getPlaybackState().getState() ==
-                                PlaybackState.STATE_PLAYING) {
-                            state = MediaItemViewHolder.STATE_PLAYING;
-                        } else if (controller.getPlaybackState().getState() !=
-                                PlaybackState.STATE_ERROR) {
-                            state = MediaItemViewHolder.STATE_PAUSED;
+                        PlaybackState pbState = controller.getPlaybackState();
+                        if (pbState == null || pbState.getState() == PlaybackState.STATE_ERROR) {
+                            itemState = MediaItemViewHolder.STATE_NONE;
+                        } else if (pbState.getState() == PlaybackState.STATE_PLAYING) {
+                            itemState = MediaItemViewHolder.STATE_PLAYING;
+                        } else {
+                            itemState = MediaItemViewHolder.STATE_PAUSED;
                         }
                     }
                 }
             }
             return MediaItemViewHolder.setupView((Activity) getContext(), convertView, parent,
-                item.getDescription(), state);
+                item.getDescription(), itemState);
         }
     }
 
-    public static interface MediaFragmentListener extends MediaBrowserProvider {
+    public interface MediaFragmentListener extends MediaBrowserProvider {
         void onMediaItemSelected(MediaBrowser.MediaItem item);
         void setToolbarTitle(CharSequence title);
     }

@@ -22,6 +22,7 @@ import android.media.MediaMetadata;
 import android.media.session.MediaController;
 import android.media.session.PlaybackState;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -51,12 +52,9 @@ public class PlaybackControlsFragment extends Fragment {
     private String mArtUrl;
     // Receive callbacks from the MediaController. Here we update our state such as which queue
     // is being shown, the current title and description and the PlaybackState.
-    private MediaController.Callback mCallback = new MediaController.Callback() {
+    private final MediaController.Callback mCallback = new MediaController.Callback() {
         @Override
-        public void onPlaybackStateChanged(PlaybackState state) {
-            if (state == null) {
-                return;
-            }
+        public void onPlaybackStateChanged(@NonNull PlaybackState state) {
             LogHelper.d(TAG, "Received playback state change to state ", state.getState());
             PlaybackControlsFragment.this.onPlaybackStateChanged(state);
         }
@@ -143,7 +141,10 @@ public class PlaybackControlsFragment extends Fragment {
 
         mTitle.setText(metadata.getDescription().getTitle());
         mSubtitle.setText(metadata.getDescription().getSubtitle());
-        String artUrl = metadata.getDescription().getIconUri().toString();
+        String artUrl = null;
+        if (metadata.getDescription().getIconUri() != null) {
+            artUrl = metadata.getDescription().getIconUri().toString();
+        }
         if (!TextUtils.equals(artUrl, mArtUrl)) {
             mArtUrl = artUrl;
             Bitmap art = metadata.getDescription().getIconBitmap();
@@ -220,7 +221,7 @@ public class PlaybackControlsFragment extends Fragment {
         setExtraInfo(extraInfo);
     }
 
-    private View.OnClickListener mButtonListener = new View.OnClickListener() {
+    private final View.OnClickListener mButtonListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             PlaybackState stateObj = getActivity().getMediaController().getPlaybackState();

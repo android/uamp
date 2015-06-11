@@ -25,10 +25,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
@@ -320,12 +318,10 @@ public class MusicProvider {
      * @return result JSONObject containing the parsed representation.
      */
     private JSONObject fetchJSONFromUrl(String urlString) {
-        InputStream is = null;
+        BufferedReader reader = null;
         try {
-            URL url = new URL(urlString);
-            URLConnection urlConnection = url.openConnection();
-            is = new BufferedInputStream(urlConnection.getInputStream());
-            BufferedReader reader = new BufferedReader(new InputStreamReader(
+            URLConnection urlConnection = new URL(urlString).openConnection();
+            reader = new BufferedReader(new InputStreamReader(
                     urlConnection.getInputStream(), "iso-8859-1"));
             StringBuilder sb = new StringBuilder();
             String line;
@@ -337,9 +333,9 @@ public class MusicProvider {
             LogHelper.e(TAG, "Failed to parse the json for media list", e);
             return null;
         } finally {
-            if (is != null) {
+            if (reader != null) {
                 try {
-                    is.close();
+                    reader.close();
                 } catch (IOException e) {
                     // ignore
                 }

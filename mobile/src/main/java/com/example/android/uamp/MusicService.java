@@ -32,7 +32,9 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
 import android.service.media.MediaBrowserService;
+import android.support.annotation.NonNull;
 import android.support.v7.media.MediaRouter;
+import android.text.TextUtils;
 
 import com.example.android.uamp.model.MusicProvider;
 import com.example.android.uamp.ui.NowPlayingActivity;
@@ -143,7 +145,7 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
     // Indicates whether the service was started.
     private boolean mServiceStarted;
     private Bundle mSessionExtras;
-    private DelayedStopHandler mDelayedStopHandler = new DelayedStopHandler(this);
+    private final DelayedStopHandler mDelayedStopHandler = new DelayedStopHandler(this);
     private Playback mPlayback;
     private MediaRouter mMediaRouter;
     private PackageValidator mPackageValidator;
@@ -270,7 +272,8 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
     }
 
     @Override
-    public BrowserRoot onGetRoot(String clientPackageName, int clientUid, Bundle rootHints) {
+    public BrowserRoot onGetRoot(@NonNull String clientPackageName, int clientUid,
+                                 Bundle rootHints) {
         LogHelper.d(TAG, "OnGetRoot: clientPackageName=" + clientPackageName,
                 "; clientUid=" + clientUid + " ; rootHints=", rootHints);
         // To ensure you are not allowing any arbitrary app to browse your app's contents, you
@@ -298,7 +301,8 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
     }
 
     @Override
-    public void onLoadChildren(final String parentMediaId, final Result<List<MediaItem>> result) {
+    public void onLoadChildren(@NonNull final String parentMediaId,
+                               @NonNull final Result<List<MediaItem>> result) {
         if (!mMusicProvider.isInitialized()) {
             // Use result.detach to allow calling result.sendResult from another thread:
             result.detach();
@@ -497,7 +501,7 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
         }
 
         @Override
-        public void onCustomAction(String action, Bundle extras) {
+        public void onCustomAction(@NonNull String action, Bundle extras) {
             if (CUSTOM_ACTION_THUMBS_UP.equals(action)) {
                 LogHelper.i(TAG, "onCustomAction: favorite for current track");
                 MediaMetadata track = getCurrentPlayingMusic();
@@ -608,8 +612,11 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
         String musicId = MediaIDHelper.extractMusicIDFromMediaID(
                 queueItem.getDescription().getMediaId());
         MediaMetadata track = mMusicProvider.getMusic(musicId);
+        if (track == null) {
+            throw new IllegalArgumentException("Invalid musicId " + musicId);
+        }
         final String trackId = track.getString(MediaMetadata.METADATA_KEY_MEDIA_ID);
-        if (!musicId.equals(trackId)) {
+        if (!TextUtils.equals(musicId, trackId)) {
             IllegalStateException e = new IllegalStateException("track ID should match musicId.");
             LogHelper.e(TAG, "track ID should match musicId.",
                 " musicId=", musicId, " trackId=", trackId,
