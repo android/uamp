@@ -22,16 +22,15 @@ import android.text.TextUtils;
 import com.example.android.uamp.model.MusicProvider;
 import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.MediaIDHelper;
-import com.google.android.gms.cast.CastStatusCodes;
 import com.google.android.gms.cast.MediaInfo;
 import com.google.android.gms.cast.MediaMetadata;
 import com.google.android.gms.cast.MediaStatus;
 import com.google.android.gms.common.images.WebImage;
-import com.google.sample.castcompanionlibrary.cast.VideoCastManager;
-import com.google.sample.castcompanionlibrary.cast.callbacks.VideoCastConsumerImpl;
-import com.google.sample.castcompanionlibrary.cast.exceptions.CastException;
-import com.google.sample.castcompanionlibrary.cast.exceptions.NoConnectionException;
-import com.google.sample.castcompanionlibrary.cast.exceptions.TransientNetworkDisconnectionException;
+import com.google.android.libraries.cast.companionlibrary.cast.VideoCastManager;
+import com.google.android.libraries.cast.companionlibrary.cast.callbacks.VideoCastConsumerImpl;
+import com.google.android.libraries.cast.companionlibrary.cast.exceptions.CastException;
+import com.google.android.libraries.cast.companionlibrary.cast.exceptions.NoConnectionException;
+import com.google.android.libraries.cast.companionlibrary.cast.exceptions.TransientNetworkDisconnectionException;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -49,7 +48,6 @@ public class CastPlayback implements Playback {
     private static final String ITEM_ID = "itemId";
 
     private final MusicProvider mMusicProvider;
-    private final MusicService mService;
     private final VideoCastConsumerImpl mCastConsumer = new VideoCastConsumerImpl() {
 
         @Override
@@ -73,16 +71,13 @@ public class CastPlayback implements Playback {
     private volatile int mCurrentPosition;
     private volatile String mCurrentMediaId;
 
-    public CastPlayback(MusicService service, MusicProvider musicProvider) {
+    public CastPlayback(MusicProvider musicProvider) {
         this.mMusicProvider = musicProvider;
-        this.mService = service;
     }
 
     @Override
     public void start() {
-        mCastManager = ((UAMPApplication) mService.getApplication())
-                .getCastManager(mService.getApplicationContext());
-
+        mCastManager = VideoCastManager.getInstance();
         mCastManager.addVideoCastConsumer(mCastConsumer);
     }
 
@@ -126,7 +121,8 @@ public class CastPlayback implements Playback {
             if (mCallback != null) {
                 mCallback.onPlaybackStatusChanged(mState);
             }
-        } catch (TransientNetworkDisconnectionException | NoConnectionException | JSONException e) {
+        } catch (TransientNetworkDisconnectionException | NoConnectionException
+                | JSONException | IllegalArgumentException e) {
             LogHelper.e(TAG, "Exception loading media ", e, null);
             if (mCallback != null) {
                 mCallback.onError(e.getMessage());
@@ -144,7 +140,7 @@ public class CastPlayback implements Playback {
                 loadMedia(mCurrentMediaId, false);
             }
         } catch (JSONException | CastException | TransientNetworkDisconnectionException
-                | NoConnectionException e) {
+                | NoConnectionException | IllegalArgumentException e) {
             LogHelper.e(TAG, e, "Exception pausing cast playback");
             if (mCallback != null) {
                 mCallback.onError(e.getMessage());
@@ -169,7 +165,7 @@ public class CastPlayback implements Playback {
                 loadMedia(mCurrentMediaId, false);
             }
         } catch (TransientNetworkDisconnectionException | NoConnectionException |
-                JSONException e) {
+                JSONException | IllegalArgumentException e) {
             LogHelper.e(TAG, e, "Exception pausing cast playback");
             if (mCallback != null) {
                 mCallback.onError(e.getMessage());
@@ -200,7 +196,7 @@ public class CastPlayback implements Playback {
     @Override
     public boolean isPlaying() {
         try {
-            return mCastManager.isConnected() && mCastManager.isRemoteMoviePlaying();
+            return mCastManager.isConnected() && mCastManager.isRemoteMediaPlaying();
         } catch (TransientNetworkDisconnectionException | NoConnectionException e) {
             LogHelper.e(TAG, e, "Exception calling isRemoteMoviePlaying");
         }
@@ -213,9 +209,12 @@ public class CastPlayback implements Playback {
     }
 
     private void loadMedia(String mediaId, boolean autoPlay) throws
-        TransientNetworkDisconnectionException, NoConnectionException, JSONException {
+            TransientNetworkDisconnectionException, NoConnectionException, JSONException {
         String musicId = MediaIDHelper.extractMusicIDFromMediaID(mediaId);
         android.media.MediaMetadata track = mMusicProvider.getMusic(musicId);
+        if (track == null) {
+            throw new IllegalArgumentException("Invalid mediaId " + mediaId);
+        }
         if (!TextUtils.equals(mediaId, mCurrentMediaId)) {
             mCurrentMediaId = mediaId;
             mCurrentPosition = 0;
@@ -238,9 +237,11 @@ public class CastPlayback implements Playback {
                                                  JSONObject customData) {
         MediaMetadata mediaMetadata = new MediaMetadata(MediaMetadata.MEDIA_TYPE_MUSIC_TRACK);
         mediaMetadata.putString(MediaMetadata.KEY_TITLE,
-                track.getDescription().getTitle().toString());
+                track.getDescription().getTitle() == null ? "" :
+                        track.getDescription().getTitle().toString());
         mediaMetadata.putString(MediaMetadata.KEY_SUBTITLE,
-                track.getDescription().getSubtitle().toString());
+                track.getDescription().getSubtitle() == null ? "" :
+                    track.getDescription().getSubtitle().toString());
         mediaMetadata.putString(MediaMetadata.KEY_ALBUM_ARTIST,
                 track.getString(android.media.MediaMetadata.METADATA_KEY_ALBUM_ARTIST));
         mediaMetadata.putString(MediaMetadata.KEY_ALBUM_TITLE,

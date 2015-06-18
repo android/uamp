@@ -23,6 +23,8 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
+    <!-- Set android.software.leanback to false, so the APK will be available to both
+    TV and regular devices. -->
     <uses-feature
         android:name="android.software.leanback"
         android:required="false" />
@@ -35,7 +37,8 @@
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/UAmpAppTheme" >
+        android:theme="@style/UAmpAppTheme"
+        android:banner="@drawable/banner_tv">
 
         <meta-data
             android:name="com.google.android.gms.car.application"
@@ -52,6 +55,12 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!-- Use this intent filter to get voice searches, like "Play The Beatles" -->
+            <intent-filter>
+                <action android:name="android.media.action.MEDIA_PLAY_FROM_SEARCH" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
 
         <!-- Placeholder activity for phone UI -->
@@ -61,25 +70,33 @@
         </activity>
 
         <!-- Proxy activity that opens either the NowPlaying TV or the mobile UI, depending on
-        the current environment
-        TODO:  TV is not yet supported, this is just a placeholder! -->
+        the current environment -->
         <activity
             android:name=".ui.NowPlayingActivity"
             android:icon="@drawable/ic_launcher">
         </activity>
 
-        <!-- Proxy activity to respond to voice actions -->
+        <!-- Main activity for Android TV user interface -->
         <activity
-            android:name=".voiceaction.VoiceActionsActivity"
-            android:exported="true"
-            android:launchMode="singleTask" >
-
-            <!-- Use this intent filter to get voice searches, like "Play The Beatles" -->
+            android:name=".ui.tv.TvBrowseActivity"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.UAmp.TVLeanback" >
             <intent-filter>
-                <action android:name="android.media.action.MEDIA_PLAY_FROM_SEARCH" />
-                <category android:name="android.intent.category.DEFAULT" />
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".ui.tv.TvVerticalGridActivity"
+            android:theme="@style/Theme.UAmp.TVLeanback"
+            android:parentActivityName=".ui.tv.TvBrowseActivity" />
+
+        <!-- Android TV UI when playing a song -->
+        <activity
+            android:name=".ui.tv.TvPlaybackActivity"
+            android:theme="@style/Theme.UAmp.TVLeanback"
+            android:parentActivityName=".ui.tv.TvBrowseActivity" />
 
         <!--
              (OPTIONAL) use this meta data to indicate which icon should be
@@ -99,6 +116,16 @@
             android:name="com.google.android.gms.car.application.theme"
             android:resource="@style/CarTheme" />
 
+        <!--
+             (OPTIONAL) use this meta data to override the theme from which Android Wear will
+             look for colors. Currently, only background color of the media cards can be set, via
+             colorPrimaryDark. If you don't set this custom theme, Android Wear will look
+             for colorPrimaryDark attribute in your application theme.
+        -->
+        <meta-data
+            android:name="com.google.android.wearable.media.theme"
+            android:resource="@style/WearTheme" />
+
         <!-- Main music service, provides media browsing and media playback services to
          consumers through MediaBrowserService and MediaSession. Consumers connect to it through
          MediaBrowser (for browsing) and MediaController (for play session control) -->
@@ -113,8 +140,7 @@
 
         <!-- Service that keeps track of reconnecting to Cast when wifi is enabled. -->
         <service
-            android:name=
-                "com.google.sample.castcompanionlibrary.cast.reconnection.ReconnectionService"/>
+            android:name="com.google.android.libraries.cast.companionlibrary.cast.reconnection.ReconnectionService"/>
 
         <!-- A full screen activity showing controls and a seek bar for
              the current playing music -->

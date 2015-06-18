@@ -45,4 +45,25 @@
         <item name="colorAccent">@color/bt_accent</item>
     </style>
 
+    <style name="WearTheme" parent="UAmpAppTheme">
+        <!-- colorPrimaryDark is currently used on Android Wear for:
+             - Card background on media browse
+             - Card background on 4-way media controls
+         -->
+        <item name="colorPrimaryDark">#ffbf360c</item>
+    </style>
+
+
+    <style name="Theme.UAmp.TVLeanback" parent="Theme.Leanback">
+        <item name="android:windowEnterTransition">@android:transition/fade</item>
+        <item name="android:windowExitTransition">@android:transition/fade</item>
+        <item name="android:windowSharedElementExitTransition">@android:transition/move</item>
+        <item name="android:windowSharedElementEnterTransition">@android:transition/move</item>
+        <item name="android:windowAllowReturnTransitionOverlap">true</item>
+        <item name="android:windowAllowEnterTransitionOverlap">false</item>
+        <item name="android:windowContentTransitions">true</item>
+        <item name="android:colorPrimary">@color/tv_branding_dark</item>
+        <item name="android:colorPrimaryDark">@color/tv_branding_dark</item>
+        <item name="android:colorAccent">@color/tv_branding_accent</item>
+    </style>
 </resources>

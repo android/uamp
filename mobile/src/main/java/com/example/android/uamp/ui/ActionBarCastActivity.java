@@ -19,11 +19,12 @@ import android.app.ActivityOptions;
 import android.app.FragmentManager;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.MediaRouteButton;
 import android.support.v7.media.MediaRouter;
 import android.support.v7.widget.Toolbar;
@@ -37,14 +38,13 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 
 import com.example.android.uamp.R;
-import com.example.android.uamp.UAMPApplication;
 import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.PrefUtils;
 import com.example.android.uamp.utils.ResourceHelper;
 import com.github.amlcurran.showcaseview.ShowcaseView;
 import com.github.amlcurran.showcaseview.targets.ViewTarget;
-import com.google.sample.castcompanionlibrary.cast.VideoCastManager;
-import com.google.sample.castcompanionlibrary.cast.callbacks.VideoCastConsumerImpl;
+import com.google.android.libraries.cast.companionlibrary.cast.VideoCastManager;
+import com.google.android.libraries.cast.companionlibrary.cast.callbacks.VideoCastConsumerImpl;
 
 /**
  * Abstract activity with toolbar, navigation drawer and cast support. Needs to be extended by
@@ -56,7 +56,7 @@ import com.google.sample.castcompanionlibrary.cast.callbacks.VideoCastConsumerIm
  * a {@link android.support.v4.widget.DrawerLayout} with id 'drawerLayout' and
  * a {@link android.widget.ListView} with id 'drawerList'.
  */
-public abstract class ActionBarCastActivity extends ActionBarActivity {
+public abstract class ActionBarCastActivity extends AppCompatActivity {
 
     private static final String TAG = LogHelper.makeLogTag(ActionBarCastActivity.class);
 
@@ -74,7 +74,7 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
 
     private int mItemToOpenWhenDrawerCloses = -1;
 
-    private VideoCastConsumerImpl mCastConsumer = new VideoCastConsumerImpl() {
+    private final VideoCastConsumerImpl mCastConsumer = new VideoCastConsumerImpl() {
 
         @Override
         public void onFailed(int resourceId, int statusCode) {
@@ -113,7 +113,7 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
         }
     };
 
-    private DrawerLayout.DrawerListener mDrawerListener = new DrawerLayout.DrawerListener() {
+    private final DrawerLayout.DrawerListener mDrawerListener = new DrawerLayout.DrawerListener() {
         @Override
         public void onDrawerClosed(View drawerView) {
             if (mDrawerToggle != null) mDrawerToggle.onDrawerClosed(drawerView);
@@ -124,6 +124,7 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
 
                 Class activityClass = mDrawerMenuContents.getActivity(position);
                 startActivity(new Intent(ActionBarCastActivity.this, activityClass), extras);
+                finish();
             }
         }
 
@@ -140,11 +141,12 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
         @Override
         public void onDrawerOpened(View drawerView) {
             if (mDrawerToggle != null) mDrawerToggle.onDrawerOpened(drawerView);
-            getSupportActionBar().setTitle(R.string.app_name);
+            if (getSupportActionBar() != null) getSupportActionBar()
+                    .setTitle(R.string.app_name);
         }
     };
 
-    private FragmentManager.OnBackStackChangedListener mBackStackChangedListener =
+    private final FragmentManager.OnBackStackChangedListener mBackStackChangedListener =
         new FragmentManager.OnBackStackChangedListener() {
             @Override
             public void onBackStackChanged() {
@@ -160,7 +162,7 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
         // Ensure that Google Play Service is available.
         VideoCastManager.checkGooglePlayServices(this);
 
-        mCastManager = ((UAMPApplication) getApplication()).getCastManager(this);
+        mCastManager = VideoCastManager.getInstance();
         mCastManager.reconnectSessionIfPossible();
     }
 
@@ -294,7 +296,7 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
     private void populateDrawerItems() {
         mDrawerMenuContents = new DrawerMenuContents(this);
         final int selectedPosition = mDrawerMenuContents.getPosition(this.getClass());
-        final int unselectedColor = getResources().getColor(R.color.white);
+        final int unselectedColor = Color.WHITE;
         final int selectedColor = getResources().getColor(R.color.drawer_item_selected_background);
         SimpleAdapter adapter = new SimpleAdapter(this, mDrawerMenuContents.getItems(),
                 R.layout.drawer_list_item,
@@ -332,9 +334,11 @@ public abstract class ActionBarCastActivity extends ActionBarActivity {
         }
         boolean isRoot = getFragmentManager().getBackStackEntryCount() == 0;
         mDrawerToggle.setDrawerIndicatorEnabled(isRoot);
-        getSupportActionBar().setDisplayShowHomeEnabled(!isRoot);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(!isRoot);
-        getSupportActionBar().setHomeButtonEnabled(!isRoot);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayShowHomeEnabled(!isRoot);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(!isRoot);
+            getSupportActionBar().setHomeButtonEnabled(!isRoot);
+        }
         if (isRoot) {
             mDrawerToggle.syncState();
         }

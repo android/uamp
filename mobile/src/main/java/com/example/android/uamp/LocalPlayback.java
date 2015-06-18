@@ -65,20 +65,20 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
     private int mState;
     private boolean mPlayOnFocusGain;
     private Callback mCallback;
-    private MusicProvider mMusicProvider;
+    private final MusicProvider mMusicProvider;
     private volatile boolean mAudioNoisyReceiverRegistered;
     private volatile int mCurrentPosition;
     private volatile String mCurrentMediaId;
 
     // Type of audio focus we have:
     private int mAudioFocus = AUDIO_NO_FOCUS_NO_DUCK;
-    private AudioManager mAudioManager;
+    private final AudioManager mAudioManager;
     private MediaPlayer mMediaPlayer;
 
-    private IntentFilter mAudioNoisyIntentFilter =
+    private final IntentFilter mAudioNoisyIntentFilter =
             new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
 
-    private BroadcastReceiver mAudioNoisyReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver mAudioNoisyReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(intent.getAction())) {

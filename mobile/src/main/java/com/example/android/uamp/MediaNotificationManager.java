@@ -31,6 +31,7 @@ import android.media.MediaMetadata;
 import android.media.session.MediaController;
 import android.media.session.MediaSession;
 import android.media.session.PlaybackState;
+import android.support.annotation.NonNull;
 
 import com.example.android.uamp.ui.MusicPlayerActivity;
 import com.example.android.uamp.utils.LogHelper;
@@ -51,7 +52,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
     public static final String ACTION_PLAY = "com.example.android.uamp.play";
     public static final String ACTION_PREV = "com.example.android.uamp.prev";
     public static final String ACTION_NEXT = "com.example.android.uamp.next";
-    public static final String ACTION_STOP_CASTING = "com.exmaple.android.uamp.stop_cast";
+    public static final String ACTION_STOP_CASTING = "com.example.android.uamp.stop_cast";
 
     private final MusicService mService;
     private MediaSession.Token mSessionToken;
@@ -61,16 +62,16 @@ public class MediaNotificationManager extends BroadcastReceiver {
     private PlaybackState mPlaybackState;
     private MediaMetadata mMetadata;
 
-    private NotificationManager mNotificationManager;
+    private final NotificationManager mNotificationManager;
 
-    private PendingIntent mPauseIntent;
-    private PendingIntent mPlayIntent;
-    private PendingIntent mPreviousIntent;
-    private PendingIntent mNextIntent;
+    private final PendingIntent mPauseIntent;
+    private final PendingIntent mPlayIntent;
+    private final PendingIntent mPreviousIntent;
+    private final PendingIntent mNextIntent;
 
-    private PendingIntent mStopCastIntent;
+    private final PendingIntent mStopCastIntent;
 
-    private int mNotificationColor;
+    private final int mNotificationColor;
 
     private boolean mStarted = false;
 
@@ -209,11 +210,11 @@ public class MediaNotificationManager extends BroadcastReceiver {
 
     private final MediaController.Callback mCb = new MediaController.Callback() {
         @Override
-        public void onPlaybackStateChanged(PlaybackState state) {
+        public void onPlaybackStateChanged(@NonNull PlaybackState state) {
             mPlaybackState = state;
             LogHelper.d(TAG, "Received new playback state", state);
-            if (state != null && (state.getState() == PlaybackState.STATE_STOPPED ||
-                    state.getState() == PlaybackState.STATE_NONE)) {
+            if (state.getState() == PlaybackState.STATE_STOPPED ||
+                    state.getState() == PlaybackState.STATE_NONE) {
                 stopNotification();
             } else {
                 Notification notification = createNotification();
@@ -328,11 +329,11 @@ public class MediaNotificationManager extends BroadcastReceiver {
         PendingIntent intent;
         if (mPlaybackState.getState() == PlaybackState.STATE_PLAYING) {
             label = mService.getString(R.string.label_pause);
-            icon = R.drawable.ic_pause_white_24dp;
+            icon = R.drawable.uamp_ic_pause_white_24dp;
             intent = mPauseIntent;
         } else {
             label = mService.getString(R.string.label_play);
-            icon = R.drawable.ic_play_arrow_white_24dp;
+            icon = R.drawable.uamp_ic_play_arrow_white_24dp;
             intent = mPlayIntent;
         }
         builder.addAction(new Notification.Action(icon, label, intent));
@@ -370,8 +371,8 @@ public class MediaNotificationManager extends BroadcastReceiver {
         AlbumArtCache.getInstance().fetch(bitmapUrl, new AlbumArtCache.FetchListener() {
             @Override
             public void onFetched(String artUrl, Bitmap bitmap, Bitmap icon) {
-                if (mMetadata != null && mMetadata.getDescription() != null &&
-                    artUrl.equals(mMetadata.getDescription().getIconUri().toString())) {
+                if (mMetadata != null && mMetadata.getDescription().getIconUri() != null &&
+                            mMetadata.getDescription().getIconUri().toString().equals(artUrl)) {
                     // If the media is still the same, update the notification:
                     LogHelper.d(TAG, "fetchBitmapFromURLAsync: set bitmap to ", artUrl);
                     builder.setLargeIcon(bitmap);
