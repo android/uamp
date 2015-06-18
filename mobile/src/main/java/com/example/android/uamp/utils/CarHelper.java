@@ -15,9 +15,14 @@
  */
 package com.example.android.uamp.utils;
 
+import android.app.UiModeManager;
+import android.content.Context;
+import android.content.res.Configuration;
 import android.os.Bundle;
 
 public class CarHelper {
+    private static final String TAG = LogHelper.makeLogTag(CarHelper.class);
+
     private static final String AUTO_APP_PACKAGE_NAME = "com.google.android.projection.gearhead";
 
     // Use these extras to reserve space for the corresponding actions, even when they are disabled
@@ -50,6 +55,23 @@ public class CarHelper {
             extras.putBoolean(SLOT_RESERVATION_SKIP_TO_NEXT, true);
         } else {
             extras.remove(SLOT_RESERVATION_SKIP_TO_NEXT);
+        }
+    }
+
+    /**
+     * Returns true when running Android Auto or a car dock.
+     *
+     * @param c Context to detect UI Mode.
+     * @return true when device is running in car mode, false otherwise.
+     */
+    public static boolean isCarUiMode(Context c) {
+        UiModeManager uiModeManager = (UiModeManager) c.getSystemService(Context.UI_MODE_SERVICE);
+        if (uiModeManager.getCurrentModeType() == Configuration.UI_MODE_TYPE_CAR) {
+            LogHelper.d(TAG, "Running in Car mode");
+            return true;
+        } else {
+            LogHelper.d(TAG, "Running on a non-Car mode");
+            return false;
         }
     }
 }
