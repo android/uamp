@@ -136,7 +136,7 @@ limitations under the License.
                     android:contentDescription="@string/skip_prev"/>
 
                 <ImageView
-                    android:id="@+id/imageView1"
+                    android:id="@+id/play_pause"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="2"
