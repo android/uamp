@@ -16,6 +16,7 @@
 package com.example.android.uamp.ui;
 
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
@@ -29,15 +30,20 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.android.uamp.AlbumArtCache;
 import com.example.android.uamp.MusicService;
 import com.example.android.uamp.R;
+import com.example.android.uamp.model.MusicProvider;
 import com.example.android.uamp.utils.LogHelper;
 import com.google.android.libraries.cast.companionlibrary.utils.Utils;
 
@@ -57,6 +63,9 @@ public class FullScreenPlayerActivity extends ActionBarCastActivity {
     private static final String TAG = LogHelper.makeLogTag(FullScreenPlayerActivity.class);
     private static final long PROGRESS_UPDATE_INTERNAL = 1000;
     private static final long PROGRESS_UPDATE_INITIAL_INTERVAL = 100;
+    private final boolean SHARE_FLAG =true; //Flag to activate/disable share functions
+
+    private Context mContext;
 
     private ImageView mSkipPrev;
     private ImageView mSkipNext;
@@ -72,6 +81,9 @@ public class FullScreenPlayerActivity extends ActionBarCastActivity {
     private Drawable mPauseDrawable;
     private Drawable mPlayDrawable;
     private ImageView mBackgroundImage;
+
+    private Menu mMenu;
+    private MenuItem mShareItem;
 
     private String mCurrentArtUrl;
     private final Handler mHandler = new Handler();
@@ -124,6 +136,8 @@ public class FullScreenPlayerActivity extends ActionBarCastActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setTitle("");
         }
+
+        mContext=this;
 
         mBackgroundImage = (ImageView) findViewById(R.id.background_image);
         mPauseDrawable = getDrawable(R.drawable.uamp_ic_pause_white_48dp);
@@ -208,6 +222,67 @@ public class FullScreenPlayerActivity extends ActionBarCastActivity {
 
         mMediaBrowser = new MediaBrowser(this,
             new ComponentName(this, MusicService.class), mConnectionCallback, null);
+    }
+    @Override
+    public void onPause() {
+        super.onPause();
+        changeVisibilityShareItem(false);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        changeVisibilityShareItem(true);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        mShareItem=menu.findItem(R.id.share_item);
+        changeVisibilityShareItem(true);
+        if (SHARE_FLAG) {
+            
+            mShareItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                @Override
+                public boolean onMenuItemClick(MenuItem menuItem) {
+                    shareSong();
+                    return true;
+                }
+            });
+        }
+        this.mMenu = menu;
+        return true;
+    }
+
+    /**
+     * Logic to share a song (in this case, the URL of a song).
+     */
+    private void shareSong() {
+        Intent share = new Intent(Intent.ACTION_SEND);
+        share.setType("text/plain");
+        try {
+            String url = getMediaController().getMetadata().getString(MusicProvider.CUSTOM_METADATA_TRACK_SOURCE);
+            share.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.abc_shareactionprovider_share_with));
+            share.putExtra(Intent.EXTRA_TEXT, url);
+            startActivity(Intent.createChooser(share, getString(R.string.abc_shareactionprovider_share_with)));
+        }
+        catch (NullPointerException e){
+            Log.e(TAG, MusicProvider.CUSTOM_METADATA_TRACK_SOURCE +" value not found");
+        }
+    }
+
+    /**
+     * Change the visibility of the share menu item.
+     * Preconditions: 
+     *  -The shareItem is not null
+     *  -SHARE_FLAG is true (if not, it will never change the visibility)
+     * @param b flag to turn it in visible (true) or invisible (false)
+     *
+     */
+    private void changeVisibilityShareItem(boolean b) {
+        if (mShareItem!= null) {
+            mShareItem.setVisible(b && SHARE_FLAG);
+        }
     }
 
     private void connectToSession(MediaSession.Token token) {
