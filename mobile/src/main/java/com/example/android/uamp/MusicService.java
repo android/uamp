@@ -17,8 +17,10 @@
 package com.example.android.uamp;
 
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.media.MediaDescription;
 import android.media.MediaMetadata;
@@ -150,6 +152,9 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
     private MediaRouter mMediaRouter;
     private PackageValidator mPackageValidator;
 
+    private boolean mIsConnectedToCar;
+    private BroadcastReceiver mCarConnectionReceiver;
+
     /**
      * Consumer responsible for switching the Playback instances depending on whether
      * it is connected to a remote player.
@@ -224,6 +229,18 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
         mCastManager = VideoCastManager.getInstance();
         mCastManager.addVideoCastConsumer(mCastConsumer);
         mMediaRouter = MediaRouter.getInstance(getApplicationContext());
+
+        IntentFilter filter = new IntentFilter(CarHelper.ACTION_MEDIA_STATUS);
+        mCarConnectionReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String connectionEvent = intent.getStringExtra(CarHelper.MEDIA_CONNECTION_STATUS);
+                mIsConnectedToCar = CarHelper.MEDIA_CONNECTED.equals(connectionEvent);
+                LogHelper.i(TAG, "Connection event to Android Auto: ", connectionEvent,
+                        " isConnectedToCar=", mIsConnectedToCar);
+            }
+        };
+        registerReceiver(mCarConnectionReceiver, filter);
     }
 
     /**
@@ -259,6 +276,7 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
     @Override
     public void onDestroy() {
         LogHelper.d(TAG, "onDestroy");
+        unregisterReceiver(mCarConnectionReceiver);
         // Service is being killed, so make sure we release our resources
         handleStopRequest(null);
 
@@ -287,9 +305,11 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
         }
         //noinspection StatementWithEmptyBody
         if (CarHelper.isValidCarPackage(clientPackageName)) {
-            // Optional: if your app needs to adapt ads, music library or anything else that
-            // needs to run differently when connected to the car, this is where you should handle
-            // it.
+            // Optional: if your app needs to adapt the music library to show a different subset
+            // when connected to the car, this is where you should handle it.
+            // If you want to adapt other runtime behaviors, like tweak ads or change some behavior
+            // that should be different on cars, you should instead use the boolean flag
+            // set by the BroadcastReceiver mCarConnectionReceiver (mIsConnectedToCar).
         }
         //noinspection StatementWithEmptyBody
         if (WearHelper.isValidWearCompanionPackage(clientPackageName)) {
