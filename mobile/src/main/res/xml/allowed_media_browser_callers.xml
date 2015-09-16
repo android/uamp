@@ -14,6 +14,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -->
+<!--
+  If you add a new signing_certificate to allowed_callers and you don't know its signature,
+  PackageValidator by default will print to logcat (INFO level) a message with the proper base64
+  version of the caller's certificate that has not been validated. You can copy from logcat and
+  paste it here.
+
+  Spaces and newlines are ignored.
+-->
 <allowed_callers>
     <signing_certificate name="Android Auto" release="false"
                          package="com.google.android.projection.gearhead">

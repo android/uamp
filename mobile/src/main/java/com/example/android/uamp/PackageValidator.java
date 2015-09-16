@@ -37,6 +37,11 @@ import java.util.Map;
  *
  * The list of allowed signing certificates and their corresponding package names is defined in
  * res/xml/allowed_media_browser_callers.xml.
+ *
+ * If you add a new valid caller to allowed_media_browser_callers.xml and you don't know
+ * its signature, this class will print to logcat (INFO level) a message with the proper base64
+ * version of the caller certificate that has not been validated. You can copy from logcat and
+ * paste into allowed_media_browser_callers.xml. Spaces and newlines are ignored.
  */
 public class PackageValidator {
     private static final String TAG = LogHelper.makeLogTag(PackageValidator.class);
