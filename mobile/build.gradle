@@ -16,21 +16,15 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 22
-    buildToolsVersion "22.0.1"
+    compileSdkVersion 23
+    buildToolsVersion "23.0.1"
 
     defaultConfig {
         applicationId "com.example.android.uamp"
         minSdkVersion 21
-        targetSdkVersion 22
+        targetSdkVersion 23
         versionCode 2
         versionName "1.1"
-    }
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_7
@@ -38,6 +32,12 @@ android {
     }
     lintOptions {
         abortOnError true
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
     }
 }
 
@@ -49,13 +49,13 @@ repositories {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.google.android.gms:play-services-cast:7.5.0'
+    compile 'com.google.android.gms:play-services-cast:7.8.0'
     compile 'com.google.android.support:wearable:1.2.0'
-    compile 'com.android.support:support-v4:22.2.0'
-    compile 'com.android.support:appcompat-v7:22.2.0'
-    compile 'com.android.support:cardview-v7:22.2.0'
-    compile 'com.android.support:mediarouter-v7:22.2.0'
-    compile 'com.android.support:leanback-v17:22.2.0'
+    compile 'com.android.support:support-v4:23.0.1'
+    compile 'com.android.support:appcompat-v7:23.0.1'
+    compile 'com.android.support:cardview-v7:23.0.1'
+    compile 'com.android.support:mediarouter-v7:23.0.1'
+    compile 'com.android.support:leanback-v17:23.0.1'
 
     compile (name:'CastCompanionLibrary-debug', ext:'aar')
     compile 'com.github.amlcurran.showcaseview:library:5.0.0'
