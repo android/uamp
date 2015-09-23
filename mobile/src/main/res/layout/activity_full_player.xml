@@ -173,7 +173,7 @@ limitations under the License.
         android:layout_height="?attr/actionBarSize"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
-        android:background="@drawable/actionbar_bg_gradient_light"
+        android:background="@drawable/fullscreen_toolbar_bg_gradient"
         android:popupTheme="@style/ThemeOverlay.AppCompat.Light"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"/>
 

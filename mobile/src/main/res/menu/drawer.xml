@@ -14,8 +14,16 @@
   See the License for the specific language governing permissions and
   limitations under the License.
   -->
-<resources>
-    <declare-styleable name="ScrimInsetsView">
-        <attr name="insetForeground" format="reference|color" />
-    </declare-styleable>
-</resources>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/navigation_allmusic"
+            android:checked="true"
+            android:icon="@drawable/ic_allmusic_black_24dp"
+            android:title="@string/drawer_allmusic_title"/>
+        <item
+            android:id="@+id/navigation_playlists"
+            android:icon="@drawable/ic_playlist_music_black_24dp"
+            android:title="@string/drawer_playlists_title"/>
+    </group>
+</menu>
