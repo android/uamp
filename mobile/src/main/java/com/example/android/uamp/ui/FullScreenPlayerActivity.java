@@ -29,6 +29,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
+import android.text.format.DateUtils;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -39,7 +40,6 @@ import com.example.android.uamp.AlbumArtCache;
 import com.example.android.uamp.MusicService;
 import com.example.android.uamp.R;
 import com.example.android.uamp.utils.LogHelper;
-import com.google.android.libraries.cast.companionlibrary.utils.Utils;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -186,7 +186,7 @@ public class FullScreenPlayerActivity extends ActionBarCastActivity {
         mSeekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                mStart.setText(Utils.formatMillis(progress));
+                mStart.setText(DateUtils.formatElapsedTime(progress / 1000));
             }
 
             @Override
@@ -334,7 +334,7 @@ public class FullScreenPlayerActivity extends ActionBarCastActivity {
         LogHelper.d(TAG, "updateDuration called ");
         int duration = (int) metadata.getLong(MediaMetadata.METADATA_KEY_DURATION);
         mSeekbar.setMax(duration);
-        mEnd.setText(Utils.formatMillis(duration));
+        mEnd.setText(DateUtils.formatElapsedTime(duration/1000));
     }
 
     private void updatePlaybackState(PlaybackState state) {

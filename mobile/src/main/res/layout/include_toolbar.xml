@@ -14,13 +14,20 @@
   See the License for the specific language governing permissions and
   limitations under the License.
   -->
-<android.support.v7.widget.Toolbar
+
+<android.support.design.widget.AppBarLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_height="?attr/actionBarSize"
-    android:layout_alignParentStart="true"
-    android:layout_alignParentTop="true"
-    android:elevation="4dp"
-    android:background="?attr/colorPrimary"
-    android:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-    android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"/>
+    android:layout_width="match_parent"
+    android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:background="?attr/colorPrimary"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        app:layout_scrollFlags="scroll|enterAlways"/>
+
+</android.support.design.widget.AppBarLayout>
