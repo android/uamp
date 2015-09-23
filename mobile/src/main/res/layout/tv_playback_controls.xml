@@ -19,7 +19,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
-    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+    <fragment 
         android:name="com.example.android.uamp.ui.tv.TvPlaybackFragment"
         android:id="@+id/playback_controls_fragment"
         android:layout_width="match_parent"
