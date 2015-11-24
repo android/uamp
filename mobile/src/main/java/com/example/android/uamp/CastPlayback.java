@@ -101,7 +101,7 @@ public class CastPlayback implements Playback {
             return mCurrentPosition;
         }
         try {
-            return (int)mCastManager.getCurrentMediaPosition();
+            return (int) mCastManager.getCurrentMediaPosition();
         } catch (TransientNetworkDisconnectionException | NoConnectionException e) {
             LogHelper.e(TAG, e, "Exception getting media position");
         }
@@ -111,6 +111,11 @@ public class CastPlayback implements Playback {
     @Override
     public void setCurrentStreamPosition(int pos) {
         this.mCurrentPosition = pos;
+    }
+
+    @Override
+    public void updateLastKnownStreamPosition() {
+        mCurrentPosition = getCurrentStreamPosition();
     }
 
     @Override
@@ -283,7 +288,7 @@ public class CastPlayback implements Playback {
                     if (mCallback != null) {
                         mCallback.onMetadataChanged(remoteMediaId);
                     }
-                    mCurrentPosition = getCurrentStreamPosition();
+                    updateLastKnownStreamPosition();
                 }
             }
         } catch (TransientNetworkDisconnectionException | NoConnectionException | JSONException e) {

@@ -150,6 +150,13 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
     }
 
     @Override
+    public void updateLastKnownStreamPosition() {
+        if (mMediaPlayer != null) {
+            mCurrentPosition = mMediaPlayer.getCurrentPosition();
+        }
+    }
+
+    @Override
     public void play(QueueItem item) {
         mPlayOnFocusGain = true;
         tryToGetAudioFocus();
