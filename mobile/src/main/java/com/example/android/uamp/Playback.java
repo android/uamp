@@ -72,6 +72,11 @@ public interface Playback {
     void setCurrentStreamPosition(int pos);
 
     /**
+     * Query the underlying stream and update the internal last known stream position.
+     */
+    void updateLastKnownStreamPosition();
+
+    /**
      * @param item to play
      */
     void play(QueueItem item);

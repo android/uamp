@@ -174,6 +174,16 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
         }
 
         @Override
+        public void onDisconnectionReason(int reason) {
+            LogHelper.d(TAG, "onDisconnectionReason");
+            // This is our final chance to update the underlying stream position
+            // In onDisconnected(), the underlying CastPlayback#mVideoCastConsumer
+            // is disconnected and hence we update our local value of stream position
+            // to the latest position.
+            mPlayback.updateLastKnownStreamPosition();
+        }
+
+        @Override
         public void onDisconnected() {
             LogHelper.d(TAG, "onDisconnected");
             mSessionExtras.remove(EXTRA_CONNECTED_CAST);
@@ -848,7 +858,6 @@ public class MusicService extends MediaBrowserService implements Playback.Callba
         int oldState = mPlayback.getState();
         int pos = mPlayback.getCurrentStreamPosition();
         String currentMediaId = mPlayback.getCurrentMediaId();
-        LogHelper.d(TAG, "Current position from " + playback + " is ", pos);
         mPlayback.stop(false);
         playback.setCallback(this);
         playback.setCurrentStreamPosition(pos < 0 ? 0 : pos);
