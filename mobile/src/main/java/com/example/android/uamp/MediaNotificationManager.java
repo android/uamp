@@ -37,6 +37,8 @@ import com.example.android.uamp.ui.MusicPlayerActivity;
 import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.ResourceHelper;
 
+import java.util.Objects;
+
 /**
  * Keeps track of a notification and updates it automatically for a given
  * MediaSession. Maintaining a visible notification (usually) guarantees that the music service
@@ -184,15 +186,17 @@ public class MediaNotificationManager extends BroadcastReceiver {
      */
     private void updateSessionToken() {
         MediaSession.Token freshToken = mService.getSessionToken();
-        if (mSessionToken == null || !mSessionToken.equals(freshToken)) {
+        if (!Objects.equals(mSessionToken, freshToken)) {
             if (mController != null) {
                 mController.unregisterCallback(mCb);
             }
             mSessionToken = freshToken;
-            mController = new MediaController(mService, mSessionToken);
-            mTransportControls = mController.getTransportControls();
-            if (mStarted) {
-                mController.registerCallback(mCb);
+            if (mSessionToken != null) {
+                mController = new MediaController(mService, mSessionToken);
+                mTransportControls = mController.getTransportControls();
+                if (mStarted) {
+                    mController.registerCallback(mCb);
+                }
             }
         }
     }
