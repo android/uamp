@@ -16,51 +16,40 @@
 
 package com.example.android.uamp.model;
 
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.media.MediaDescription;
 import android.media.MediaMetadata;
+import android.media.browse.MediaBrowser;
+import android.net.Uri;
 import android.os.AsyncTask;
 
+import com.example.android.uamp.R;
 import com.example.android.uamp.utils.LogHelper;
+import com.example.android.uamp.utils.MediaIDHelper;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import static com.example.android.uamp.utils.MediaIDHelper.MEDIA_ID_MUSICS_BY_GENRE;
+import static com.example.android.uamp.utils.MediaIDHelper.MEDIA_ID_ROOT;
+import static com.example.android.uamp.utils.MediaIDHelper.createMediaID;
+
 /**
- * Utility class to get a list of MusicTrack's based on a server-side JSON
- * configuration.
+ * Simple data provider for music tracks. The actual metadata source is delegated to a
+ * MusicProviderSource defined by a constructor argument of this class.
  */
 public class MusicProvider {
 
     private static final String TAG = LogHelper.makeLogTag(MusicProvider.class);
 
-    private static final String CATALOG_URL =
-        "http://storage.googleapis.com/automotive-media/music.json";
-
-    public static final String CUSTOM_METADATA_TRACK_SOURCE = "__SOURCE__";
-
-    private static final String JSON_MUSIC = "music";
-    private static final String JSON_TITLE = "title";
-    private static final String JSON_ALBUM = "album";
-    private static final String JSON_ARTIST = "artist";
-    private static final String JSON_GENRE = "genre";
-    private static final String JSON_SOURCE = "source";
-    private static final String JSON_IMAGE = "image";
-    private static final String JSON_TRACK_NUMBER = "trackNumber";
-    private static final String JSON_TOTAL_TRACK_COUNT = "totalTrackCount";
-    private static final String JSON_DURATION = "duration";
+    private MusicProviderSource mSource;
 
     // Categorized caches for music track data:
     private ConcurrentMap<String, List<MediaMetadata>> mMusicListByGenre;
@@ -79,6 +68,10 @@ public class MusicProvider {
     }
 
     public MusicProvider() {
+        this(new RemoteJSONSource());
+    }
+    public MusicProvider(MusicProviderSource source) {
+        mSource = source;
         mMusicListByGenre = new ConcurrentHashMap<>();
         mMusicListById = new ConcurrentHashMap<>();
         mFavoriteTracks = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
@@ -94,6 +87,23 @@ public class MusicProvider {
             return Collections.emptyList();
         }
         return mMusicListByGenre.keySet();
+    }
+
+    /**
+     * Get an iterator over a shuffled collection of all songs
+     *
+     * @return
+     */
+    public Iterable<MediaMetadata> getShuffledMusic() {
+        if (mCurrentState != State.INITIALIZED) {
+            return Collections.emptyList();
+        }
+        List<MediaMetadata> shuffled = new ArrayList<>(mMusicListById.size());
+        for (MutableMediaMetadata mutableMetadata: mMusicListById.values()) {
+            shuffled.add(mutableMetadata.metadata);
+        }
+        Collections.shuffle(shuffled);
+        return shuffled;
     }
 
     /**
@@ -159,21 +169,28 @@ public class MusicProvider {
         return mMusicListById.containsKey(musicId) ? mMusicListById.get(musicId).metadata : null;
     }
 
-    public synchronized void updateMusic(String musicId, MediaMetadata metadata) {
-        MutableMediaMetadata track = mMusicListById.get(musicId);
-        if (track == null) {
-            return;
+    public synchronized void updateMusicArt(String musicId, Bitmap albumArt, Bitmap icon) {
+        MediaMetadata metadata = getMusic(musicId);
+        metadata = new MediaMetadata.Builder(metadata)
+
+                // set high resolution bitmap in METADATA_KEY_ALBUM_ART. This is used, for
+                // example, on the lockscreen background when the media session is active.
+                .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, albumArt)
+
+                // set small version of the album art in the DISPLAY_ICON. This is used on
+                // the MediaDescription and thus it should be small to be serialized if
+                // necessary
+                .putBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON, icon)
+
+                .build();
+
+        MutableMediaMetadata mutableMetadata = mMusicListById.get(musicId);
+        if (mutableMetadata == null) {
+            throw new IllegalStateException("Unexpected error: Inconsistent data structures in " +
+                    "MusicProvider");
         }
 
-        String oldGenre = track.metadata.getString(MediaMetadata.METADATA_KEY_GENRE);
-        String newGenre = metadata.getString(MediaMetadata.METADATA_KEY_GENRE);
-
-        track.metadata = metadata;
-
-        // if genre has changed, we need to rebuild the list by genre
-        if (!oldGenre.equals(newGenre)) {
-            buildListsByGenre();
-        }
+        mutableMetadata.metadata = metadata;
     }
 
     public void setFavorite(String musicId, boolean favorite) {
@@ -241,25 +258,15 @@ public class MusicProvider {
             if (mCurrentState == State.NON_INITIALIZED) {
                 mCurrentState = State.INITIALIZING;
 
-                int slashPos = CATALOG_URL.lastIndexOf('/');
-                String path = CATALOG_URL.substring(0, slashPos + 1);
-                JSONObject jsonObj = fetchJSONFromUrl(CATALOG_URL);
-                if (jsonObj == null) {
-                    return;
+                Iterator<MediaMetadata> tracks = mSource.iterator();
+                while (tracks.hasNext()) {
+                    MediaMetadata item = tracks.next();
+                    String musicId = item.getString(MediaMetadata.METADATA_KEY_MEDIA_ID);
+                    mMusicListById.put(musicId, new MutableMediaMetadata(musicId, item));
                 }
-                JSONArray tracks = jsonObj.getJSONArray(JSON_MUSIC);
-                if (tracks != null) {
-                    for (int j = 0; j < tracks.length(); j++) {
-                        MediaMetadata item = buildFromJSON(tracks.getJSONObject(j), path);
-                        String musicId = item.getString(MediaMetadata.METADATA_KEY_MEDIA_ID);
-                        mMusicListById.put(musicId, new MutableMediaMetadata(musicId, item));
-                    }
-                    buildListsByGenre();
-                }
+                buildListsByGenre();
                 mCurrentState = State.INITIALIZED;
             }
-        } catch (JSONException e) {
-            LogHelper.e(TAG, e, "Could not retrieve music list");
         } finally {
             if (mCurrentState != State.INITIALIZED) {
                 // Something bad happened, so we reset state to NON_INITIALIZED to allow
@@ -269,77 +276,70 @@ public class MusicProvider {
         }
     }
 
-    private MediaMetadata buildFromJSON(JSONObject json, String basePath) throws JSONException {
-        String title = json.getString(JSON_TITLE);
-        String album = json.getString(JSON_ALBUM);
-        String artist = json.getString(JSON_ARTIST);
-        String genre = json.getString(JSON_GENRE);
-        String source = json.getString(JSON_SOURCE);
-        String iconUrl = json.getString(JSON_IMAGE);
-        int trackNumber = json.getInt(JSON_TRACK_NUMBER);
-        int totalTrackCount = json.getInt(JSON_TOTAL_TRACK_COUNT);
-        int duration = json.getInt(JSON_DURATION) * 1000; // ms
 
-        LogHelper.d(TAG, "Found music track: ", json);
+    public List<MediaBrowser.MediaItem> getChildren(String mediaId, Resources resources) {
+        List<MediaBrowser.MediaItem> mediaItems = new ArrayList<>();
 
-        // Media is stored relative to JSON file
-        if (!source.startsWith("http")) {
-            source = basePath + source;
+        if (!MediaIDHelper.isBrowseable(mediaId)) {
+            return mediaItems;
         }
-        if (!iconUrl.startsWith("http")) {
-            iconUrl = basePath + iconUrl;
-        }
-        // Since we don't have a unique ID in the server, we fake one using the hashcode of
-        // the music source. In a real world app, this could come from the server.
-        String id = String.valueOf(source.hashCode());
 
-        // Adding the music source to the MediaMetadata (and consequently using it in the
-        // mediaSession.setMetadata) is not a good idea for a real world music app, because
-        // the session metadata can be accessed by notification listeners. This is done in this
-        // sample for convenience only.
-        return new MediaMetadata.Builder()
-                .putString(MediaMetadata.METADATA_KEY_MEDIA_ID, id)
-                .putString(CUSTOM_METADATA_TRACK_SOURCE, source)
-                .putString(MediaMetadata.METADATA_KEY_ALBUM, album)
-                .putString(MediaMetadata.METADATA_KEY_ARTIST, artist)
-                .putLong(MediaMetadata.METADATA_KEY_DURATION, duration)
-                .putString(MediaMetadata.METADATA_KEY_GENRE, genre)
-                .putString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI, iconUrl)
-                .putString(MediaMetadata.METADATA_KEY_TITLE, title)
-                .putLong(MediaMetadata.METADATA_KEY_TRACK_NUMBER, trackNumber)
-                .putLong(MediaMetadata.METADATA_KEY_NUM_TRACKS, totalTrackCount)
+        if (MEDIA_ID_ROOT.equals(mediaId)) {
+            mediaItems.add(createBrowsableMediaItemForRoot(resources));
+
+        } else if (MEDIA_ID_MUSICS_BY_GENRE.equals(mediaId)) {
+            for (String genre : getGenres()) {
+                mediaItems.add(createBrowsableMediaItemForGenre(genre, resources));
+            }
+
+        } else if (mediaId.startsWith(MEDIA_ID_MUSICS_BY_GENRE)) {
+            String genre = MediaIDHelper.getHierarchy(mediaId)[1];
+            for (MediaMetadata metadata : getMusicsByGenre(genre)) {
+                mediaItems.add(createMediaItem(metadata));
+            }
+
+        } else {
+            LogHelper.w(TAG, "Skipping unmatched mediaId: ", mediaId);
+        }
+        return mediaItems;
+    }
+
+    private MediaBrowser.MediaItem createBrowsableMediaItemForRoot(Resources resources) {
+        MediaDescription description = new MediaDescription.Builder()
+                .setMediaId(MEDIA_ID_MUSICS_BY_GENRE)
+                .setTitle(resources.getString(R.string.browse_genres))
+                .setSubtitle(resources.getString(R.string.browse_genre_subtitle))
+                .setIconUri(Uri.parse("android.resource://" +
+                        "com.example.android.uamp/drawable/ic_by_genre"))
                 .build();
+        return new MediaBrowser.MediaItem(description, MediaBrowser.MediaItem.FLAG_BROWSABLE);
     }
 
-    /**
-     * Download a JSON file from a server, parse the content and return the JSON
-     * object.
-     *
-     * @return result JSONObject containing the parsed representation.
-     */
-    private JSONObject fetchJSONFromUrl(String urlString) {
-        BufferedReader reader = null;
-        try {
-            URLConnection urlConnection = new URL(urlString).openConnection();
-            reader = new BufferedReader(new InputStreamReader(
-                    urlConnection.getInputStream(), "iso-8859-1"));
-            StringBuilder sb = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                sb.append(line);
-            }
-            return new JSONObject(sb.toString());
-        } catch (Exception e) {
-            LogHelper.e(TAG, "Failed to parse the json for media list", e);
-            return null;
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    // ignore
-                }
-            }
-        }
+    private MediaBrowser.MediaItem createBrowsableMediaItemForGenre(String genre,
+                                                                    Resources resources) {
+        MediaDescription description = new MediaDescription.Builder()
+                .setMediaId(createMediaID(null, MEDIA_ID_MUSICS_BY_GENRE, genre))
+                .setTitle(genre)
+                .setSubtitle(resources.getString(
+                        R.string.browse_musics_by_genre_subtitle, genre))
+                .build();
+        return new MediaBrowser.MediaItem(description, MediaBrowser.MediaItem.FLAG_BROWSABLE);
     }
+
+    private MediaBrowser.MediaItem createMediaItem(MediaMetadata metadata) {
+        // Since mediaMetadata fields are immutable, we need to create a copy, so we
+        // can set a hierarchy-aware mediaID. We will need to know the media hierarchy
+        // when we get a onPlayFromMusicID call, so we can create the proper queue based
+        // on where the music was selected from (by artist, by genre, random, etc)
+        String genre = metadata.getString(MediaMetadata.METADATA_KEY_GENRE);
+        String hierarchyAwareMediaID = MediaIDHelper.createMediaID(
+                metadata.getDescription().getMediaId(), MEDIA_ID_MUSICS_BY_GENRE, genre);
+        MediaMetadata copy = new MediaMetadata.Builder(metadata)
+                .putString(MediaMetadata.METADATA_KEY_MEDIA_ID, hierarchyAwareMediaID)
+                .build();
+        return new MediaBrowser.MediaItem(copy.getDescription(),
+                MediaBrowser.MediaItem.FLAG_PLAYABLE);
+
+    }
+
 }

@@ -24,9 +24,7 @@ import com.example.android.uamp.VoiceSearchParams;
 import com.example.android.uamp.model.MusicProvider;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 
 import static com.example.android.uamp.utils.MediaIDHelper.MEDIA_ID_MUSICS_BY_GENRE;
 import static com.example.android.uamp.utils.MediaIDHelper.MEDIA_ID_MUSICS_BY_SEARCH;
@@ -37,6 +35,8 @@ import static com.example.android.uamp.utils.MediaIDHelper.MEDIA_ID_MUSICS_BY_SE
 public class QueueHelper {
 
     private static final String TAG = LogHelper.makeLogTag(QueueHelper.class);
+
+    private static final int RANDOM_QUEUE_SIZE = 10;
 
     public static List<MediaSession.QueueItem> getPlayingQueue(String mediaId,
             MusicProvider musicProvider) {
@@ -161,25 +161,21 @@ public class QueueHelper {
     }
 
     /**
-     * Create a random queue.
+     * Create a random queue with at most {@link #RANDOM_QUEUE_SIZE} elements.
      *
      * @param musicProvider the provider used for fetching music.
      * @return list containing {@link MediaSession.QueueItem}'s
      */
     public static List<MediaSession.QueueItem> getRandomQueue(MusicProvider musicProvider) {
-        List<MediaMetadata> result = new ArrayList<>();
-
-        for (String genre: musicProvider.getGenres()) {
-            Iterable<MediaMetadata> tracks = musicProvider.getMusicsByGenre(genre);
-            for (MediaMetadata track: tracks) {
-                if (ThreadLocalRandom.current().nextBoolean()) {
-                    result.add(track);
-                }
+        List<MediaMetadata> result = new ArrayList<>(RANDOM_QUEUE_SIZE);
+        Iterable<MediaMetadata> shuffled = musicProvider.getShuffledMusic();
+        for (MediaMetadata metadata: shuffled) {
+            if (result.size() == RANDOM_QUEUE_SIZE) {
+                break;
             }
+            result.add(metadata);
         }
         LogHelper.d(TAG, "getRandomQueue: result.size=", result.size());
-
-        Collections.shuffle(result);
 
         return convertToQueue(result, MEDIA_ID_MUSICS_BY_SEARCH, "random");
     }

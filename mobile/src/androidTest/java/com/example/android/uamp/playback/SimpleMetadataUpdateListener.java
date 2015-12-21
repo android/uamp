@@ -13,16 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.android.uamp;
+package com.example.android.uamp.playback;
 
-import android.app.Application;
-import android.test.ApplicationTestCase;
+import android.media.MediaMetadata;
+import android.media.session.MediaSession;
 
-/**
- * <a href="http://d.android.com/tools/testing/testing_android.html">Testing Fundamentals</a>
- */
-public class ApplicationTest extends ApplicationTestCase<Application> {
-    public ApplicationTest() {
-        super(Application.class);
+import java.util.List;
+
+public class SimpleMetadataUpdateListener implements QueueManager.MetadataUpdateListener{
+    @Override
+    public void onMetadataChanged(MediaMetadata metadata) {
+    }
+
+    @Override
+    public void onMetadataRetrieveError() {
+    }
+
+    @Override
+    public void onCurrentQueueIndexUpdated(int queueIndex) {
+    }
+
+    @Override
+    public void onQueueUpdated(String title, List<MediaSession.QueueItem> newQueue) {
     }
 }

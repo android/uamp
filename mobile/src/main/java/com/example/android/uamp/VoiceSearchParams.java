@@ -49,38 +49,42 @@ public final class VoiceSearchParams {
             // A generic search like "Play music" sends an empty query
             isAny = true;
         } else {
-            String mediaFocus = extras.getString(MediaStore.EXTRA_MEDIA_FOCUS);
-            if (TextUtils.equals(mediaFocus, MediaStore.Audio.Genres.ENTRY_CONTENT_TYPE)) {
-                // for a Genre focused search, only genre is set:
-                isGenreFocus = true;
-                genre = extras.getString(MediaStore.EXTRA_MEDIA_GENRE);
-                if (TextUtils.isEmpty(genre)) {
-                    // Because of a bug on the platform, genre is only sent as a query, not as
-                    // the semantic-aware extras. This check makes it future-proof when the
-                    // bug is fixed.
-                    genre = query;
-                }
-            } else if (TextUtils.equals(mediaFocus, MediaStore.Audio.Artists.ENTRY_CONTENT_TYPE)) {
-                // for an Artist focused search, both artist and genre are set:
-                isArtistFocus = true;
-                genre = extras.getString(MediaStore.EXTRA_MEDIA_GENRE);
-                artist = extras.getString(MediaStore.EXTRA_MEDIA_ARTIST);
-            } else if (TextUtils.equals(mediaFocus, MediaStore.Audio.Albums.ENTRY_CONTENT_TYPE)) {
-                // for an Album focused search, album, artist and genre are set:
-                isAlbumFocus = true;
-                album = extras.getString(MediaStore.EXTRA_MEDIA_ALBUM);
-                genre = extras.getString(MediaStore.EXTRA_MEDIA_GENRE);
-                artist = extras.getString(MediaStore.EXTRA_MEDIA_ARTIST);
-            } else if (TextUtils.equals(mediaFocus, MediaStore.Audio.Media.ENTRY_CONTENT_TYPE)) {
-                // for a Song focused search, title, album, artist and genre are set:
-                isSongFocus = true;
-                song = extras.getString(MediaStore.EXTRA_MEDIA_TITLE);
-                album = extras.getString(MediaStore.EXTRA_MEDIA_ALBUM);
-                genre = extras.getString(MediaStore.EXTRA_MEDIA_GENRE);
-                artist = extras.getString(MediaStore.EXTRA_MEDIA_ARTIST);
-            } else {
-                // If we don't know the focus, we treat it is an unstructured query:
+            if (extras == null) {
                 isUnstructured = true;
+            } else {
+                String mediaFocus = extras.getString(MediaStore.EXTRA_MEDIA_FOCUS);
+                if (TextUtils.equals(mediaFocus, MediaStore.Audio.Genres.ENTRY_CONTENT_TYPE)) {
+                    // for a Genre focused search, only genre is set:
+                    isGenreFocus = true;
+                    genre = extras.getString(MediaStore.EXTRA_MEDIA_GENRE);
+                    if (TextUtils.isEmpty(genre)) {
+                        // Because of a bug on the platform, genre is only sent as a query, not as
+                        // the semantic-aware extras. This check makes it future-proof when the
+                        // bug is fixed.
+                        genre = query;
+                    }
+                } else if (TextUtils.equals(mediaFocus, MediaStore.Audio.Artists.ENTRY_CONTENT_TYPE)) {
+                    // for an Artist focused search, both artist and genre are set:
+                    isArtistFocus = true;
+                    genre = extras.getString(MediaStore.EXTRA_MEDIA_GENRE);
+                    artist = extras.getString(MediaStore.EXTRA_MEDIA_ARTIST);
+                } else if (TextUtils.equals(mediaFocus, MediaStore.Audio.Albums.ENTRY_CONTENT_TYPE)) {
+                    // for an Album focused search, album, artist and genre are set:
+                    isAlbumFocus = true;
+                    album = extras.getString(MediaStore.EXTRA_MEDIA_ALBUM);
+                    genre = extras.getString(MediaStore.EXTRA_MEDIA_GENRE);
+                    artist = extras.getString(MediaStore.EXTRA_MEDIA_ARTIST);
+                } else if (TextUtils.equals(mediaFocus, MediaStore.Audio.Media.ENTRY_CONTENT_TYPE)) {
+                    // for a Song focused search, title, album, artist and genre are set:
+                    isSongFocus = true;
+                    song = extras.getString(MediaStore.EXTRA_MEDIA_TITLE);
+                    album = extras.getString(MediaStore.EXTRA_MEDIA_ALBUM);
+                    genre = extras.getString(MediaStore.EXTRA_MEDIA_GENRE);
+                    artist = extras.getString(MediaStore.EXTRA_MEDIA_ARTIST);
+                } else {
+                    // If we don't know the focus, we treat it is an unstructured query:
+                    isUnstructured = true;
+                }
             }
         }
     }
