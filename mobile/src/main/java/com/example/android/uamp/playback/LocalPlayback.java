@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.android.uamp;
+package com.example.android.uamp.playback;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -27,7 +27,9 @@ import android.net.wifi.WifiManager;
 import android.os.PowerManager;
 import android.text.TextUtils;
 
+import com.example.android.uamp.MusicService;
 import com.example.android.uamp.model.MusicProvider;
+import com.example.android.uamp.model.MusicProviderSource;
 import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.MediaIDHelper;
 
@@ -60,7 +62,7 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
     // we have full audio focus
     private static final int AUDIO_FOCUSED  = 2;
 
-    private final MusicService mService;
+    private final Context mContext;
     private final WifiManager.WifiLock mWifiLock;
     private int mState;
     private boolean mPlayOnFocusGain;
@@ -87,19 +89,20 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
                     Intent i = new Intent(context, MusicService.class);
                     i.setAction(MusicService.ACTION_CMD);
                     i.putExtra(MusicService.CMD_NAME, MusicService.CMD_PAUSE);
-                    mService.startService(i);
+                    mContext.startService(i);
                 }
             }
         }
     };
 
-    public LocalPlayback(MusicService service, MusicProvider musicProvider) {
-        this.mService = service;
+    public LocalPlayback(Context context, MusicProvider musicProvider) {
+        this.mContext = context;
         this.mMusicProvider = musicProvider;
-        this.mAudioManager = (AudioManager) service.getSystemService(Context.AUDIO_SERVICE);
+        this.mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         // Create the Wifi lock (this does not acquire the lock, this just creates it)
-        this.mWifiLock = ((WifiManager) service.getSystemService(Context.WIFI_SERVICE))
+        this.mWifiLock = ((WifiManager) context.getSystemService(Context.WIFI_SERVICE))
                 .createWifiLock(WifiManager.WIFI_MODE_FULL, "uAmp_lock");
+        this.mState = PlaybackState.STATE_NONE;
     }
 
     @Override
@@ -118,9 +121,6 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
         unregisterAudioNoisyReceiver();
         // Relax all resources
         relaxResources(true);
-        if (mWifiLock.isHeld()) {
-            mWifiLock.release();
-        }
     }
 
     @Override
@@ -176,7 +176,7 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
             MediaMetadata track = mMusicProvider.getMusic(
                     MediaIDHelper.extractMusicIDFromMediaID(item.getDescription().getMediaId()));
 
-            String source = track.getString(MusicProvider.CUSTOM_METADATA_TRACK_SOURCE);
+            String source = track.getString(MusicProviderSource.CUSTOM_METADATA_TRACK_SOURCE);
 
             try {
                 createMediaPlayerIfNeeded();
@@ -447,7 +447,7 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
             // Make sure the media player will acquire a wake-lock while
             // playing. If we don't do that, the CPU might go to sleep while the
             // song is playing, causing playback to stop.
-            mMediaPlayer.setWakeMode(mService.getApplicationContext(),
+            mMediaPlayer.setWakeMode(mContext.getApplicationContext(),
                     PowerManager.PARTIAL_WAKE_LOCK);
 
             // we want the media player to notify us when it's ready preparing,
@@ -471,8 +471,6 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
     private void relaxResources(boolean releaseMediaPlayer) {
         LogHelper.d(TAG, "relaxResources. releaseMediaPlayer=", releaseMediaPlayer);
 
-        mService.stopForeground(true);
-
         // stop and release the Media Player, if it's available
         if (releaseMediaPlayer && mMediaPlayer != null) {
             mMediaPlayer.reset();
@@ -488,14 +486,14 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
 
     private void registerAudioNoisyReceiver() {
         if (!mAudioNoisyReceiverRegistered) {
-            mService.registerReceiver(mAudioNoisyReceiver, mAudioNoisyIntentFilter);
+            mContext.registerReceiver(mAudioNoisyReceiver, mAudioNoisyIntentFilter);
             mAudioNoisyReceiverRegistered = true;
         }
     }
 
     private void unregisterAudioNoisyReceiver() {
         if (mAudioNoisyReceiverRegistered) {
-            mService.unregisterReceiver(mAudioNoisyReceiver);
+            mContext.unregisterReceiver(mAudioNoisyReceiver);
             mAudioNoisyReceiverRegistered = false;
         }
     }

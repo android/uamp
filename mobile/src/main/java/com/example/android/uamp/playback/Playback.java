@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.android.uamp;
+package com.example.android.uamp.playback;
+
+import com.example.android.uamp.MusicService;
 
 import static android.media.session.MediaSession.QueueItem;
 
@@ -125,7 +127,7 @@ public interface Playback {
         /**
          * @param mediaId being currently played
          */
-        void onMetadataChanged(String mediaId);
+        void setCurrentMediaId(String mediaId);
     }
 
     /**
