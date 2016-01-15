@@ -17,7 +17,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "23.0.1"
+    buildToolsVersion "23.0.2"
 
     defaultConfig {
         applicationId "com.example.android.uamp"
@@ -25,6 +25,7 @@ android {
         targetSdkVersion 23
         versionCode 2
         versionName "1.1"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_7
@@ -59,4 +60,10 @@ dependencies {
     compile (name:'CastCompanionLibrary-debug-2.6.1', ext:'aar')
     compile 'com.github.amlcurran.showcaseview:library:5.0.0'
     compile 'com.android.support:design:23.1.1'
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.mockito:mockito-core:1.10.19'
+    androidTestCompile 'junit:junit:4.12'
+    androidTestCompile 'com.android.support:support-annotations:23.1.1'
+    androidTestCompile 'com.android.support.test:runner:0.4.1'
+    androidTestCompile 'com.android.support.test:rules:0.4.1'
 }
