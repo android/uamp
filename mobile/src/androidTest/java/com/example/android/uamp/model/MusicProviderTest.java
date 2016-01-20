@@ -20,6 +20,7 @@ import android.graphics.Bitmap;
 import android.media.MediaMetadata;
 import android.media.browse.MediaBrowser;
 import android.support.annotation.NonNull;
+import android.support.test.runner.AndroidJUnit4;
 import android.test.mock.MockResources;
 
 import com.example.android.uamp.TestSetupHelper;
@@ -28,6 +29,7 @@ import com.example.android.uamp.utils.SimpleMusicProviderSource;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,6 +41,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
+/**
+ * Android instrumentation unit tests for {@link MusicProvider} and related classes.
+ */
+@RunWith(AndroidJUnit4.class)
 public class MusicProviderTest {
 
     private MusicProvider provider;

@@ -16,12 +16,19 @@
 package com.example.android.uamp.utils;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
+/**
+ * Unit tests for the {@link MediaIDHelper} class. Exercises the helper methods that
+ * do MediaID to MusicID conversion and hierarchy (categories) extraction.
+ */
+@RunWith(JUnit4.class)
 public class MediaIDHelperTest {
 
     @Test
