@@ -20,6 +20,7 @@ import android.media.MediaMetadata;
 import android.media.session.MediaSession;
 import android.media.session.PlaybackState;
 import android.support.annotation.NonNull;
+import android.support.test.runner.AndroidJUnit4;
 import android.test.mock.MockResources;
 
 import com.example.android.uamp.TestSetupHelper;
@@ -29,19 +30,24 @@ import com.example.android.uamp.utils.SimpleMusicProviderSource;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 
+/**
+ * Android instrumentation unit tests for {@link PlaybackManager} and related classes.
+ */
+@RunWith(AndroidJUnit4.class)
 public class PlaybackManagerTest {
 
     private MusicProvider musicProvider;
     private Resources resources;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUpMusicProvider() throws Exception {
         SimpleMusicProviderSource source = new SimpleMusicProviderSource();
         populateMusicSource(source);
         musicProvider = TestSetupHelper.setupMusicProvider(source);

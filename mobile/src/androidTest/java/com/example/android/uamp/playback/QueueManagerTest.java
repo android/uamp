@@ -40,6 +40,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+/**
+ * Android instrumentation unit tests for {@link QueueManager} and related classes.
+ */
 @RunWith(AndroidJUnit4.class)
 public class QueueManagerTest {
 
