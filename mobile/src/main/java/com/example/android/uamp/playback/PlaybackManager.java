@@ -189,6 +189,7 @@ public class PlaybackManager implements Playback.Callback {
         // and start the next.
         if (mQueueManager.skipQueuePosition(1)) {
             handlePlayRequest();
+            mQueueManager.updateMetadata();
         } else {
             // If skipping was not possible, we stop and release the resources:
             handleStopRequest(null);

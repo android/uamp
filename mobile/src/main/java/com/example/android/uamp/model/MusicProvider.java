@@ -216,8 +216,10 @@ public class MusicProvider {
     public void retrieveMediaAsync(final Callback callback) {
         LogHelper.d(TAG, "retrieveMediaAsync called");
         if (mCurrentState == State.INITIALIZED) {
-            // Nothing to do, execute callback immediately
-            callback.onMusicCatalogReady(true);
+            if (callback != null) {
+                // Nothing to do, execute callback immediately
+                callback.onMusicCatalogReady(true);
+            }
             return;
         }
 
