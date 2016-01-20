@@ -192,8 +192,11 @@ public class MusicService extends MediaBrowserService implements
         LogHelper.d(TAG, "onCreate");
 
         mMusicProvider = new MusicProvider();
-        mMusicProvider.retrieveMediaAsync(null);
 
+        // To make the app more responsive, fetch and cache catalog information now.
+        // This can help improve the response time in the method
+        // {@link #onLoadChildren(String, Result<List<MediaItem>>) onLoadChildren()}.
+        mMusicProvider.retrieveMediaAsync(null /* Callback */);
 
         mPackageValidator = new PackageValidator(this);
 
@@ -323,10 +326,6 @@ public class MusicService extends MediaBrowserService implements
             // Wear device, you should return a different MEDIA ROOT here, and then,
             // on onLoadChildren, handle it accordingly.
         }
-        // To make the app more responsive, fetch and cache catalog information now.
-        // This can help improve the response time in the method
-        // {@link #onLoadChildren(String, Result<List<MediaItem>>) onLoadChildren()}.
-        mMusicProvider.retrieveMediaAsync(null /* Callback */);
 
         return new BrowserRoot(MEDIA_ID_ROOT, null);
     }
