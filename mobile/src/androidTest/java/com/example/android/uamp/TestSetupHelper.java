@@ -24,7 +24,7 @@ import java.util.concurrent.CountDownLatch;
 
 public class TestSetupHelper {
 
-    public static final MusicProvider setupMusicProvider(MusicProviderSource source)
+    public static MusicProvider setupMusicProvider(MusicProviderSource source)
             throws Exception {
         final CountDownLatch signal = new CountDownLatch(1);
         MusicProvider provider = new MusicProvider(source);

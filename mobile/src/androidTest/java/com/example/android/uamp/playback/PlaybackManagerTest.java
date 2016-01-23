@@ -16,11 +16,11 @@
 package com.example.android.uamp.playback;
 
 import android.content.res.Resources;
-import android.media.MediaMetadata;
-import android.media.session.MediaSession;
-import android.media.session.PlaybackState;
 import android.support.annotation.NonNull;
 import android.support.test.runner.AndroidJUnit4;
+import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.test.mock.MockResources;
 
 import com.example.android.uamp.TestSetupHelper;
@@ -93,7 +93,7 @@ public class PlaybackManagerTest {
 
         QueueManager queueManager = new QueueManager(musicProvider, resources, new SimpleMetadataUpdateListener(){
             @Override
-            public void onMetadataChanged(MediaMetadata metadata) {
+            public void onMetadataChanged(MediaMetadataCompat metadata) {
                 // Latch countdown 1: QueueManager will change appropriately
                 assertEquals(MediaIDHelper.extractMusicIDFromMediaID(expectedMediaId),
                         metadata.getDescription().getMediaId());
@@ -109,8 +109,8 @@ public class PlaybackManagerTest {
             }
 
             @Override
-            public void onPlaybackStateUpdated(PlaybackState newState) {
-                if (newState.getState() == PlaybackState.STATE_PLAYING) {
+            public void onPlaybackStateUpdated(PlaybackStateCompat newState) {
+                if (newState.getState() == PlaybackStateCompat.STATE_PLAYING) {
                     // Latch countdown 3: PlaybackService will get a state updated call (here we
                     // ignore the unrelated state changes)
                     latch.countDown();
@@ -126,7 +126,7 @@ public class PlaybackManagerTest {
 
         Playback playback = new SimplePlayback() {
             @Override
-            public void play(MediaSession.QueueItem item) {
+            public void play(MediaSessionCompat.QueueItem item) {
                 // Latch countdown 5: Playback will be called with the correct queueItem
                 assertEquals(expectedMediaId, item.getDescription().getMediaId());
                 latch.countDown();
@@ -154,7 +154,7 @@ public class PlaybackManagerTest {
 
         QueueManager queueManager = new QueueManager(musicProvider, resources, new SimpleMetadataUpdateListener(){
             @Override
-            public void onMetadataChanged(MediaMetadata metadata) {
+            public void onMetadataChanged(MediaMetadataCompat metadata) {
                 // Latch countdown 1: QueueManager will change appropriately
                 assertEquals(expectedMusicId, metadata.getDescription().getMediaId());
                 latch.countDown();
@@ -169,8 +169,8 @@ public class PlaybackManagerTest {
             }
 
             @Override
-            public void onPlaybackStateUpdated(PlaybackState newState) {
-                if (newState.getState() == PlaybackState.STATE_PLAYING) {
+            public void onPlaybackStateUpdated(PlaybackStateCompat newState) {
+                if (newState.getState() == PlaybackStateCompat.STATE_PLAYING) {
                     // Latch countdown 3: PlaybackService will get a state updated call (here we
                     // ignore the unrelated state changes)
                     latch.countDown();
@@ -186,7 +186,7 @@ public class PlaybackManagerTest {
 
         Playback playback = new SimplePlayback() {
             @Override
-            public void play(MediaSession.QueueItem item) {
+            public void play(MediaSessionCompat.QueueItem item) {
                 // Latch countdown 5: Playback will be called with the correct queueItem
                 assertEquals(expectedMusicId, MediaIDHelper.extractMusicIDFromMediaID(
                         item.getDescription().getMediaId()));

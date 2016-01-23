@@ -15,11 +15,11 @@
  */
 package com.example.android.uamp.utils;
 
-import android.media.MediaMetadata;
-import android.media.session.MediaSession;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.test.runner.AndroidJUnit4;
+import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.session.MediaSessionCompat;
 
 import com.example.android.uamp.TestSetupHelper;
 import com.example.android.uamp.model.MusicProvider;
@@ -64,33 +64,33 @@ public class QueueHelperTest {
 
     @Test
     public void testGetPlayingQueueForSelectedPlayableMedia() throws Exception {
-        MediaMetadata selectedMusic = provider.getMusicsByGenre("Genre 1").iterator().next();
-        String selectedGenre = selectedMusic.getString(MediaMetadata.METADATA_KEY_GENRE);
+        MediaMetadataCompat selectedMusic = provider.getMusicsByGenre("Genre 1").iterator().next();
+        String selectedGenre = selectedMusic.getString(MediaMetadataCompat.METADATA_KEY_GENRE);
 
         assertEquals("Genre 1", selectedGenre);
 
         String mediaId = MediaIDHelper.createMediaID(
-                selectedMusic.getString(MediaMetadata.METADATA_KEY_MEDIA_ID),
+                selectedMusic.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID),
                 MediaIDHelper.MEDIA_ID_MUSICS_BY_GENRE, selectedGenre);
 
-        List<MediaSession.QueueItem> queue = QueueHelper.getPlayingQueue(mediaId, provider);
+        List<MediaSessionCompat.QueueItem> queue = QueueHelper.getPlayingQueue(mediaId, provider);
         assertNotNull(queue);
         assertFalse(queue.isEmpty());
 
         // sort by music title to simplify assertions below
-        Collections.sort(queue, new Comparator<MediaSession.QueueItem>() {
+        Collections.sort(queue, new Comparator<MediaSessionCompat.QueueItem>() {
             @Override
-            public int compare(MediaSession.QueueItem lhs, MediaSession.QueueItem rhs) {
+            public int compare(MediaSessionCompat.QueueItem lhs, MediaSessionCompat.QueueItem rhs) {
                 return String.valueOf(lhs.getDescription().getTitle()).compareTo(
                         String.valueOf(rhs.getDescription().getTitle()));
             }
         });
 
         // assert they are all of the expected genre
-        for (MediaSession.QueueItem item : queue) {
+        for (MediaSessionCompat.QueueItem item : queue) {
             String musicId = MediaIDHelper.extractMusicIDFromMediaID(item.getDescription().getMediaId());
-            MediaMetadata metadata = provider.getMusic(musicId);
-            assertEquals(selectedGenre, metadata.getString(MediaMetadata.METADATA_KEY_GENRE));
+            MediaMetadataCompat metadata = provider.getMusic(musicId);
+            assertEquals(selectedGenre, metadata.getString(MediaMetadataCompat.METADATA_KEY_GENRE));
         }
 
         // assert that all the tracks are what we expect
@@ -101,16 +101,16 @@ public class QueueHelperTest {
 
     @Test
     public void testGetPlayingQueueFromUnstructuredSearch() throws Exception {
-        List<MediaSession.QueueItem> queue = QueueHelper.getPlayingQueueFromSearch(
+        List<MediaSessionCompat.QueueItem> queue = QueueHelper.getPlayingQueueFromSearch(
                 "Romantic", null, provider);
         assertNotNull(queue);
         assertFalse(queue.isEmpty());
 
         // assert they all contain "Romantic" in the title
-        for (MediaSession.QueueItem item : queue) {
+        for (MediaSessionCompat.QueueItem item : queue) {
             String musicId = MediaIDHelper.extractMusicIDFromMediaID(item.getDescription().getMediaId());
-            MediaMetadata metadata = provider.getMusic(musicId);
-            assertTrue(metadata.getString(MediaMetadata.METADATA_KEY_TITLE).contains("Romantic"));
+            MediaMetadataCompat metadata = provider.getMusic(musicId);
+            assertTrue(metadata.getString(MediaMetadataCompat.METADATA_KEY_TITLE).contains("Romantic"));
         }
     }
 
@@ -119,29 +119,29 @@ public class QueueHelperTest {
         Bundle extras = new Bundle();
         extras.putString(MediaStore.EXTRA_MEDIA_FOCUS, MediaStore.Audio.Artists.ENTRY_CONTENT_TYPE);
         extras.putString(MediaStore.EXTRA_MEDIA_ARTIST, "Joe");
-        List<MediaSession.QueueItem> queue = QueueHelper.getPlayingQueueFromSearch(
+        List<MediaSessionCompat.QueueItem> queue = QueueHelper.getPlayingQueueFromSearch(
                 "Joe", extras, provider);
         assertNotNull(queue);
         assertFalse(queue.isEmpty());
 
         // assert they all contain "Joe" in the artist
-        for (MediaSession.QueueItem item : queue) {
+        for (MediaSessionCompat.QueueItem item : queue) {
             String musicId = MediaIDHelper.extractMusicIDFromMediaID(item.getDescription().getMediaId());
-            MediaMetadata metadata = provider.getMusic(musicId);
-            assertTrue(metadata.getString(MediaMetadata.METADATA_KEY_ARTIST).contains("Joe"));
+            MediaMetadataCompat metadata = provider.getMusic(musicId);
+            assertTrue(metadata.getString(MediaMetadataCompat.METADATA_KEY_ARTIST).contains("Joe"));
         }
     }
 
     @Test
     public void testGetMusicIndexOnQueue() throws Exception {
         // get a queue with all songs with "c" in their title
-        List<MediaSession.QueueItem> queue = QueueHelper.getPlayingQueueFromSearch("c", null, provider);
+        List<MediaSessionCompat.QueueItem> queue = QueueHelper.getPlayingQueueFromSearch("c", null, provider);
 
         assertNotNull(queue);
         assertFalse(queue.isEmpty());
 
         for (int i=0; i< queue.size(); i++) {
-            MediaSession.QueueItem item = queue.get(i);
+            MediaSessionCompat.QueueItem item = queue.get(i);
             assertEquals(i, QueueHelper.getMusicIndexOnQueue(queue, item.getDescription().getMediaId()));
             assertEquals(i, QueueHelper.getMusicIndexOnQueue(queue, item.getQueueId()));
         }
@@ -149,7 +149,7 @@ public class QueueHelperTest {
 
     @Test
     public void testGetRandomQueue() throws Exception {
-        List<MediaSession.QueueItem> queue = QueueHelper.getRandomQueue(provider);
+        List<MediaSessionCompat.QueueItem> queue = QueueHelper.getRandomQueue(provider);
         assertNotNull(queue);
         assertFalse(queue.isEmpty());
     }
@@ -157,7 +157,7 @@ public class QueueHelperTest {
     @Test
     public void testIsIndexPlayable() throws Exception {
         // get a queue with all songs with "c" on its title
-        List<MediaSession.QueueItem> queue = QueueHelper.getPlayingQueueFromSearch("c", null, provider);
+        List<MediaSessionCompat.QueueItem> queue = QueueHelper.getPlayingQueueFromSearch("c", null, provider);
 
         assertFalse(QueueHelper.isIndexPlayable(-1, queue));
         assertFalse(QueueHelper.isIndexPlayable(queue.size(), queue));

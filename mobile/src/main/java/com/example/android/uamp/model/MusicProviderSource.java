@@ -16,11 +16,11 @@
 
 package com.example.android.uamp.model;
 
-import android.media.MediaMetadata;
+import android.support.v4.media.MediaMetadataCompat;
 
 import java.util.Iterator;
 
 public interface MusicProviderSource {
     String CUSTOM_METADATA_TRACK_SOURCE = "__SOURCE__";
-    Iterator<MediaMetadata> iterator();
+    Iterator<MediaMetadataCompat> iterator();
 }

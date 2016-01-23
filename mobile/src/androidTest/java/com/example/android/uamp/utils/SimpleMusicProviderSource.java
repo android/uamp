@@ -16,7 +16,7 @@
 
 package com.example.android.uamp.utils;
 
-import android.media.MediaMetadata;
+import android.support.v4.media.MediaMetadataCompat;
 
 import com.example.android.uamp.model.MusicProviderSource;
 
@@ -26,28 +26,29 @@ import java.util.List;
 
 public class SimpleMusicProviderSource implements MusicProviderSource {
 
-    private List<MediaMetadata> mData = new ArrayList<>();
+    private List<MediaMetadataCompat> mData = new ArrayList<>();
 
     public void add(String title, String album, String artist, String genre, String source,
                     String iconUrl, long trackNumber, long totalTrackCount, long durationMs) {
         String id = String.valueOf(source.hashCode());
 
-        mData.add(new MediaMetadata.Builder()
-                .putString(MediaMetadata.METADATA_KEY_MEDIA_ID, id)
+        //noinspection ResourceType
+        mData.add(new MediaMetadataCompat.Builder()
+                .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, id)
                 .putString(MusicProviderSource.CUSTOM_METADATA_TRACK_SOURCE, source)
-                .putString(MediaMetadata.METADATA_KEY_ALBUM, album)
-                .putString(MediaMetadata.METADATA_KEY_ARTIST, artist)
-                .putLong(MediaMetadata.METADATA_KEY_DURATION, durationMs)
-                .putString(MediaMetadata.METADATA_KEY_GENRE, genre)
-                .putString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI, iconUrl)
-                .putString(MediaMetadata.METADATA_KEY_TITLE, title)
-                .putLong(MediaMetadata.METADATA_KEY_TRACK_NUMBER, trackNumber)
-                .putLong(MediaMetadata.METADATA_KEY_NUM_TRACKS, totalTrackCount)
+                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, album)
+                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
+                .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, durationMs)
+                .putString(MediaMetadataCompat.METADATA_KEY_GENRE, genre)
+                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, iconUrl)
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
+                .putLong(MediaMetadataCompat.METADATA_KEY_TRACK_NUMBER, trackNumber)
+                .putLong(MediaMetadataCompat.METADATA_KEY_NUM_TRACKS, totalTrackCount)
                 .build());
     }
 
     @Override
-    public Iterator<MediaMetadata> iterator() {
+    public Iterator<MediaMetadataCompat> iterator() {
         return mData.iterator();
     }
 

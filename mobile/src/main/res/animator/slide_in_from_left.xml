@@ -14,8 +14,7 @@
   See the License for the specific language governing permissions and
   limitations under the License.
   -->
-<set xmlns:android="http://schemas.android.com/apk/res/android"
-    android:interpolator="@android:interpolator/fast_out_slow_in">
+<set xmlns:android="http://schemas.android.com/apk/res/android">
     <objectAnimator
         android:propertyName="x"
         android:valueType="floatType"

@@ -18,16 +18,13 @@ package com.example.android.uamp.ui.tv;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.media.MediaMetadata;
-import android.media.session.MediaController;
-import android.media.session.MediaSession;
-import android.media.session.PlaybackState;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.support.v17.leanback.app.BackgroundManager;
 import android.support.v17.leanback.app.PlaybackOverlayFragment;
+import android.support.v17.leanback.app.PlaybackOverlaySupportFragment;
 import android.support.v17.leanback.widget.AbstractDetailsDescriptionPresenter;
 import android.support.v17.leanback.widget.Action;
 import android.support.v17.leanback.widget.ArrayObjectAdapter;
@@ -46,6 +43,10 @@ import android.support.v17.leanback.widget.PlaybackControlsRowPresenter;
 import android.support.v17.leanback.widget.Presenter;
 import android.support.v17.leanback.widget.Row;
 import android.support.v17.leanback.widget.RowPresenter;
+import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.session.MediaControllerCompat;
+import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
 
 import com.example.android.uamp.AlbumArtCache;
@@ -56,7 +57,7 @@ import java.util.List;
 /*
  * Show details of the currently playing song, along with playback controls and the playing queue.
  */
-public class TvPlaybackFragment extends android.support.v17.leanback.app.PlaybackOverlayFragment {
+public class TvPlaybackFragment extends PlaybackOverlaySupportFragment {
     private static final String TAG = LogHelper.makeLogTag(TvPlaybackFragment.class);
 
     private static final int BACKGROUND_TYPE = PlaybackOverlayFragment.BG_DARK;
@@ -69,7 +70,7 @@ public class TvPlaybackFragment extends android.support.v17.leanback.app.Playbac
     private SkipNextAction mSkipNextAction;
     private SkipPreviousAction mSkipPreviousAction;
     private PlaybackControlsRow mPlaybackControlsRow;
-    private List <MediaSession.QueueItem> mPlaylistQueue;
+    private List <MediaSessionCompat.QueueItem> mPlaylistQueue;
     private int mDuration;
     private Handler mHandler;
     private Runnable mRunnable;
@@ -99,7 +100,7 @@ public class TvPlaybackFragment extends android.support.v17.leanback.app.Playbac
         setFadingEnabled(false);
     }
 
-    private void initializePlaybackControls(MediaMetadata metadata) {
+    private void initializePlaybackControls(MediaMetadataCompat metadata) {
         setupRows();
         addPlaybackControlsRow(metadata);
         setAdapter(mRowsAdapter);
@@ -113,11 +114,14 @@ public class TvPlaybackFragment extends android.support.v17.leanback.app.Playbac
 
         playbackControlsRowPresenter.setOnActionClickedListener(new OnActionClickedListener() {
             public void onActionClicked(Action action) {
-                if (getActivity() == null || getActivity().getMediaController() == null) {
+                if (getActivity() == null) {
                     return;
                 }
-                MediaController.TransportControls controls = getActivity()
-                        .getMediaController().getTransportControls();
+                MediaControllerCompat controller = getActivity().getSupportMediaController();
+                if (controller == null) {
+                    return;
+                }
+                MediaControllerCompat.TransportControls controls = controller.getTransportControls();
                 if (action.getId() == mPlayPauseAction.getId()) {
                     if (mPlayPauseAction.getIndex() == PlayPauseAction.PLAY) {
                         controls.play();
@@ -143,7 +147,7 @@ public class TvPlaybackFragment extends android.support.v17.leanback.app.Playbac
                 playbackControlsRowPresenter);
     }
 
-    private void addPlaybackControlsRow(MediaMetadata metadata) {
+    private void addPlaybackControlsRow(MediaMetadataCompat metadata) {
 
         mPlaybackControlsRow = new PlaybackControlsRow(new MutableMediaMetadataHolder(metadata));
         mRowsAdapter.add(mPlaybackControlsRow);
@@ -163,8 +167,8 @@ public class TvPlaybackFragment extends android.support.v17.leanback.app.Playbac
         mPrimaryActionsAdapter.add(mSkipNextAction);
     }
 
-    private boolean equalsQueue(List<MediaSession.QueueItem> list1,
-                                List<MediaSession.QueueItem> list2) {
+    private boolean equalsQueue(List<MediaSessionCompat.QueueItem> list1,
+                                List<MediaSessionCompat.QueueItem> list2) {
         if (list1 == list2) {
             return true;
         }
@@ -186,7 +190,7 @@ public class TvPlaybackFragment extends android.support.v17.leanback.app.Playbac
         return true;
     }
 
-    protected void updatePlayListRow(List<MediaSession.QueueItem> playlistQueue) {
+    protected void updatePlayListRow(List<MediaSessionCompat.QueueItem> playlistQueue) {
         if (equalsQueue(mPlaylistQueue, playlistQueue)) {
             // if the playlist queue hasn't changed, we don't need to update it
             return;
@@ -201,15 +205,15 @@ public class TvPlaybackFragment extends android.support.v17.leanback.app.Playbac
         }
         mListRowAdapter.clear();
         for (int i = 0; i < playlistQueue.size(); i++) {
-            MediaSession.QueueItem item = playlistQueue.get(i);
+            MediaSessionCompat.QueueItem item = playlistQueue.get(i);
             mListRowAdapter.add(item);
         }
 
         if (mListRow == null) {
             int queueSize = 0;
-            if (getActivity().getMediaController() != null
-                    && getActivity().getMediaController().getQueue() != null) {
-                queueSize = getActivity().getMediaController().getQueue().size();
+            MediaControllerCompat controller = getActivity().getSupportMediaController();
+            if (controller != null && controller.getQueue() != null) {
+                queueSize = controller.getQueue().size();
             }
             HeaderItem header = new HeaderItem(0, queueSize + " song(s) in this playlist");
 
@@ -287,11 +291,11 @@ public class TvPlaybackFragment extends android.support.v17.leanback.app.Playbac
         );
     }
 
-    protected void updateMetadata(MediaMetadata metadata) {
+    protected void updateMetadata(MediaMetadataCompat metadata) {
         if (mPlaybackControlsRow == null) {
             initializePlaybackControls(metadata);
         }
-        mDuration = (int) metadata.getLong(MediaMetadata.METADATA_KEY_DURATION);
+        mDuration = (int) metadata.getLong(MediaMetadataCompat.METADATA_KEY_DURATION);
         mPlaybackControlsRow.setTotalTime(mDuration);
         ((MutableMediaMetadataHolder) mPlaybackControlsRow.getItem()).metadata = metadata;
         mRowsAdapter.notifyArrayItemRangeChanged(
@@ -299,7 +303,7 @@ public class TvPlaybackFragment extends android.support.v17.leanback.app.Playbac
         updateAlbumArt(metadata.getDescription().getIconUri());
     }
 
-    protected void updatePlaybackState(PlaybackState state) {
+    protected void updatePlaybackState(PlaybackStateCompat state) {
         if (mPlaybackControlsRow == null) {
             // We only update playback state after we get a valid metadata.
             return;
@@ -307,17 +311,18 @@ public class TvPlaybackFragment extends android.support.v17.leanback.app.Playbac
         mLastPosition = state.getPosition();
         mLastPositionUpdateTime = state.getLastPositionUpdateTime();
         switch (state.getState()) {
-            case PlaybackState.STATE_PLAYING:
+            case PlaybackStateCompat.STATE_PLAYING:
                 startProgressAutomation();
                 mPlayPauseAction.setIndex(PlayPauseAction.PAUSE);
                 break;
-            case PlaybackState.STATE_PAUSED:
+            case PlaybackStateCompat.STATE_PAUSED:
                 stopProgressAutomation();
                 mPlayPauseAction.setIndex(PlayPauseAction.PLAY);
                 break;
         }
 
-        updatePlayListRow(getActivity().getMediaController().getQueue());
+        MediaControllerCompat controller = getActivity().getSupportMediaController();
+        updatePlayListRow(controller.getQueue());
         mRowsAdapter.notifyArrayItemRangeChanged(
                 mRowsAdapter.indexOf(mPlaybackControlsRow), 1);
     }
@@ -336,17 +341,18 @@ public class TvPlaybackFragment extends android.support.v17.leanback.app.Playbac
         public void onItemClicked(Presenter.ViewHolder itemViewHolder, Object item,
                                   RowPresenter.ViewHolder rowViewHolder, Row row) {
 
-            if (item instanceof MediaSession.QueueItem) {
+            if (item instanceof MediaSessionCompat.QueueItem) {
                 LogHelper.d(TAG, "item: ", item.toString());
-                getActivity().getMediaController().getTransportControls()
-                        .skipToQueueItem(((MediaSession.QueueItem) item).getQueueId());
+                MediaControllerCompat controller = getActivity().getSupportMediaController();
+                controller.getTransportControls().skipToQueueItem(
+                        ((MediaSessionCompat.QueueItem) item).getQueueId());
             }
         }
     }
 
     private static final class MutableMediaMetadataHolder {
-        MediaMetadata metadata;
-        public MutableMediaMetadataHolder(MediaMetadata metadata) {
+        MediaMetadataCompat metadata;
+        public MutableMediaMetadataHolder(MediaMetadataCompat metadata) {
             this.metadata = metadata;
         }
     }

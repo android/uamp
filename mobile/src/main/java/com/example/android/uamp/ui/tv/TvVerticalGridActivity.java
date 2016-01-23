@@ -15,22 +15,23 @@
  */
 package com.example.android.uamp.ui.tv;
 
-import android.app.Activity;
 import android.content.ComponentName;
-import android.media.browse.MediaBrowser;
-import android.media.session.MediaController;
 import android.os.Bundle;
+import android.os.RemoteException;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.session.MediaControllerCompat;
 
 import com.example.android.uamp.MusicService;
 import com.example.android.uamp.R;
 import com.example.android.uamp.utils.LogHelper;
 
-public class TvVerticalGridActivity extends Activity
+public class TvVerticalGridActivity extends FragmentActivity
         implements TvVerticalGridFragment.MediaFragmentListener {
 
     private static final String TAG = LogHelper.makeLogTag(TvVerticalGridActivity.class);
     public static final String SHARED_ELEMENT_NAME = "hero";
-    private MediaBrowser mMediaBrowser;
+    private MediaBrowserCompat mMediaBrowser;
     private String mMediaId;
     private String mTitle;
 
@@ -45,7 +46,7 @@ public class TvVerticalGridActivity extends Activity
 
         getWindow().setBackgroundDrawableResource(R.drawable.bg);
 
-        mMediaBrowser = new MediaBrowser(this,
+        mMediaBrowser = new MediaBrowserCompat(this,
                 new ComponentName(this, MusicService.class),
                 mConnectionCallback, null);
     }
@@ -65,29 +66,32 @@ public class TvVerticalGridActivity extends Activity
 
     protected void browse() {
         LogHelper.d(TAG, "navigateToBrowser, mediaId=" + mMediaId);
-        TvVerticalGridFragment fragment = (TvVerticalGridFragment) getFragmentManager()
+        TvVerticalGridFragment fragment = (TvVerticalGridFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.vertical_grid_fragment);
         fragment.setMediaId(mMediaId);
         fragment.setTitle(mTitle);
     }
 
     @Override
-    public MediaBrowser getMediaBrowser() {
+    public MediaBrowserCompat getMediaBrowser() {
         return mMediaBrowser;
     }
 
-    private final MediaBrowser.ConnectionCallback mConnectionCallback =
-            new MediaBrowser.ConnectionCallback() {
+    private final MediaBrowserCompat.ConnectionCallback mConnectionCallback =
+            new MediaBrowserCompat.ConnectionCallback() {
                 @Override
                 public void onConnected() {
                     LogHelper.d(TAG, "onConnected: session token ",
                             mMediaBrowser.getSessionToken());
 
-                    MediaController mediaController = new MediaController(
-                            TvVerticalGridActivity.this, mMediaBrowser.getSessionToken());
-                    setMediaController(mediaController);
-
-                    browse();
+                    try {
+                        MediaControllerCompat mediaController = new MediaControllerCompat(
+                                TvVerticalGridActivity.this, mMediaBrowser.getSessionToken());
+                        setSupportMediaController(mediaController);
+                        browse();
+                    } catch (RemoteException e) {
+                        LogHelper.e(TAG, e, "could not connect media controller");
+                    }
                 }
 
                 @Override
@@ -98,7 +102,7 @@ public class TvVerticalGridActivity extends Activity
                 @Override
                 public void onConnectionSuspended() {
                     LogHelper.d(TAG, "onConnectionSuspended");
-                    setMediaController(null);
+                    setSupportMediaController(null);
                 }
             };
 

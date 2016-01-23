@@ -17,10 +17,10 @@
 package com.example.android.uamp.model;
 
 import android.graphics.Bitmap;
-import android.media.MediaMetadata;
-import android.media.browse.MediaBrowser;
 import android.support.annotation.NonNull;
 import android.support.test.runner.AndroidJUnit4;
+import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.MediaMetadataCompat;
 import android.test.mock.MockResources;
 
 import com.example.android.uamp.TestSetupHelper;
@@ -81,8 +81,8 @@ public class MusicProviderTest {
     @Test
     public void testGetMusicsByGenre() throws Exception {
         int count = 0;
-        for (MediaMetadata metadata: provider.getMusicsByGenre("Genre 1")) {
-            String genre = metadata.getString(MediaMetadata.METADATA_KEY_GENRE);
+        for (MediaMetadataCompat metadata: provider.getMusicsByGenre("Genre 1")) {
+            String genre = metadata.getString(MediaMetadataCompat.METADATA_KEY_GENRE);
             assertEquals("Genre 1", genre);
             count++;
         }
@@ -98,8 +98,8 @@ public class MusicProviderTest {
     @Test
     public void testSearchBySongTitle() throws Exception {
         int count = 0;
-        for (MediaMetadata metadata: provider.searchMusicBySongTitle("Romantic")) {
-            String title = metadata.getString(MediaMetadata.METADATA_KEY_TITLE);
+        for (MediaMetadataCompat metadata: provider.searchMusicBySongTitle("Romantic")) {
+            String title = metadata.getString(MediaMetadataCompat.METADATA_KEY_TITLE);
             assertTrue(title.contains("Romantic"));
             count++;
         }
@@ -115,8 +115,8 @@ public class MusicProviderTest {
     @Test
     public void testSearchMusicByAlbum() throws Exception {
         int count = 0;
-        for (MediaMetadata metadata: provider.searchMusicByAlbum("Album")) {
-            String title = metadata.getString(MediaMetadata.METADATA_KEY_ALBUM);
+        for (MediaMetadataCompat metadata: provider.searchMusicByAlbum("Album")) {
+            String title = metadata.getString(MediaMetadataCompat.METADATA_KEY_ALBUM);
             assertTrue(title.contains("Album"));
             count++;
         }
@@ -132,8 +132,8 @@ public class MusicProviderTest {
     @Test
     public void testSearchMusicByArtist() throws Exception {
         int count = 0;
-        for (MediaMetadata metadata : provider.searchMusicByArtist("Joe")) {
-            String title = metadata.getString(MediaMetadata.METADATA_KEY_ARTIST);
+        for (MediaMetadataCompat metadata : provider.searchMusicByArtist("Joe")) {
+            String title = metadata.getString(MediaMetadataCompat.METADATA_KEY_ARTIST);
             assertTrue(title.contains("Joe"));
             count++;
         }
@@ -151,21 +151,21 @@ public class MusicProviderTest {
         Bitmap bIcon = Bitmap.createBitmap(2, 2, Bitmap.Config.ALPHA_8);
         Bitmap bArt = Bitmap.createBitmap(2, 2, Bitmap.Config.ALPHA_8);
 
-        MediaMetadata metadata = provider.getShuffledMusic().iterator().next();
+        MediaMetadataCompat metadata = provider.getShuffledMusic().iterator().next();
         String musicId = metadata.getDescription().getMediaId();
 
-        assertNotEquals(bArt, metadata.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART));
-        assertNotEquals(bIcon, metadata.getBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON));
+        assertNotEquals(bArt, metadata.getBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART));
+        assertNotEquals(bIcon, metadata.getBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON));
 
         provider.updateMusicArt(musicId, bArt, bIcon);
-        MediaMetadata newMetadata = provider.getMusic(musicId);
-        assertEquals(bArt, newMetadata.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART));
-        assertEquals(bIcon, newMetadata.getBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON));
+        MediaMetadataCompat newMetadata = provider.getMusic(musicId);
+        assertEquals(bArt, newMetadata.getBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART));
+        assertEquals(bIcon, newMetadata.getBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON));
     }
 
     @Test
     public void testFavorite() throws Exception {
-        MediaMetadata metadata = provider.getShuffledMusic().iterator().next();
+        MediaMetadataCompat metadata = provider.getShuffledMusic().iterator().next();
         String musicId = metadata.getDescription().getMediaId();
 
         assertFalse(provider.isFavorite(musicId));
@@ -191,12 +191,12 @@ public class MusicProviderTest {
         };
 
         // test an invalid root
-        List<MediaBrowser.MediaItem> invalid = provider.getChildren(
+        List<MediaBrowserCompat.MediaItem> invalid = provider.getChildren(
                 "INVALID_MEDIA_ID", resources);
         assertEquals(0, invalid.size());
 
         // test level 1 (list of category types - only "by genre" for now)
-        List<MediaBrowser.MediaItem> level1 = provider.getChildren(
+        List<MediaBrowserCompat.MediaItem> level1 = provider.getChildren(
                 MediaIDHelper.MEDIA_ID_ROOT, resources);
         assertEquals(1, level1.size());
 
@@ -205,25 +205,25 @@ public class MusicProviderTest {
         for (String ignored : provider.getGenres()) {
             genreCount++;
         }
-        List<MediaBrowser.MediaItem> level2 = provider.getChildren(
+        List<MediaBrowserCompat.MediaItem> level2 = provider.getChildren(
                 level1.get(0).getMediaId(), resources);
         assertEquals(genreCount, level2.size());
 
         // test level 3 (list of music for a given genre)
-        List<MediaBrowser.MediaItem> level3 = provider.getChildren(
+        List<MediaBrowserCompat.MediaItem> level3 = provider.getChildren(
                 level2.get(0).getMediaId(), resources);
         String genre = MediaIDHelper.extractBrowseCategoryValueFromMediaID(
                 level2.get(0).getMediaId());
-        for (MediaBrowser.MediaItem mediaItem: level3) {
+        for (MediaBrowserCompat.MediaItem mediaItem: level3) {
             assertTrue(mediaItem.isPlayable());
             assertFalse(mediaItem.isBrowsable());
-            MediaMetadata metadata = provider.getMusic(
+            MediaMetadataCompat metadata = provider.getMusic(
                     MediaIDHelper.extractMusicIDFromMediaID(mediaItem.getMediaId()));
-            assertEquals(genre, metadata.getString(MediaMetadata.METADATA_KEY_GENRE));
+            assertEquals(genre, metadata.getString(MediaMetadataCompat.METADATA_KEY_GENRE));
         }
 
         // test an invalid level 4
-        List<MediaBrowser.MediaItem> invalidLevel4 = provider.getChildren(
+        List<MediaBrowserCompat.MediaItem> invalidLevel4 = provider.getChildren(
                 level3.get(0).getMediaId(), resources);
         assertTrue(invalidLevel4.isEmpty());
    }

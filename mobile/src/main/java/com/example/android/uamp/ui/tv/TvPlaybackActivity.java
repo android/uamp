@@ -15,14 +15,15 @@
  */
 package com.example.android.uamp.ui.tv;
 
-import android.app.Activity;
 import android.content.ComponentName;
-import android.media.MediaMetadata;
-import android.media.browse.MediaBrowser;
-import android.media.session.MediaController;
-import android.media.session.PlaybackState;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.support.annotation.NonNull;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.session.MediaControllerCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 
 import com.example.android.uamp.MusicService;
 import com.example.android.uamp.R;
@@ -32,10 +33,10 @@ import com.example.android.uamp.utils.LogHelper;
  * Activity used to display details of the currently playing song, along with playback controls
  * and the playing queue.
  */
-public class TvPlaybackActivity extends Activity {
+public class TvPlaybackActivity extends FragmentActivity {
     private static final String TAG = LogHelper.makeLogTag(TvPlaybackActivity.class);
 
-    private MediaBrowser mMediaBrowser;
+    private MediaBrowserCompat mMediaBrowser;
     private TvPlaybackFragment mPlaybackFragment;
 
     @Override
@@ -43,13 +44,13 @@ public class TvPlaybackActivity extends Activity {
         super.onCreate(savedInstanceState);
         LogHelper.d(TAG, "Activity onCreate");
 
-        mMediaBrowser = new MediaBrowser(this,
+        mMediaBrowser = new MediaBrowserCompat(this,
                 new ComponentName(this, MusicService.class),
                 mConnectionCallback, null);
 
         setContentView(R.layout.tv_playback_controls);
 
-        mPlaybackFragment = (TvPlaybackFragment) getFragmentManager()
+        mPlaybackFragment = (TvPlaybackFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.playback_controls_fragment);
     }
 
@@ -64,27 +65,31 @@ public class TvPlaybackActivity extends Activity {
     protected void onStop() {
         super.onStop();
         LogHelper.d(TAG, "Activity onStop");
-        if (getMediaController() != null) {
-            getMediaController().unregisterCallback(mMediaControllerCallback);
+        if (getSupportMediaController() != null) {
+            getSupportMediaController().unregisterCallback(mMediaControllerCallback);
         }
         mMediaBrowser.disconnect();
 
     }
 
-    private final MediaBrowser.ConnectionCallback mConnectionCallback =
-            new MediaBrowser.ConnectionCallback() {
+    private final MediaBrowserCompat.ConnectionCallback mConnectionCallback =
+            new MediaBrowserCompat.ConnectionCallback() {
                 @Override
                 public void onConnected() {
                     LogHelper.d(TAG, "onConnected");
-                    MediaController mediaController = new MediaController(
-                            TvPlaybackActivity.this, mMediaBrowser.getSessionToken());
-                    setMediaController(mediaController);
-                    mediaController.registerCallback(mMediaControllerCallback);
+                    try {
+                        MediaControllerCompat mediaController = new MediaControllerCompat(
+                                TvPlaybackActivity.this, mMediaBrowser.getSessionToken());
+                        setSupportMediaController(mediaController);
+                        mediaController.registerCallback(mMediaControllerCallback);
 
-                    MediaMetadata metadata = mediaController.getMetadata();
-                    if (metadata != null) {
-                        mPlaybackFragment.updateMetadata(metadata);
-                        mPlaybackFragment.updatePlaybackState(mediaController.getPlaybackState());
+                        MediaMetadataCompat metadata = mediaController.getMetadata();
+                        if (metadata != null) {
+                            mPlaybackFragment.updateMetadata(metadata);
+                            mPlaybackFragment.updatePlaybackState(mediaController.getPlaybackState());
+                        }
+                    } catch (RemoteException e) {
+                        LogHelper.e(TAG, e, "could not connect media controller");
                     }
                 }
 
@@ -96,8 +101,8 @@ public class TvPlaybackActivity extends Activity {
                 @Override
                 public void onConnectionSuspended() {
                     LogHelper.d(TAG, "onConnectionSuspended");
-                    getMediaController().unregisterCallback(mMediaControllerCallback);
-                    setMediaController(null);
+                    getSupportMediaController().unregisterCallback(mMediaControllerCallback);
+                    setSupportMediaController(null);
                 }
             };
 
@@ -105,18 +110,19 @@ public class TvPlaybackActivity extends Activity {
      * Receive callbacks from the MediaController. Here we update our state such as which queue
      * is being shown, the current title and description and the PlaybackState.
      */
-    private final MediaController.Callback mMediaControllerCallback = new MediaController.Callback() {
+    private final MediaControllerCompat.Callback mMediaControllerCallback =
+            new MediaControllerCompat.Callback() {
         @Override
-        public void onPlaybackStateChanged(@NonNull PlaybackState state) {
+        public void onPlaybackStateChanged(@NonNull PlaybackStateCompat state) {
             LogHelper.d(TAG, "onPlaybackStateChanged, state=", state);
-            if (mPlaybackFragment == null || state.getState() == PlaybackState.STATE_BUFFERING) {
+            if (mPlaybackFragment == null || state.getState() == PlaybackStateCompat.STATE_BUFFERING) {
                 return;
             }
             mPlaybackFragment.updatePlaybackState(state);
         }
 
         @Override
-        public void onMetadataChanged(MediaMetadata metadata) {
+        public void onMetadataChanged(MediaMetadataCompat metadata) {
             LogHelper.d(TAG, "onMetadataChanged, title=", metadata.getDescription().getTitle());
             if (mPlaybackFragment == null) {
                 return;

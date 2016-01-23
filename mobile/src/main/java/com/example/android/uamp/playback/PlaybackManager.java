@@ -17,12 +17,12 @@
 package com.example.android.uamp.playback;
 
 import android.content.res.Resources;
-import android.media.session.MediaSession;
-import android.media.session.PlaybackState;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
+import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 
 import com.example.android.uamp.R;
 import com.example.android.uamp.model.MusicProvider;
@@ -62,7 +62,7 @@ public class PlaybackManager implements Playback.Callback {
         return mPlayback;
     }
 
-    public MediaSession.Callback getMediaSessionCallback() {
+    public MediaSessionCompat.Callback getMediaSessionCallback() {
         return mMediaSessionCallback;
     }
 
@@ -71,7 +71,7 @@ public class PlaybackManager implements Playback.Callback {
      */
     public void handlePlayRequest() {
         LogHelper.d(TAG, "handlePlayRequest: mState=" + mPlayback.getState());
-        MediaSession.QueueItem currentMusic = mQueueManager.getCurrentMusic();
+        MediaSessionCompat.QueueItem currentMusic = mQueueManager.getCurrentMusic();
         if (currentMusic != null) {
             mServiceCallback.onPlaybackStart();
             mPlayback.play(currentMusic);
@@ -111,12 +111,13 @@ public class PlaybackManager implements Playback.Callback {
      */
     public void updatePlaybackState(String error) {
         LogHelper.d(TAG, "updatePlaybackState, playback state=" + mPlayback.getState());
-        long position = PlaybackState.PLAYBACK_POSITION_UNKNOWN;
+        long position = PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN;
         if (mPlayback != null && mPlayback.isConnected()) {
             position = mPlayback.getCurrentStreamPosition();
         }
 
-        PlaybackState.Builder stateBuilder = new PlaybackState.Builder()
+        //noinspection ResourceType
+        PlaybackStateCompat.Builder stateBuilder = new PlaybackStateCompat.Builder()
                 .setActions(getAvailableActions());
 
         setCustomAction(stateBuilder);
@@ -127,25 +128,27 @@ public class PlaybackManager implements Playback.Callback {
             // Error states are really only supposed to be used for errors that cause playback to
             // stop unexpectedly and persist until the user takes action to fix it.
             stateBuilder.setErrorMessage(error);
-            state = PlaybackState.STATE_ERROR;
+            state = PlaybackStateCompat.STATE_ERROR;
         }
+        //noinspection ResourceType
         stateBuilder.setState(state, position, 1.0f, SystemClock.elapsedRealtime());
 
         // Set the activeQueueItemId if the current index is valid.
-        MediaSession.QueueItem currentMusic = mQueueManager.getCurrentMusic();
+        MediaSessionCompat.QueueItem currentMusic = mQueueManager.getCurrentMusic();
         if (currentMusic != null) {
             stateBuilder.setActiveQueueItemId(currentMusic.getQueueId());
         }
 
         mServiceCallback.onPlaybackStateUpdated(stateBuilder.build());
 
-        if (state == PlaybackState.STATE_PLAYING || state == PlaybackState.STATE_PAUSED) {
+        if (state == PlaybackStateCompat.STATE_PLAYING ||
+                state == PlaybackStateCompat.STATE_PAUSED) {
             mServiceCallback.onNotificationRequired();
         }
     }
 
-    private void setCustomAction(PlaybackState.Builder stateBuilder) {
-        MediaSession.QueueItem currentMusic = mQueueManager.getCurrentMusic();
+    private void setCustomAction(PlaybackStateCompat.Builder stateBuilder) {
+        MediaSessionCompat.QueueItem currentMusic = mQueueManager.getCurrentMusic();
         if (currentMusic == null) {
             return;
         }
@@ -161,7 +164,7 @@ public class PlaybackManager implements Playback.Callback {
                 musicId, " current favorite=", mMusicProvider.isFavorite(musicId));
         Bundle customActionExtras = new Bundle();
         WearHelper.setShowCustomActionOnWear(customActionExtras, true);
-        stateBuilder.addCustomAction(new PlaybackState.CustomAction.Builder(
+        stateBuilder.addCustomAction(new PlaybackStateCompat.CustomAction.Builder(
                 CUSTOM_ACTION_THUMBS_UP, mResources.getString(R.string.favorite), favoriteIcon)
                 .setExtras(customActionExtras)
                 .build());
@@ -169,13 +172,13 @@ public class PlaybackManager implements Playback.Callback {
 
     private long getAvailableActions() {
         long actions =
-                PlaybackState.ACTION_PLAY |
-                PlaybackState.ACTION_PLAY_FROM_MEDIA_ID |
-                PlaybackState.ACTION_PLAY_FROM_SEARCH |
-                PlaybackState.ACTION_SKIP_TO_PREVIOUS |
-                PlaybackState.ACTION_SKIP_TO_NEXT;
+                PlaybackStateCompat.ACTION_PLAY |
+                PlaybackStateCompat.ACTION_PLAY_FROM_MEDIA_ID |
+                PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH |
+                PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS |
+                PlaybackStateCompat.ACTION_SKIP_TO_NEXT;
         if (mPlayback.isPlaying()) {
-            actions |= PlaybackState.ACTION_PAUSE;
+            actions |= PlaybackStateCompat.ACTION_PAUSE;
         }
         return actions;
     }
@@ -234,13 +237,13 @@ public class PlaybackManager implements Playback.Callback {
         // finally swap the instance
         mPlayback = playback;
         switch (oldState) {
-            case PlaybackState.STATE_BUFFERING:
-            case PlaybackState.STATE_CONNECTING:
-            case PlaybackState.STATE_PAUSED:
+            case PlaybackStateCompat.STATE_BUFFERING:
+            case PlaybackStateCompat.STATE_CONNECTING:
+            case PlaybackStateCompat.STATE_PAUSED:
                 mPlayback.pause();
                 break;
-            case PlaybackState.STATE_PLAYING:
-                MediaSession.QueueItem currentMusic = mQueueManager.getCurrentMusic();
+            case PlaybackStateCompat.STATE_PLAYING:
+                MediaSessionCompat.QueueItem currentMusic = mQueueManager.getCurrentMusic();
                 if (resumePlaying && currentMusic != null) {
                     mPlayback.play(currentMusic);
                 } else if (!resumePlaying) {
@@ -249,7 +252,7 @@ public class PlaybackManager implements Playback.Callback {
                     mPlayback.stop(true);
                 }
                 break;
-            case PlaybackState.STATE_NONE:
+            case PlaybackStateCompat.STATE_NONE:
                 break;
             default:
                 LogHelper.d(TAG, "Default called. Old state is ", oldState);
@@ -257,7 +260,7 @@ public class PlaybackManager implements Playback.Callback {
     }
 
 
-    private class MediaSessionCallback extends MediaSession.Callback {
+    private class MediaSessionCallback extends MediaSessionCompat.Callback {
         @Override
         public void onPlay() {
             LogHelper.d(TAG, "play");
@@ -325,7 +328,7 @@ public class PlaybackManager implements Playback.Callback {
         public void onCustomAction(@NonNull String action, Bundle extras) {
             if (CUSTOM_ACTION_THUMBS_UP.equals(action)) {
                 LogHelper.i(TAG, "onCustomAction: favorite for current track");
-                MediaSession.QueueItem currentMusic = mQueueManager.getCurrentMusic();
+                MediaSessionCompat.QueueItem currentMusic = mQueueManager.getCurrentMusic();
                 if (currentMusic != null) {
                     String mediaId = currentMusic.getDescription().getMediaId();
                     if (mediaId != null) {
@@ -345,7 +348,7 @@ public class PlaybackManager implements Playback.Callback {
          * Handle free and contextual searches.
          * <p/>
          * All voice searches on Android Auto are sent to this method through a connected
-         * {@link android.media.session.MediaController}.
+         * {@link android.support.v4.media.session.MediaControllerCompat}.
          * <p/>
          * Threads and async handling:
          * Search, as a potentially slow operation, should run in another thread.
@@ -358,7 +361,7 @@ public class PlaybackManager implements Playback.Callback {
         public void onPlayFromSearch(final String query, final Bundle extras) {
             LogHelper.d(TAG, "playFromSearch  query=", query, " extras=", extras);
 
-            mPlayback.setState(PlaybackState.STATE_CONNECTING);
+            mPlayback.setState(PlaybackStateCompat.STATE_CONNECTING);
             mQueueManager.setQueueFromSearch(query, extras);
             handlePlayRequest();
             mQueueManager.updateMetadata();
@@ -373,6 +376,6 @@ public class PlaybackManager implements Playback.Callback {
 
         void onPlaybackStop();
 
-        void onPlaybackStateUpdated(PlaybackState newState);
+        void onPlaybackStateUpdated(PlaybackStateCompat newState);
     }
 }

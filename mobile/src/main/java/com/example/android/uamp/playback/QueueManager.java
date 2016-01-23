@@ -18,10 +18,10 @@ package com.example.android.uamp.playback;
 
 import android.content.res.Resources;
 import android.graphics.Bitmap;
-import android.media.MediaMetadata;
-import android.media.session.MediaSession;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.session.MediaSessionCompat;
 
 import com.example.android.uamp.AlbumArtCache;
 import com.example.android.uamp.R;
@@ -48,7 +48,7 @@ public class QueueManager {
     private Resources mResources;
 
     // "Now playing" queue:
-    private List<MediaSession.QueueItem> mPlayingQueue;
+    private List<MediaSessionCompat.QueueItem> mPlayingQueue;
     private int mCurrentIndex;
 
     public QueueManager(@NonNull MusicProvider musicProvider,
@@ -58,13 +58,13 @@ public class QueueManager {
         this.mListener = listener;
         this.mResources = resources;
 
-        mPlayingQueue = Collections.synchronizedList(new ArrayList<MediaSession.QueueItem>());
+        mPlayingQueue = Collections.synchronizedList(new ArrayList<MediaSessionCompat.QueueItem>());
         mCurrentIndex = 0;
     }
 
     public boolean isSameBrowsingCategory(@NonNull String mediaId) {
         String[] newBrowseHierarchy = MediaIDHelper.getHierarchy(mediaId);
-        MediaSession.QueueItem current = getCurrentMusic();
+        MediaSessionCompat.QueueItem current = getCurrentMusic();
         if (current == null) {
             return false;
         }
@@ -144,7 +144,7 @@ public class QueueManager {
         updateMetadata();
     }
 
-    public MediaSession.QueueItem getCurrentMusic() {
+    public MediaSessionCompat.QueueItem getCurrentMusic() {
         if (!QueueHelper.isIndexPlayable(mCurrentIndex, mPlayingQueue)) {
             return null;
         }
@@ -158,11 +158,11 @@ public class QueueManager {
         return mPlayingQueue.size();
     }
 
-    protected void setCurrentQueue(String title, List<MediaSession.QueueItem> newQueue) {
+    protected void setCurrentQueue(String title, List<MediaSessionCompat.QueueItem> newQueue) {
         setCurrentQueue(title, newQueue, null);
     }
 
-    protected void setCurrentQueue(String title, List<MediaSession.QueueItem> newQueue,
+    protected void setCurrentQueue(String title, List<MediaSessionCompat.QueueItem> newQueue,
                                    String initialMediaId) {
         mPlayingQueue = newQueue;
         int index = 0;
@@ -174,14 +174,14 @@ public class QueueManager {
     }
 
     public void updateMetadata() {
-        MediaSession.QueueItem currentMusic = getCurrentMusic();
+        MediaSessionCompat.QueueItem currentMusic = getCurrentMusic();
         if (currentMusic == null) {
             mListener.onMetadataRetrieveError();
             return;
         }
         final String musicId = MediaIDHelper.extractMusicIDFromMediaID(
                 currentMusic.getDescription().getMediaId());
-        MediaMetadata metadata = mMusicProvider.getMusic(musicId);
+        MediaMetadataCompat metadata = mMusicProvider.getMusic(musicId);
         if (metadata == null) {
             throw new IllegalArgumentException("Invalid musicId " + musicId);
         }
@@ -199,7 +199,7 @@ public class QueueManager {
                     mMusicProvider.updateMusicArt(musicId, bitmap, icon);
 
                     // If we are still playing the same music, notify the listeners:
-                    MediaSession.QueueItem currentMusic = getCurrentMusic();
+                    MediaSessionCompat.QueueItem currentMusic = getCurrentMusic();
                     if (currentMusic == null) {
                         return;
                     }
@@ -214,9 +214,9 @@ public class QueueManager {
     }
 
     public interface MetadataUpdateListener {
-        void onMetadataChanged(MediaMetadata metadata);
+        void onMetadataChanged(MediaMetadataCompat metadata);
         void onMetadataRetrieveError();
         void onCurrentQueueIndexUpdated(int queueIndex);
-        void onQueueUpdated(String title, List<MediaSession.QueueItem> newQueue);
+        void onQueueUpdated(String title, List<MediaSessionCompat.QueueItem> newQueue);
     }
 }
