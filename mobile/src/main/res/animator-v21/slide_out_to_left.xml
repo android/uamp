@@ -14,10 +14,17 @@
   See the License for the specific language governing permissions and
   limitations under the License.
   -->
-<set xmlns:android="http://schemas.android.com/apk/res/android">
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+     android:interpolator="@android:interpolator/fast_out_slow_in"
+     android:ordering="together">
     <objectAnimator
-        android:propertyName="y"
+        android:propertyName="x"
         android:valueType="floatType"
         android:valueFrom="0"
-        android:valueTo="2000"/>
+        android:valueTo="-2000"/>
+    <objectAnimator
+        android:propertyName="alpha"
+        android:valueType="floatType"
+        android:valueFrom="1"
+        android:valueTo="0"/>
 </set>

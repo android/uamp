@@ -25,12 +25,12 @@ import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.media.MediaDescription;
-import android.media.browse.MediaBrowser;
-import android.media.session.MediaSession;
 import android.net.Uri;
 import android.support.v17.leanback.widget.ImageCardView;
 import android.support.v17.leanback.widget.Presenter;
+import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.MediaDescriptionCompat;
+import android.support.v4.media.session.MediaSessionCompat;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -59,13 +59,13 @@ public class CardPresenter extends Presenter {
 
     @Override
     public void onBindViewHolder(Presenter.ViewHolder viewHolder, Object item) {
-        MediaDescription description;
-        if (item instanceof  MediaBrowser.MediaItem) {
-            MediaBrowser.MediaItem mediaItem = (MediaBrowser.MediaItem) item;
+        MediaDescriptionCompat description;
+        if (item instanceof  MediaBrowserCompat.MediaItem) {
+            MediaBrowserCompat.MediaItem mediaItem = (MediaBrowserCompat.MediaItem) item;
             LogHelper.d(TAG, "onBindViewHolder MediaItem: ", mediaItem.toString());
             description = mediaItem.getDescription();
-        } else if (item instanceof MediaSession.QueueItem) {
-            MediaSession.QueueItem queueItem = (MediaSession.QueueItem) item;
+        } else if (item instanceof MediaSessionCompat.QueueItem) {
+            MediaSessionCompat.QueueItem queueItem = (MediaSessionCompat.QueueItem) item;
             description = queueItem.getDescription();
         } else {
             throw new IllegalArgumentException("Object must be MediaItem or QueueItem, not "

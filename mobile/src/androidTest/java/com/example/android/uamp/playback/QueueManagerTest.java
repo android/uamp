@@ -15,10 +15,10 @@
  */
 package com.example.android.uamp.playback;
 
-import android.media.MediaMetadata;
-import android.media.session.MediaSession;
 import android.support.annotation.NonNull;
 import android.support.test.runner.AndroidJUnit4;
+import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.session.MediaSessionCompat;
 import android.test.mock.MockResources;
 
 import com.example.android.uamp.TestSetupHelper;
@@ -69,7 +69,7 @@ public class QueueManagerTest {
     }
 
     private QueueManager createQueueManagerWithValidation(final CountDownLatch latch,
-            final int expectedQueueIndex, final List<MediaSession.QueueItem> expectedNewQueue) {
+            final int expectedQueueIndex, final List<MediaSessionCompat.QueueItem> expectedNewQueue) {
         MockResources resources = new MockResources() {
             @NonNull
             @Override
@@ -85,7 +85,7 @@ public class QueueManagerTest {
         return new QueueManager(provider, resources,
                 new QueueManager.MetadataUpdateListener() {
                     @Override
-                    public void onMetadataChanged(MediaMetadata metadata) {
+                    public void onMetadataChanged(MediaMetadataCompat metadata) {
                     }
 
                     @Override
@@ -101,7 +101,7 @@ public class QueueManagerTest {
                     }
 
                     @Override
-                    public void onQueueUpdated(String title, List<MediaSession.QueueItem> newQueue) {
+                    public void onQueueUpdated(String title, List<MediaSessionCompat.QueueItem> newQueue) {
                         if (expectedNewQueue != null) {
                             assertEquals(expectedNewQueue, newQueue);
                         }
@@ -117,10 +117,10 @@ public class QueueManagerTest {
         Iterator<String> genres = provider.getGenres().iterator();
         String genre1 = genres.next();
         String genre2 = genres.next();
-        List<MediaSession.QueueItem> queueGenre1 = QueueHelper.getPlayingQueue(
+        List<MediaSessionCompat.QueueItem> queueGenre1 = QueueHelper.getPlayingQueue(
                 MediaIDHelper.createMediaID(null, MediaIDHelper.MEDIA_ID_MUSICS_BY_GENRE, genre1),
                 provider);
-        List<MediaSession.QueueItem> queueGenre2 = QueueHelper.getPlayingQueue(
+        List<MediaSessionCompat.QueueItem> queueGenre2 = QueueHelper.getPlayingQueue(
                 MediaIDHelper.createMediaID(null, MediaIDHelper.MEDIA_ID_MUSICS_BY_GENRE, genre2),
                 provider);
 
@@ -137,11 +137,11 @@ public class QueueManagerTest {
     @Test
     public void testSetValidQueueItem() throws Exception {
         // Get a queue that contains songs with space on their title (all in our test dataset)
-        List<MediaSession.QueueItem> queue = QueueHelper.getPlayingQueueFromSearch(
+        List<MediaSessionCompat.QueueItem> queue = QueueHelper.getPlayingQueueFromSearch(
                 " ", null, provider);
 
         int expectedItemIndex = queue.size() - 1;
-        MediaSession.QueueItem expectedItem = queue.get(expectedItemIndex);
+        MediaSessionCompat.QueueItem expectedItem = queue.get(expectedItemIndex);
         // Latch for 3 tests
         CountDownLatch latch = new CountDownLatch(3);
         QueueManager queueManager = createQueueManagerWithValidation(latch, expectedItemIndex,
@@ -162,7 +162,7 @@ public class QueueManagerTest {
     @Test
     public void testSetInvalidQueueItem() throws Exception {
         // Get a queue that contains songs with space on their title (all in our test dataset)
-        List<MediaSession.QueueItem> queue = QueueHelper.getPlayingQueueFromSearch(
+        List<MediaSessionCompat.QueueItem> queue = QueueHelper.getPlayingQueueFromSearch(
                 " ", null, provider);
 
         int expectedItemIndex = queue.size() - 1;
@@ -193,7 +193,7 @@ public class QueueManagerTest {
     @Test
     public void testSkip() throws Exception {
         // Get a queue that contains songs with space on their title (all in our test dataset)
-        List<MediaSession.QueueItem> queue = QueueHelper.getPlayingQueueFromSearch(
+        List<MediaSessionCompat.QueueItem> queue = QueueHelper.getPlayingQueueFromSearch(
                 " ", null, provider);
         assertTrue(queue.size() > 3);
 
@@ -237,7 +237,7 @@ public class QueueManagerTest {
 
         // for each result, check if it contains the search term in its title
         for (int i=0; i < queueManager.getCurrentQueueSize(); i++) {
-            MediaSession.QueueItem item = queueManager.getCurrentMusic();
+            MediaSessionCompat.QueueItem item = queueManager.getCurrentMusic();
             assertTrue(item.getDescription().getTitle().toString().contains("Romantic"));
             queueManager.skipQueuePosition(1);
         }
@@ -249,7 +249,7 @@ public class QueueManagerTest {
         // get the first music of the first genre and build a hierarchy-aware version of its
         // mediaId
         String genre = provider.getGenres().iterator().next();
-        MediaMetadata metadata = provider.getMusicsByGenre(genre).iterator().next();
+        MediaMetadataCompat metadata = provider.getMusicsByGenre(genre).iterator().next();
         String hierarchyAwareMediaID = MediaIDHelper.createMediaID(
                 metadata.getDescription().getMediaId(), MediaIDHelper.MEDIA_ID_MUSICS_BY_GENRE,
                 genre);
@@ -260,7 +260,7 @@ public class QueueManagerTest {
 
         // count all songs with the same genre
         int count = 0;
-        for (MediaMetadata m: provider.getMusicsByGenre(genre)) {
+        for (MediaMetadataCompat m: provider.getMusicsByGenre(genre)) {
             count++;
         }
 
@@ -269,11 +269,11 @@ public class QueueManagerTest {
 
         // Now check if all songs in current queue have the expected genre:
         for (int i=0; i < queueManager.getCurrentQueueSize(); i++) {
-            MediaSession.QueueItem item = queueManager.getCurrentMusic();
+            MediaSessionCompat.QueueItem item = queueManager.getCurrentMusic();
             String musicId = MediaIDHelper.extractMusicIDFromMediaID(
                     item.getDescription().getMediaId());
             String itemGenre = provider.getMusic(musicId).getString(
-                    MediaMetadata.METADATA_KEY_GENRE);
+                    MediaMetadataCompat.METADATA_KEY_GENRE);
             assertEquals(genre, itemGenre);
             queueManager.skipQueuePosition(1);
         }

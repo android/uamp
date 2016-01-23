@@ -16,7 +16,7 @@
 
 package com.example.android.uamp.model;
 
-import android.media.MediaMetadata;
+import android.support.v4.media.MediaMetadataCompat;
 
 import com.example.android.uamp.utils.LogHelper;
 
@@ -30,7 +30,6 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 
 /**
@@ -56,20 +55,19 @@ public class RemoteJSONSource implements MusicProviderSource {
     private static final String JSON_DURATION = "duration";
 
     @Override
-    public Iterator<MediaMetadata> iterator() {
+    public Iterator<MediaMetadataCompat> iterator() {
         try {
             int slashPos = CATALOG_URL.lastIndexOf('/');
             String path = CATALOG_URL.substring(0, slashPos + 1);
             JSONObject jsonObj = fetchJSONFromUrl(CATALOG_URL);
-            if (jsonObj == null) {
-                return Collections.emptyIterator();
-            }
-            JSONArray jsonTracks = jsonObj.getJSONArray(JSON_MUSIC);
-            ArrayList<MediaMetadata> tracks = new ArrayList<>();
+            ArrayList<MediaMetadataCompat> tracks = new ArrayList<>();
+            if (jsonObj != null) {
+                JSONArray jsonTracks = jsonObj.getJSONArray(JSON_MUSIC);
 
-            if (jsonTracks != null) {
-                for (int j = 0; j < jsonTracks.length(); j++) {
-                    tracks.add(buildFromJSON(jsonTracks.getJSONObject(j), path));
+                if (jsonTracks != null) {
+                    for (int j = 0; j < jsonTracks.length(); j++) {
+                        tracks.add(buildFromJSON(jsonTracks.getJSONObject(j), path));
+                    }
                 }
             }
             return tracks.iterator();
@@ -79,7 +77,7 @@ public class RemoteJSONSource implements MusicProviderSource {
         }
     }
 
-    private MediaMetadata buildFromJSON(JSONObject json, String basePath) throws JSONException {
+    private MediaMetadataCompat buildFromJSON(JSONObject json, String basePath) throws JSONException {
         String title = json.getString(JSON_TITLE);
         String album = json.getString(JSON_ALBUM);
         String artist = json.getString(JSON_ARTIST);
@@ -107,17 +105,18 @@ public class RemoteJSONSource implements MusicProviderSource {
         // mediaSession.setMetadata) is not a good idea for a real world music app, because
         // the session metadata can be accessed by notification listeners. This is done in this
         // sample for convenience only.
-        return new MediaMetadata.Builder()
-                .putString(MediaMetadata.METADATA_KEY_MEDIA_ID, id)
+        //noinspection ResourceType
+        return new MediaMetadataCompat.Builder()
+                .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, id)
                 .putString(MusicProviderSource.CUSTOM_METADATA_TRACK_SOURCE, source)
-                .putString(MediaMetadata.METADATA_KEY_ALBUM, album)
-                .putString(MediaMetadata.METADATA_KEY_ARTIST, artist)
-                .putLong(MediaMetadata.METADATA_KEY_DURATION, duration)
-                .putString(MediaMetadata.METADATA_KEY_GENRE, genre)
-                .putString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI, iconUrl)
-                .putString(MediaMetadata.METADATA_KEY_TITLE, title)
-                .putLong(MediaMetadata.METADATA_KEY_TRACK_NUMBER, trackNumber)
-                .putLong(MediaMetadata.METADATA_KEY_NUM_TRACKS, totalTrackCount)
+                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, album)
+                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
+                .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration)
+                .putString(MediaMetadataCompat.METADATA_KEY_GENRE, genre)
+                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, iconUrl)
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
+                .putLong(MediaMetadataCompat.METADATA_KEY_TRACK_NUMBER, trackNumber)
+                .putLong(MediaMetadataCompat.METADATA_KEY_NUM_TRACKS, totalTrackCount)
                 .build();
     }
 

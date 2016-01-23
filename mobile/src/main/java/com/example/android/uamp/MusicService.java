@@ -21,15 +21,17 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.media.MediaMetadata;
-import android.media.browse.MediaBrowser.MediaItem;
-import android.media.session.MediaSession;
-import android.media.session.PlaybackState;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.service.media.MediaBrowserService;
+import android.os.RemoteException;
 import android.support.annotation.NonNull;
+import android.support.v4.media.MediaBrowserCompat.MediaItem;
+import android.support.v4.media.MediaBrowserServiceCompat;
+import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.session.MediaButtonReceiver;
+import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.media.MediaRouter;
 
 import com.example.android.uamp.model.MusicProvider;
@@ -107,7 +109,7 @@ import static com.example.android.uamp.utils.MediaIDHelper.MEDIA_ID_ROOT;
  * @see <a href="README.md">README.md</a> for more details.
  *
  */
-public class MusicService extends MediaBrowserService implements
+public class MusicService extends MediaBrowserServiceCompat implements
         PlaybackManager.PlaybackServiceCallback {
 
     private static final String TAG = LogHelper.makeLogTag(MusicService.class);
@@ -132,7 +134,7 @@ public class MusicService extends MediaBrowserService implements
     private MusicProvider mMusicProvider;
     private PlaybackManager mPlaybackManager;
 
-    private MediaSession mSession;
+    private MediaSessionCompat mSession;
     private MediaNotificationManager mMediaNotificationManager;
     private Bundle mSessionExtras;
     private final DelayedStopHandler mDelayedStopHandler = new DelayedStopHandler(this);
@@ -203,7 +205,7 @@ public class MusicService extends MediaBrowserService implements
         QueueManager queueManager = new QueueManager(mMusicProvider, getResources(),
                 new QueueManager.MetadataUpdateListener() {
                     @Override
-                    public void onMetadataChanged(MediaMetadata metadata) {
+                    public void onMetadataChanged(MediaMetadataCompat metadata) {
                         mSession.setMetadata(metadata);
                     }
 
@@ -220,7 +222,7 @@ public class MusicService extends MediaBrowserService implements
 
                     @Override
                     public void onQueueUpdated(String title,
-                                               List<MediaSession.QueueItem> newQueue) {
+                                               List<MediaSessionCompat.QueueItem> newQueue) {
                         mSession.setQueue(newQueue);
                         mSession.setQueueTitle(title);
                     }
@@ -231,11 +233,11 @@ public class MusicService extends MediaBrowserService implements
                 playback);
 
         // Start a new MediaSession
-        mSession = new MediaSession(this, "MusicService");
+        mSession = new MediaSessionCompat(this, "MusicService");
         setSessionToken(mSession.getSessionToken());
         mSession.setCallback(mPlaybackManager.getMediaSessionCallback());
-        mSession.setFlags(MediaSession.FLAG_HANDLES_MEDIA_BUTTONS |
-                MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS);
+        mSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS |
+                MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
 
         Context context = getApplicationContext();
         Intent intent = new Intent(context, NowPlayingActivity.class);
@@ -251,7 +253,11 @@ public class MusicService extends MediaBrowserService implements
 
         mPlaybackManager.updatePlaybackState(null);
 
-        mMediaNotificationManager = new MediaNotificationManager(this);
+        try {
+            mMediaNotificationManager = new MediaNotificationManager(this);
+        } catch (RemoteException e) {
+            throw new IllegalStateException("Could not create a MediaNotificationManager", e);
+        }
         VideoCastManager.getInstance().addVideoCastConsumer(mCastConsumer);
         mMediaRouter = MediaRouter.getInstance(getApplicationContext());
 
@@ -273,6 +279,9 @@ public class MusicService extends MediaBrowserService implements
                 } else if (CMD_STOP_CASTING.equals(command)) {
                     VideoCastManager.getInstance().disconnect();
                 }
+            } else {
+                // Try to handle the intent as a media button event wrapped by MediaButtonReceiver
+                MediaButtonReceiver.handleIntent(mSession, startIntent);
             }
         }
         // Reset the delay handler to enqueue a message to stop the service if
@@ -373,7 +382,7 @@ public class MusicService extends MediaBrowserService implements
     }
 
     @Override
-    public void onPlaybackStateUpdated(PlaybackState newState) {
+    public void onPlaybackStateUpdated(PlaybackStateCompat newState) {
         mSession.setPlaybackState(newState);
     }
 

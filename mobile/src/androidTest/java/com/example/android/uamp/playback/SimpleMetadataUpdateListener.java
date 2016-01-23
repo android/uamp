@@ -15,14 +15,14 @@
  */
 package com.example.android.uamp.playback;
 
-import android.media.MediaMetadata;
-import android.media.session.MediaSession;
+import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.session.MediaSessionCompat;
 
 import java.util.List;
 
 public class SimpleMetadataUpdateListener implements QueueManager.MetadataUpdateListener{
     @Override
-    public void onMetadataChanged(MediaMetadata metadata) {
+    public void onMetadataChanged(MediaMetadataCompat metadata) {
     }
 
     @Override
@@ -34,6 +34,6 @@ public class SimpleMetadataUpdateListener implements QueueManager.MetadataUpdate
     }
 
     @Override
-    public void onQueueUpdated(String title, List<MediaSession.QueueItem> newQueue) {
+    public void onQueueUpdated(String title, List<MediaSessionCompat.QueueItem> newQueue) {
     }
 }
