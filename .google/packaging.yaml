@@ -4,7 +4,7 @@
 # End users may safely ignore this file. It has no relevance to other systems.
 ---
 status:       PUBLISHED
-technologies: [Android, Android Auto, ChromeCast, Google Cast, Android Wear, Android TV]
+technologies: [Android, Android Auto, Google Cast, Android Wear, Android TV]
 categories:   [Getting Started, Media, UI]
 languages:    [Java]
 solutions:    [Mobile]
