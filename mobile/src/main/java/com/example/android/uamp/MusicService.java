@@ -159,7 +159,7 @@ public class MusicService extends MediaBrowserServiceCompat implements
             mSession.setExtras(mSessionExtras);
             // Now we can switch to CastPlayback
             Playback playback = new CastPlayback(mMusicProvider);
-            mMediaRouter.setMediaSession(mSession);
+            mMediaRouter.setMediaSessionCompat(mSession);
             mPlaybackManager.switchToPlayback(playback, true);
         }
 
@@ -179,7 +179,7 @@ public class MusicService extends MediaBrowserServiceCompat implements
             mSessionExtras.remove(EXTRA_CONNECTED_CAST);
             mSession.setExtras(mSessionExtras);
             Playback playback = new LocalPlayback(MusicService.this, mMusicProvider);
-            mMediaRouter.setMediaSession(null);
+            mMediaRouter.setMediaSessionCompat(null);
             mPlaybackManager.switchToPlayback(playback, false);
         }
     };

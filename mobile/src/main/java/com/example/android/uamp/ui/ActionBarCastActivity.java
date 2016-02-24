@@ -27,7 +27,6 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.MediaRouteButton;
-import android.support.v7.media.MediaRouter;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -35,11 +34,9 @@ import android.view.View;
 
 import com.example.android.uamp.R;
 import com.example.android.uamp.utils.LogHelper;
-import com.example.android.uamp.utils.PrefUtils;
-import com.github.amlcurran.showcaseview.ShowcaseView;
-import com.github.amlcurran.showcaseview.targets.ViewTarget;
 import com.google.android.libraries.cast.companionlibrary.cast.VideoCastManager;
 import com.google.android.libraries.cast.companionlibrary.cast.callbacks.VideoCastConsumerImpl;
+import com.google.android.libraries.cast.companionlibrary.widgets.IntroductoryOverlay;
 
 /**
  * Abstract activity with toolbar, navigation drawer and cast support. Needs to be extended by
@@ -84,26 +81,21 @@ public abstract class ActionBarCastActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onCastDeviceDetected(final MediaRouter.RouteInfo info) {
-            // FTU stands for First Time Use:
-            if (!PrefUtils.isFtuShown(ActionBarCastActivity.this)) {
-                // If user is seeing the cast button for the first time, we will
-                // show an overlay that explains what that button means.
-                PrefUtils.setFtuShown(ActionBarCastActivity.this, true);
-
-                LogHelper.d(TAG, "Route is visible: ", info);
+        public void onCastAvailabilityChanged(boolean castPresent) {
+            if (castPresent) {
                 new Handler().postDelayed(new Runnable() {
 
                     @Override
                     public void run() {
                         if (mMediaRouteMenuItem.isVisible()) {
-                            LogHelper.d(TAG, "Cast Icon is visible: ", info.getName());
+                            LogHelper.d(TAG, "Cast Icon is visible");
                             showFtu();
                         }
                     }
                 }, DELAY_MILLIS);
             }
         }
+
     };
 
     private final DrawerLayout.DrawerListener mDrawerListener = new DrawerLayout.DrawerListener() {
@@ -335,11 +327,12 @@ public abstract class ActionBarCastActivity extends AppCompatActivity {
         Menu menu = mToolbar.getMenu();
         View view = menu.findItem(R.id.media_route_menu_item).getActionView();
         if (view != null && view instanceof MediaRouteButton) {
-            new ShowcaseView.Builder(this)
-                    .setTarget(new ViewTarget(view))
-                    .setContentTitle(R.string.touch_to_cast)
-                    .hideOnTouchOutside()
+            IntroductoryOverlay overlay = new IntroductoryOverlay.Builder(this)
+                    .setMenuItem(mMediaRouteMenuItem)
+                    .setTitleText(R.string.touch_to_cast)
+                    .setSingleTime()
                     .build();
+            overlay.show();
         }
     }
 }
