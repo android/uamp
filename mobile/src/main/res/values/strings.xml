@@ -33,7 +33,7 @@
     <string name="play_pause">play or pause</string>
     <string name="skip_next">skip to next</string>
     <string name="skip_prev">skip to previous</string>
-    <string name="touch_to_cast">Touch to Cast</string>
+    <string name="touch_to_cast">Touch to connect to a Google Cast device</string>
     <!-- Use the default receiver. To customize a styled media receiver, you can use
          the css and images under <project-root>/docs/cast_styled_receiver -->
     <string name="cast_application_id">CC1AD845</string>
