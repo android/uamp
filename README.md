@@ -9,7 +9,7 @@ on Android phones, tablets, Android Auto, Android Wear, Android TV and Google Ca
 Pre-requisites
 --------------
 
-- Android SDK v21
+- Android SDK v17
 
 Getting Started
 ---------------
