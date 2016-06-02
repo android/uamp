@@ -362,9 +362,13 @@ public class PlaybackManager implements Playback.Callback {
             LogHelper.d(TAG, "playFromSearch  query=", query, " extras=", extras);
 
             mPlayback.setState(PlaybackStateCompat.STATE_CONNECTING);
-            mQueueManager.setQueueFromSearch(query, extras);
-            handlePlayRequest();
-            mQueueManager.updateMetadata();
+            boolean successSearch = mQueueManager.setQueueFromSearch(query, extras);
+            if (successSearch) {
+                handlePlayRequest();
+                mQueueManager.updateMetadata();
+            } else {
+                updatePlaybackState("Could not find music");
+            }
         }
     }
 
