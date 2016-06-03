@@ -199,6 +199,10 @@ public class MusicProvider {
         }
     }
 
+    public boolean isInitialized() {
+        return mCurrentState == State.INITIALIZED;
+    }
+
     public boolean isFavorite(String musicId) {
         return mFavoriteTracks.contains(musicId);
     }
