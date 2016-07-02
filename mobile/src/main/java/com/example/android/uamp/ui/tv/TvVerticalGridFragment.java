@@ -29,10 +29,12 @@ import android.support.v17.leanback.widget.RowPresenter;
 import android.support.v17.leanback.widget.VerticalGridPresenter;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.text.TextUtils;
 
 import com.example.android.uamp.utils.LogHelper;
+import com.example.android.uamp.utils.MediaIDHelper;
 
 import java.util.List;
 
@@ -119,7 +121,24 @@ public class TvVerticalGridFragment extends VerticalGridSupportFragment {
                 return;
             }
             MediaControllerCompat.TransportControls controls = controller.getTransportControls();
-            controls.playFromMediaId(((MediaBrowserCompat.MediaItem) item).getMediaId(), null);
+            MediaBrowserCompat.MediaItem mediaItem = (MediaBrowserCompat.MediaItem) item;
+
+            // if clicked media item is not already playing, call skipToQueueItem to play it
+            if (controller != null) {
+                MediaMetadataCompat metadata = controller.getMetadata();
+                if (metadata != null) {
+                    String itemMusicId = MediaIDHelper
+                            .extractMusicIDFromMediaID(mediaItem.getMediaId());
+                    if (!TextUtils.equals(metadata.getDescription().getMediaId(),
+                            itemMusicId)) {
+                        controls.playFromMediaId(mediaItem.getMediaId(), null);
+                    }
+                } else {
+                    controls.playFromMediaId(mediaItem.getMediaId(), null);
+                }
+            } else {
+                controls.playFromMediaId(mediaItem.getMediaId(), null);
+            }
 
             Intent intent = new Intent(getActivity(), TvPlaybackActivity.class);
             Bundle bundle = ActivityOptionsCompat.makeSceneTransitionAnimation(
