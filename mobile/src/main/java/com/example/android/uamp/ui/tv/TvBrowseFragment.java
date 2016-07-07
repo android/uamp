@@ -256,17 +256,12 @@ public class TvBrowseFragment extends BrowseSupportFragment {
                             .getSupportMediaController();
 
                     // if clicked media item is not already playing, call skipToQueueItem to play it
-                    if (mediaController != null) {
-                        MediaMetadataCompat metadata = mediaController.getMetadata();
-                        if (metadata != null) {
-                            String itemMusicId = MediaIDHelper
-                                    .extractMusicIDFromMediaID(item.getDescription().getMediaId());
-                            if (!TextUtils.equals(metadata.getDescription().getMediaId(),
-                                    itemMusicId)) {
-                                mediaController.getTransportControls()
-                                    .skipToQueueItem(item.getQueueId());
-                            }
-                        } else {
+                    if (mediaController != null && mediaController.getMetadata() != null) {
+                        String currentPlaying = mediaController.getMetadata()
+                                .getDescription().getMediaId();
+                        String itemMusicId = MediaIDHelper
+                                .extractMusicIDFromMediaID(item.getDescription().getMediaId());
+                        if (!TextUtils.equals(currentPlaying, itemMusicId)) {
                             mediaController.getTransportControls()
                                     .skipToQueueItem(item.getQueueId());
                         }

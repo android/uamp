@@ -124,16 +124,12 @@ public class TvVerticalGridFragment extends VerticalGridSupportFragment {
             MediaBrowserCompat.MediaItem mediaItem = (MediaBrowserCompat.MediaItem) item;
 
             // if clicked media item is not already playing, call skipToQueueItem to play it
-            if (controller != null) {
-                MediaMetadataCompat metadata = controller.getMetadata();
-                if (metadata != null) {
-                    String itemMusicId = MediaIDHelper
-                            .extractMusicIDFromMediaID(mediaItem.getMediaId());
-                    if (!TextUtils.equals(metadata.getDescription().getMediaId(),
-                            itemMusicId)) {
-                        controls.playFromMediaId(mediaItem.getMediaId(), null);
-                    }
-                } else {
+            if (controller != null && controller.getMetadata() != null) {
+                String currentPlaying = controller.getMetadata()
+                        .getDescription().getMediaId();
+                String itemMusicId = MediaIDHelper
+                        .extractMusicIDFromMediaID(mediaItem.getMediaId());
+                if (!TextUtils.equals(currentPlaying, itemMusicId)) {
                     controls.playFromMediaId(mediaItem.getMediaId(), null);
                 }
             } else {
