@@ -274,7 +274,6 @@ public class PlaybackManager implements Playback.Callback {
         public void onSkipToQueueItem(long queueId) {
             LogHelper.d(TAG, "OnSkipToQueueItem:" + queueId);
             mQueueManager.setCurrentQueueItem(queueId);
-            handlePlayRequest();
             mQueueManager.updateMetadata();
         }
 
