@@ -270,6 +270,7 @@ public class TvPlaybackFragment extends PlaybackOverlaySupportFragment {
             mHandler.removeCallbacks(mRunnable);
             setFadingEnabled(false);
         }
+        mPlaybackControlsRow.setCurrentTime((int) mLastPosition);
     }
 
     private void updateAlbumArt(Uri artUri) {
