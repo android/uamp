@@ -235,10 +235,10 @@ public class TvBrowseFragment extends BrowseSupportFragment {
     private void setupEventListeners() {
         setOnItemViewClickedListener(new OnItemViewClickedListener() {
             @Override
-            public void onItemClicked(Presenter.ViewHolder viewHolder, Object o,
+            public void onItemClicked(Presenter.ViewHolder viewHolder, Object clickedItem,
                                       RowPresenter.ViewHolder viewHolder2, Row row) {
-                if (o instanceof MediaBrowserCompat.MediaItem) {
-                    MediaItem item = (MediaItem) o;
+                if (clickedItem instanceof MediaBrowserCompat.MediaItem) {
+                    MediaItem item = (MediaItem) clickedItem;
                     if (item.isPlayable()) {
                         LogHelper.w(TAG, "Ignoring click on PLAYABLE MediaItem in" +
                                 "TvBrowseFragment. mediaId=", item.getMediaId());
@@ -250,8 +250,8 @@ public class TvBrowseFragment extends BrowseSupportFragment {
                             item.getDescription().getTitle());
                     startActivity(intent);
 
-                } else if (o instanceof MediaSessionCompat.QueueItem) {
-                    MediaSessionCompat.QueueItem item = (MediaSessionCompat.QueueItem) o;
+                } else if (clickedItem instanceof MediaSessionCompat.QueueItem) {
+                    MediaSessionCompat.QueueItem item = (MediaSessionCompat.QueueItem) clickedItem;
                     MediaControllerCompat mediaController = getActivity()
                             .getSupportMediaController();
 
