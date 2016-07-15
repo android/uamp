@@ -51,6 +51,7 @@ import android.text.TextUtils;
 
 import com.example.android.uamp.AlbumArtCache;
 import com.example.android.uamp.utils.LogHelper;
+import com.example.android.uamp.utils.MediaIDHelper;
 
 import java.util.List;
 
@@ -339,14 +340,27 @@ public class TvPlaybackFragment extends PlaybackOverlaySupportFragment {
 
     private final class ItemViewClickedListener implements OnItemViewClickedListener {
         @Override
-        public void onItemClicked(Presenter.ViewHolder itemViewHolder, Object item,
+        public void onItemClicked(Presenter.ViewHolder itemViewHolder, Object clickedItem,
                                   RowPresenter.ViewHolder rowViewHolder, Row row) {
 
-            if (item instanceof MediaSessionCompat.QueueItem) {
-                LogHelper.d(TAG, "item: ", item.toString());
+            if (clickedItem instanceof MediaSessionCompat.QueueItem) {
+                LogHelper.d(TAG, "item: ", clickedItem.toString());
+
+                MediaSessionCompat.QueueItem item = (MediaSessionCompat.QueueItem) clickedItem;
                 MediaControllerCompat controller = getActivity().getSupportMediaController();
-                controller.getTransportControls().skipToQueueItem(
-                        ((MediaSessionCompat.QueueItem) item).getQueueId());
+
+                // call skipToQueueItem to start playback if item is not currently playing
+                if (controller != null && controller.getMetadata() != null) {
+                    String currentPlaying = controller.getMetadata()
+                            .getDescription().getMediaId();
+                    String itemMusicId = MediaIDHelper
+                            .extractMusicIDFromMediaID(item.getDescription().getMediaId());
+                    if (!TextUtils.equals(currentPlaying, itemMusicId)
+                            || controller.getPlaybackState().getState()
+                            != PlaybackStateCompat.STATE_PLAYING) {
+                        controller.getTransportControls().skipToQueueItem(item.getQueueId());
+                    }
+                }
             }
         }
     }
