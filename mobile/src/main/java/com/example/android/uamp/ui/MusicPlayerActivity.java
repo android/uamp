@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (C) 2014 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -61,8 +61,9 @@ public class MusicPlayerActivity extends BaseActivity
 
         setContentView(R.layout.activity_player);
 
-        initializeToolbar();
-        initializeFromParams(savedInstanceState, getIntent());//初始化
+
+        initializeToolbar();//初始化标题
+        initializeFromParams(savedInstanceState, getIntent());
 
         // Only check if a full screen player is needed on the first time:
         if (savedInstanceState == null) {
