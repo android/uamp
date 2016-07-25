@@ -26,6 +26,8 @@ import android.text.TextUtils;
 import com.example.android.uamp.R;
 import com.example.android.uamp.utils.LogHelper;
 
+import java.util.Date;
+
 /**
  * Main activity for the music player.
  * This class hold the MediaBrowser and the MediaController instances. It will create a MediaBrowser
@@ -60,12 +62,13 @@ public class MusicPlayerActivity extends BaseActivity
         setContentView(R.layout.activity_player);
 
         initializeToolbar();
-        initializeFromParams(savedInstanceState, getIntent());
+        initializeFromParams(savedInstanceState, getIntent());//初始化
 
         // Only check if a full screen player is needed on the first time:
         if (savedInstanceState == null) {
             startFullScreenActivityIfNeeded(getIntent());
         }
+
     }
 
     @Override
