@@ -32,12 +32,11 @@ import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
-import android.text.TextUtils;
 import android.view.View;
 
 import com.example.android.uamp.R;
 import com.example.android.uamp.utils.LogHelper;
-import com.example.android.uamp.utils.MediaIDHelper;
+import com.example.android.uamp.utils.QueueHelper;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -116,19 +115,21 @@ public class TvBrowseFragment extends BrowseSupportFragment {
     };
 
     private void updateNowPlayingList(List<MediaSessionCompat.QueueItem> queue, long activeQueueId) {
-        mListRowAdapter.clear();
-        if (activeQueueId != MediaSessionCompat.QueueItem.UNKNOWN_ID) {
-            Iterator<MediaSessionCompat.QueueItem> iterator = queue.iterator();
-            while (iterator.hasNext()) {
-                MediaSessionCompat.QueueItem queueItem = iterator.next();
-                if (activeQueueId != queueItem.getQueueId()) {
-                    iterator.remove();
-                } else {
-                    break;
+        if (mListRowAdapter != null) {
+            mListRowAdapter.clear();
+            if (activeQueueId != MediaSessionCompat.QueueItem.UNKNOWN_ID) {
+                Iterator<MediaSessionCompat.QueueItem> iterator = queue.iterator();
+                while (iterator.hasNext()) {
+                    MediaSessionCompat.QueueItem queueItem = iterator.next();
+                    if (activeQueueId != queueItem.getQueueId()) {
+                        iterator.remove();
+                    } else {
+                        break;
+                    }
                 }
             }
+            mListRowAdapter.addAll(0, queue);
         }
-        mListRowAdapter.addAll(0, queue);
     }
 
     private final MediaBrowserCompat.SubscriptionCallback mSubscriptionCallback =
@@ -255,18 +256,9 @@ public class TvBrowseFragment extends BrowseSupportFragment {
                     MediaControllerCompat mediaController = getActivity()
                             .getSupportMediaController();
 
-                    // if clicked media item is not already playing, call skipToQueueItem to play it
-                    if (mediaController != null && mediaController.getMetadata() != null) {
-                        String currentPlaying = mediaController.getMetadata()
-                                .getDescription().getMediaId();
-                        String itemMusicId = MediaIDHelper
-                                .extractMusicIDFromMediaID(item.getDescription().getMediaId());
-                        if (!TextUtils.equals(currentPlaying, itemMusicId)) {
-                            mediaController.getTransportControls()
-                                    .skipToQueueItem(item.getQueueId());
-                        }
-                    } else {
-                        mediaController.getTransportControls().skipToQueueItem(item.getQueueId());
+                    if (!QueueHelper.isQueueItemPlaying(getActivity(), item)) {
+                        mediaController.getTransportControls()
+                                .skipToQueueItem(item.getQueueId());
                     }
 
                     Intent intent = new Intent(getActivity(), TvPlaybackActivity.class);

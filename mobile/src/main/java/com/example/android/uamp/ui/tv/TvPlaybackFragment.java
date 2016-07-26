@@ -47,11 +47,10 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
-import android.text.TextUtils;
 
 import com.example.android.uamp.AlbumArtCache;
 import com.example.android.uamp.utils.LogHelper;
-import com.example.android.uamp.utils.MediaIDHelper;
+import com.example.android.uamp.utils.QueueHelper;
 
 import java.util.List;
 
@@ -168,31 +167,8 @@ public class TvPlaybackFragment extends PlaybackOverlaySupportFragment {
         mPrimaryActionsAdapter.add(mSkipNextAction);
     }
 
-    private boolean equalsQueue(List<MediaSessionCompat.QueueItem> list1,
-                                List<MediaSessionCompat.QueueItem> list2) {
-        if (list1 == list2) {
-            return true;
-        }
-        if (list1 == null || list2 == null) {
-            return false;
-        }
-        if (list1.size() != list2.size()) {
-            return false;
-        }
-        for (int i=0; i<list1.size(); i++) {
-            if (list1.get(i).getQueueId() != list2.get(i).getQueueId()) {
-                return false;
-            }
-            if (!TextUtils.equals(list1.get(i).getDescription().getMediaId(),
-                    list2.get(i).getDescription().getMediaId())) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     protected void updatePlayListRow(List<MediaSessionCompat.QueueItem> playlistQueue) {
-        if (equalsQueue(mPlaylistQueue, playlistQueue)) {
+        if (QueueHelper.equals(mPlaylistQueue, playlistQueue)) {
             // if the playlist queue hasn't changed, we don't need to update it
             return;
         }
@@ -346,20 +322,12 @@ public class TvPlaybackFragment extends PlaybackOverlaySupportFragment {
             if (clickedItem instanceof MediaSessionCompat.QueueItem) {
                 LogHelper.d(TAG, "item: ", clickedItem.toString());
 
-                MediaSessionCompat.QueueItem item = (MediaSessionCompat.QueueItem) clickedItem;
                 MediaControllerCompat controller = getActivity().getSupportMediaController();
-
-                // call skipToQueueItem to start playback if item is not currently playing
-                if (controller != null && controller.getMetadata() != null) {
-                    String currentPlaying = controller.getMetadata()
-                            .getDescription().getMediaId();
-                    String itemMusicId = MediaIDHelper
-                            .extractMusicIDFromMediaID(item.getDescription().getMediaId());
-                    if (!TextUtils.equals(currentPlaying, itemMusicId)
-                            || controller.getPlaybackState().getState()
-                            != PlaybackStateCompat.STATE_PLAYING) {
-                        controller.getTransportControls().skipToQueueItem(item.getQueueId());
-                    }
+                MediaSessionCompat.QueueItem item = (MediaSessionCompat.QueueItem) clickedItem;
+                if (!QueueHelper.isQueueItemPlaying(getActivity(), item)
+                        || controller.getPlaybackState().getState()
+                        != PlaybackStateCompat.STATE_PLAYING) {
+                    controller.getTransportControls().skipToQueueItem(item.getQueueId());
                 }
             }
         }
