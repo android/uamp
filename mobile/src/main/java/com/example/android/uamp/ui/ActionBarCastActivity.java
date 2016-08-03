@@ -34,9 +34,11 @@ import android.view.View;
 
 import com.example.android.uamp.R;
 import com.example.android.uamp.utils.LogHelper;
-import com.google.android.libraries.cast.companionlibrary.cast.VideoCastManager;
-import com.google.android.libraries.cast.companionlibrary.cast.callbacks.VideoCastConsumerImpl;
-import com.google.android.libraries.cast.companionlibrary.widgets.IntroductoryOverlay;
+import com.google.android.gms.cast.framework.CastButtonFactory;
+import com.google.android.gms.cast.framework.CastContext;
+import com.google.android.gms.cast.framework.CastState;
+import com.google.android.gms.cast.framework.CastStateListener;
+import com.google.android.gms.cast.framework.IntroductoryOverlay;
 
 /**
  * Abstract activity with toolbar, navigation drawer and cast support. Needs to be extended by
@@ -54,7 +56,7 @@ public abstract class ActionBarCastActivity extends AppCompatActivity {
 
     private static final int DELAY_MILLIS = 1000;
 
-    private VideoCastManager mCastManager;
+    private CastContext mCastContext;
     private MenuItem mMediaRouteMenuItem;
     private Toolbar mToolbar;
     private ActionBarDrawerToggle mDrawerToggle;
@@ -64,27 +66,11 @@ public abstract class ActionBarCastActivity extends AppCompatActivity {
 
     private int mItemToOpenWhenDrawerCloses = -1;
 
-    private final VideoCastConsumerImpl mCastConsumer = new VideoCastConsumerImpl() {
-
+    private CastStateListener mCastStateListener = new CastStateListener() {
         @Override
-        public void onFailed(int resourceId, int statusCode) {
-            LogHelper.d(TAG, "onFailed ", resourceId, " status ", statusCode);
-        }
-
-        @Override
-        public void onConnectionSuspended(int cause) {
-            LogHelper.d(TAG, "onConnectionSuspended() was called with cause: ", cause);
-        }
-
-        @Override
-        public void onConnectivityRecovered() {
-        }
-
-        @Override
-        public void onCastAvailabilityChanged(boolean castPresent) {
-            if (castPresent) {
+        public void onCastStateChanged(int newState) {
+            if (newState != CastState.NO_DEVICES_AVAILABLE) {
                 new Handler().postDelayed(new Runnable() {
-
                     @Override
                     public void run() {
                         if (mMediaRouteMenuItem.isVisible()) {
@@ -95,7 +81,6 @@ public abstract class ActionBarCastActivity extends AppCompatActivity {
                 }, DELAY_MILLIS);
             }
         }
-
     };
 
     private final DrawerLayout.DrawerListener mDrawerListener = new DrawerLayout.DrawerListener() {
@@ -153,11 +138,7 @@ public abstract class ActionBarCastActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         LogHelper.d(TAG, "Activity onCreate");
 
-        // Ensure that Google Play Service is available.
-        VideoCastManager.checkGooglePlayServices(this);
-
-        mCastManager = VideoCastManager.getInstance();
-        mCastManager.reconnectSessionIfPossible();
+        mCastContext = CastContext.getSharedInstance(this);
     }
 
     @Override
@@ -180,8 +161,7 @@ public abstract class ActionBarCastActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        mCastManager.addVideoCastConsumer(mCastConsumer);
-        mCastManager.incrementUiCounter();
+        mCastContext.addCastStateListener(mCastStateListener);
 
         // Whenever the fragment back stack changes, we may need to update the
         // action bar toggle: only top level screens show the hamburger-like icon, inner
@@ -200,8 +180,7 @@ public abstract class ActionBarCastActivity extends AppCompatActivity {
     @Override
     public void onPause() {
         super.onPause();
-        mCastManager.removeVideoCastConsumer(mCastConsumer);
-        mCastManager.decrementUiCounter();
+        mCastContext.removeCastStateListener(mCastStateListener);
         getFragmentManager().removeOnBackStackChangedListener(mBackStackChangedListener);
     }
 
@@ -209,7 +188,8 @@ public abstract class ActionBarCastActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
         getMenuInflater().inflate(R.menu.main, menu);
-        mMediaRouteMenuItem = mCastManager.addMediaRouterButton(menu, R.id.media_route_menu_item);
+        mMediaRouteMenuItem = CastButtonFactory.setUpMediaRouteButton(getApplicationContext(),
+                menu, R.id.media_route_menu_item);
         return true;
     }
 
@@ -327,8 +307,7 @@ public abstract class ActionBarCastActivity extends AppCompatActivity {
         Menu menu = mToolbar.getMenu();
         View view = menu.findItem(R.id.media_route_menu_item).getActionView();
         if (view != null && view instanceof MediaRouteButton) {
-            IntroductoryOverlay overlay = new IntroductoryOverlay.Builder(this)
-                    .setMenuItem(mMediaRouteMenuItem)
+            IntroductoryOverlay overlay = new IntroductoryOverlay.Builder(this, mMediaRouteMenuItem)
                     .setTitleText(R.string.touch_to_cast)
                     .setSingleTime()
                     .build();
