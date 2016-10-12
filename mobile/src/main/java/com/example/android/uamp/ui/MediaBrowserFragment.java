@@ -311,30 +311,8 @@ public class MediaBrowserFragment extends Fragment {
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             MediaBrowserCompat.MediaItem item = getItem(position);
-            int itemState = MediaItemViewHolder.STATE_NONE;
-            if (item.isPlayable()) {
-                itemState = MediaItemViewHolder.STATE_PLAYABLE;
-                MediaControllerCompat controller = ((FragmentActivity) getContext())
-                        .getSupportMediaController();
-                if (controller != null && controller.getMetadata() != null) {
-                    String currentPlaying = controller.getMetadata().getDescription().getMediaId();
-                    String musicId = MediaIDHelper.extractMusicIDFromMediaID(
-                            item.getDescription().getMediaId());
-                    if (currentPlaying != null && currentPlaying.equals(musicId)) {
-                        PlaybackStateCompat pbState = controller.getPlaybackState();
-                        if (pbState == null ||
-                                pbState.getState() == PlaybackStateCompat.STATE_ERROR) {
-                            itemState = MediaItemViewHolder.STATE_NONE;
-                        } else if (pbState.getState() == PlaybackStateCompat.STATE_PLAYING) {
-                            itemState = MediaItemViewHolder.STATE_PLAYING;
-                        } else {
-                            itemState = MediaItemViewHolder.STATE_PAUSED;
-                        }
-                    }
-                }
-            }
-            return MediaItemViewHolder.setupView((Activity) getContext(), convertView, parent,
-                item.getDescription(), itemState);
+            return MediaItemViewHolder.setupListView((Activity) getContext(), convertView, parent,
+                    item);
         }
     }
 

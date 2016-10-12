@@ -29,7 +29,6 @@ import android.support.v17.leanback.widget.RowPresenter;
 import android.support.v17.leanback.widget.VerticalGridPresenter;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.media.MediaBrowserCompat;
-import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.text.TextUtils;
 
@@ -123,16 +122,7 @@ public class TvVerticalGridFragment extends VerticalGridSupportFragment {
             MediaControllerCompat.TransportControls controls = controller.getTransportControls();
             MediaBrowserCompat.MediaItem mediaItem = (MediaBrowserCompat.MediaItem) item;
 
-            // if clicked media item is not already playing, call skipToQueueItem to play it
-            if (controller != null && controller.getMetadata() != null) {
-                String currentPlaying = controller.getMetadata()
-                        .getDescription().getMediaId();
-                String itemMusicId = MediaIDHelper
-                        .extractMusicIDFromMediaID(mediaItem.getMediaId());
-                if (!TextUtils.equals(currentPlaying, itemMusicId)) {
-                    controls.playFromMediaId(mediaItem.getMediaId(), null);
-                }
-            } else {
+            if (!MediaIDHelper.isMediaItemPlaying(getActivity(), mediaItem)) {
                 controls.playFromMediaId(mediaItem.getMediaId(), null);
             }
 
