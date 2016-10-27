@@ -242,6 +242,7 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
             if (mMediaPlayer.isPlaying()) {
                 mState = PlaybackStateCompat.STATE_BUFFERING;
             }
+            registerAudioNoisyReceiver();
             mMediaPlayer.seekTo(position);
             if (mCallback != null) {
                 mCallback.onPlaybackStatusChanged(mState);
@@ -313,6 +314,7 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
                 pause();
             }
         } else {  // we have audio focus:
+            registerAudioNoisyReceiver();
             if (mAudioFocus == AUDIO_NO_FOCUS_CAN_DUCK) {
                 mMediaPlayer.setVolume(VOLUME_DUCK, VOLUME_DUCK); // we'll be relatively quiet
             } else {
@@ -383,6 +385,7 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
         LogHelper.d(TAG, "onSeekComplete from MediaPlayer:", mp.getCurrentPosition());
         mCurrentPosition = mp.getCurrentPosition();
         if (mState == PlaybackStateCompat.STATE_BUFFERING) {
+            registerAudioNoisyReceiver();
             mMediaPlayer.start();
             mState = PlaybackStateCompat.STATE_PLAYING;
         }
