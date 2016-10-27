@@ -274,12 +274,12 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
      */
     private void tryToGetAudioFocus() {
         LogHelper.d(TAG, "tryToGetAudioFocus");
-        if (mAudioFocus != AUDIO_FOCUSED) {
-            int result = mAudioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC,
-                    AudioManager.AUDIOFOCUS_GAIN);
-            if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-                mAudioFocus = AUDIO_FOCUSED;
-            }
+        int result = mAudioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC,
+                AudioManager.AUDIOFOCUS_GAIN);
+        if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+            mAudioFocus = AUDIO_FOCUSED;
+        } else {
+            mAudioFocus = AUDIO_NO_FOCUS_NO_DUCK;
         }
     }
 
@@ -288,10 +288,8 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
      */
     private void giveUpAudioFocus() {
         LogHelper.d(TAG, "giveUpAudioFocus");
-        if (mAudioFocus == AUDIO_FOCUSED) {
-            if (mAudioManager.abandonAudioFocus(this) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-                mAudioFocus = AUDIO_NO_FOCUS_NO_DUCK;
-            }
+        if (mAudioManager.abandonAudioFocus(this) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+            mAudioFocus = AUDIO_NO_FOCUS_NO_DUCK;
         }
     }
 
