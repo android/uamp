@@ -222,7 +222,6 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
             }
             // while paused, retain the MediaPlayer but give up audio focus
             relaxResources(false);
-            giveUpAudioFocus();
         }
         mState = PlaybackStateCompat.STATE_PAUSED;
         if (mCallback != null) {
