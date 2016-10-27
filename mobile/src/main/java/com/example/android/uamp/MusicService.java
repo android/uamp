@@ -339,9 +339,7 @@ public class MusicService extends MediaBrowserServiceCompat implements
      */
     @Override
     public void onPlaybackStart() {
-        if (!mSession.isActive()) {
-            mSession.setActive(true);
-        }
+        mSession.setActive(true);
 
         mDelayedStopHandler.removeCallbacksAndMessages(null);
 
@@ -357,6 +355,7 @@ public class MusicService extends MediaBrowserServiceCompat implements
      */
     @Override
     public void onPlaybackStop() {
+        mSession.setActive(false);
         // Reset the delayed stop handler, so after STOP_DELAY it will be executed again,
         // potentially stopping the service.
         mDelayedStopHandler.removeCallbacksAndMessages(null);
