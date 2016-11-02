@@ -178,6 +178,9 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
 
             //noinspection ResourceType
             String source = track.getString(MusicProviderSource.CUSTOM_METADATA_TRACK_SOURCE);
+            if (source != null) {
+                source = source.replaceAll(" ", "%20"); // Escape spaces for URLs
+            }
 
             try {
                 createMediaPlayerIfNeeded();
