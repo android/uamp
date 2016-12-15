@@ -99,17 +99,17 @@ public class PackageValidator {
         if (Process.SYSTEM_UID == callingUid || Process.myUid() == callingUid) {
             return true;
         }
-        PackageManager packageManager = context.getPackageManager();
-        PackageInfo packageInfo;
-        try {
-            packageInfo = packageManager.getPackageInfo(
-                    callingPackage, PackageManager.GET_SIGNATURES);
-        } catch (PackageManager.NameNotFoundException e) {
-            LogHelper.w(TAG, e, "Package manager can't find package: ", callingPackage);
+
+        if (isPlatformSigned(context, callingPackage)) {
+            return true;
+        }
+
+        PackageInfo packageInfo = getPackageInfo(context, callingPackage);
+        if (packageInfo == null) {
             return false;
         }
         if (packageInfo.signatures.length != 1) {
-            LogHelper.w(TAG, "Caller has more than one signature certificate!");
+            LogHelper.w(TAG, "Caller does not have exactly one signature certificate!");
             return false;
         }
         String signature = Base64.encodeToString(
@@ -145,6 +145,38 @@ public class PackageValidator {
             expectedPackages, "). This caller's certificate is: \n", signature);
 
         return false;
+    }
+
+    /**
+     * @return true if the installed package signature matches the platform signature.
+     */
+    private boolean isPlatformSigned(Context context, String pkgName) {
+        PackageInfo platformPackageInfo = getPackageInfo(context, "android");
+
+        // Should never happen.
+        if (platformPackageInfo == null || platformPackageInfo.signatures == null
+                || platformPackageInfo.signatures.length == 0) {
+            return false;
+        }
+
+        PackageInfo clientPackageInfo = getPackageInfo(context, pkgName);
+
+        return (clientPackageInfo != null && clientPackageInfo.signatures != null
+                && clientPackageInfo.signatures.length > 0 &&
+                platformPackageInfo.signatures[0].equals(clientPackageInfo.signatures[0]));
+    }
+
+    /**
+     * @return {@link PackageInfo} for the package name or null if it's not found.
+     */
+    private PackageInfo getPackageInfo(Context context, String pkgName) {
+        try {
+            final PackageManager pm = context.getPackageManager();
+            return pm.getPackageInfo(pkgName, PackageManager.GET_SIGNATURES);
+        } catch (PackageManager.NameNotFoundException e) {
+            LogHelper.w(TAG, e, "Package manager can't find package: ", pkgName);
+        }
+        return null;
     }
 
     private final static class CallerInfo {
