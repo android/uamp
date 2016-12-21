@@ -179,7 +179,7 @@ public class MediaBrowserFragment extends Fragment {
                 "  onConnected=" + mediaBrowser.isConnected());
 
         if (mediaBrowser.isConnected()) {
-            onConnected();
+            onConnected();//链接内容
         }
 
         // Registers BroadcastReceiver to track network connection changes.
@@ -256,7 +256,7 @@ public class MediaBrowserFragment extends Fragment {
         }
     }
 
-    private void checkForUserVisibleErrors(boolean forceError) {
+    private void checkForUserVisibleErrors(boolean forceError)  {
         boolean showError = forceError;
         // If offline, message is about the lack of connectivity:
         if (!NetworkHelper.isOnline(getActivity())) {

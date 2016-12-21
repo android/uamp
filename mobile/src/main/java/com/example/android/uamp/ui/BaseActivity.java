@@ -80,6 +80,7 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
         }
 
         hidePlaybackControls();
+//        showPlaybackControls();
 
         mMediaBrowser.connect();
     }
