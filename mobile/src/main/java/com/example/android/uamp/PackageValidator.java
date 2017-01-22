@@ -156,7 +156,7 @@ public class PackageValidator {
         // Should never happen.
         if (platformPackageInfo == null || platformPackageInfo.signatures == null
                 || platformPackageInfo.signatures.length == 0) {
-            return false;
+            return (false);
         }
 
         PackageInfo clientPackageInfo = getPackageInfo(context, pkgName);
@@ -176,7 +176,7 @@ public class PackageValidator {
         } catch (PackageManager.NameNotFoundException e) {
             LogHelper.w(TAG, e, "Package manager can't find package: ", pkgName);
         }
-        return null;
+        return (null);
     }
 
     private final static class CallerInfo {
