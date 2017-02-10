@@ -35,6 +35,7 @@ import com.example.android.uamp.utils.MediaIDHelper;
 
 import java.io.IOException;
 
+import static android.media.MediaPlayer.*;
 import static android.media.MediaPlayer.OnCompletionListener;
 import static android.media.MediaPlayer.OnErrorListener;
 import static android.media.MediaPlayer.OnPreparedListener;
@@ -45,7 +46,8 @@ import static android.support.v4.media.session.MediaSessionCompat.QueueItem;
  * A class that implements local media playback using {@link android.media.MediaPlayer}
  */
 public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeListener,
-        OnCompletionListener, OnErrorListener, OnPreparedListener, OnSeekCompleteListener {
+        OnCompletionListener, OnErrorListener, OnPreparedListener, OnSeekCompleteListener,
+        OnInfoListener{
 
     private static final String TAG = LogHelper.makeLogTag(LocalPlayback.class);
 
@@ -436,6 +438,31 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
             mCallback.onError("MediaPlayer error " + what + " (" + extra + ")");
         }
         return true; // true indicates we handled the error
+    }
+
+    /**
+     * Called when there is an info or a warning.
+     *
+     * @see OnInfoListener
+     */
+    @Override public boolean onInfo(MediaPlayer mp, int what, int extra) {
+        switch (what) {
+            case MEDIA_INFO_BUFFERING_START:
+                mState = PlaybackStateCompat.STATE_BUFFERING;
+                if (mCallback != null) {
+                    mCallback.onPlaybackStatusChanged(mState);
+                }
+                break;
+            case MEDIA_INFO_BUFFERING_END:
+                if (mState == PlaybackStateCompat.STATE_BUFFERING) {
+                    mState = PlaybackStateCompat.STATE_PLAYING;
+                    if (mCallback != null) {
+                        mCallback.onPlaybackStatusChanged(mState);
+                    }
+                }
+                break;
+        }
+        return false;
     }
 
     /**
