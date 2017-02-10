@@ -236,11 +236,8 @@ public class LocalPlayback implements Playback, AudioManager.OnAudioFocusChangeL
     @Override
     public void seekTo(int position) {
         LogHelper.d(TAG, "seekTo called with ", position);
-
-        if (mMediaPlayer == null) {
-            // If we do not have a current media player, simply update the current position
-            mCurrentPosition = position;
-        } else {
+        mCurrentPosition = position;
+        if (mMediaPlayer != null) {
             if (mMediaPlayer.isPlaying()) {
                 mState = PlaybackStateCompat.STATE_BUFFERING;
             }
