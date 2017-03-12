@@ -146,8 +146,11 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
     }
 
     private void connectToSession(MediaSessionCompat.Token token) throws RemoteException {
-        MediaControllerCompat mediaController = new MediaControllerCompat(this, token);
-        setSupportMediaController(mediaController);
+        MediaControllerCompat mediaController = getSupportMediaController();
+        if(mediaController == null) {
+            mediaController = new MediaControllerCompat(this, token);
+            setSupportMediaController(mediaController);
+        }
         mediaController.registerCallback(mMediaControllerCallback);
 
         if (shouldShowControls()) {
