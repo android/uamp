@@ -49,6 +49,8 @@ import com.google.android.gms.cast.framework.CastContext;
 import com.google.android.gms.cast.framework.CastSession;
 import com.google.android.gms.cast.framework.SessionManager;
 import com.google.android.gms.cast.framework.SessionManagerListener;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -225,7 +227,10 @@ public class MusicService extends MediaBrowserServiceCompat implements
             throw new IllegalStateException("Could not create a MediaNotificationManager", e);
         }
 
-        if (!TvHelper.isTvUiMode(this)) {
+        int playServicesAvailable =
+                GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(this);
+
+        if (!TvHelper.isTvUiMode(this) && playServicesAvailable == ConnectionResult.SUCCESS) {
             mCastSessionManager = CastContext.getSharedInstance(this).getSessionManager();
             mCastSessionManagerListener = new CastSessionManagerListener();
             mCastSessionManager.addSessionManagerListener(mCastSessionManagerListener,
