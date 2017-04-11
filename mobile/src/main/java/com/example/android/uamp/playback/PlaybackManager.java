@@ -227,16 +227,16 @@ public class PlaybackManager implements Playback.Callback {
         if (playback == null) {
             throw new IllegalArgumentException("Playback cannot be null");
         }
-        // suspend the current one.
+        // Suspends current state.
         int oldState = mPlayback.getState();
-        int pos = mPlayback.getCurrentStreamPosition();
+        long pos = mPlayback.getCurrentStreamPosition();
         String currentMediaId = mPlayback.getCurrentMediaId();
         mPlayback.stop(false);
         playback.setCallback(this);
-        playback.setCurrentStreamPosition(pos < 0 ? 0 : pos);
         playback.setCurrentMediaId(currentMediaId);
+        playback.seekTo(pos < 0 ? 0 : pos);
         playback.start();
-        // finally swap the instance
+        // Swaps instance.
         mPlayback = playback;
         switch (oldState) {
             case PlaybackStateCompat.STATE_BUFFERING:
