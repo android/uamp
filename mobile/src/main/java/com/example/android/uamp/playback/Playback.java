@@ -63,48 +63,21 @@ public interface Playback {
     /**
      * @return pos if currently playing an item
      */
-    int getCurrentStreamPosition();
+    long getCurrentStreamPosition();
 
     /**
-     * Set the current position. Typically used when switching players that are in
-     * paused state.
-     *
-     * @param pos position in the stream
-     */
-    void setCurrentStreamPosition(int pos);
-
-    /**
-     * Query the underlying stream and update the internal last known stream position.
+     * Queries the underlying stream and update the internal last known stream position.
      */
     void updateLastKnownStreamPosition();
 
-    /**
-     * @param item to play
-     */
     void play(QueueItem item);
 
-    /**
-     * Pause the current playing item
-     */
     void pause();
 
-    /**
-     * Seek to the given position
-     */
-    void seekTo(int position);
+    void seekTo(long position);
 
-    /**
-     * Set the current mediaId. This is only used when switching from one
-     * playback to another.
-     *
-     * @param mediaId to be set as the current.
-     */
     void setCurrentMediaId(String mediaId);
 
-    /**
-     *
-     * @return the current media Id being processed in any state or null.
-     */
     String getCurrentMediaId();
 
     interface Callback {
@@ -130,8 +103,5 @@ public interface Playback {
         void setCurrentMediaId(String mediaId);
     }
 
-    /**
-     * @param callback to be called
-     */
     void setCallback(Callback callback);
 }

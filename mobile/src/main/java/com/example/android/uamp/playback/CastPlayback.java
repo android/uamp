@@ -53,12 +53,12 @@ public class CastPlayback implements Playback {
     private final RemoteMediaClient mRemoteMediaClient;
     private final RemoteMediaClient.Listener mRemoteMediaClientListener;
 
-    /** The current PlaybackState*/
-    private int mState;
-    /** Callback for making completion/error calls on */
+    private int mPlaybackState;
+
+    /** Playback interface Callbacks */
     private Callback mCallback;
-    private volatile int mCurrentPosition;
-    private volatile String mCurrentMediaId;
+    private long mCurrentPosition;
+    private String mCurrentMediaId;
 
     public CastPlayback(MusicProvider musicProvider, Context context) {
         mMusicProvider = musicProvider;
@@ -78,28 +78,23 @@ public class CastPlayback implements Playback {
     @Override
     public void stop(boolean notifyListeners) {
         mRemoteMediaClient.removeListener(mRemoteMediaClientListener);
-        mState = PlaybackStateCompat.STATE_STOPPED;
+        mPlaybackState = PlaybackStateCompat.STATE_STOPPED;
         if (notifyListeners && mCallback != null) {
-            mCallback.onPlaybackStatusChanged(mState);
+            mCallback.onPlaybackStatusChanged(mPlaybackState);
         }
     }
 
     @Override
     public void setState(int state) {
-        this.mState = state;
+        this.mPlaybackState = state;
     }
 
     @Override
-    public int getCurrentStreamPosition() {
+    public long getCurrentStreamPosition() {
         if (!isConnected()) {
             return mCurrentPosition;
         }
         return (int) mRemoteMediaClient.getApproximateStreamPosition();
-    }
-
-    @Override
-    public void setCurrentStreamPosition(int pos) {
-        this.mCurrentPosition = pos;
     }
 
     @Override
@@ -111,9 +106,9 @@ public class CastPlayback implements Playback {
     public void play(QueueItem item) {
         try {
             loadMedia(item.getDescription().getMediaId(), true);
-            mState = PlaybackStateCompat.STATE_BUFFERING;
+            mPlaybackState = PlaybackStateCompat.STATE_BUFFERING;
             if (mCallback != null) {
-                mCallback.onPlaybackStatusChanged(mState);
+                mCallback.onPlaybackStatusChanged(mPlaybackState);
             }
         } catch (JSONException e) {
             LogHelper.e(TAG, "Exception loading media ", e, null);
@@ -141,11 +136,9 @@ public class CastPlayback implements Playback {
     }
 
     @Override
-    public void seekTo(int position) {
+    public void seekTo(long position) {
         if (mCurrentMediaId == null) {
-            if (mCallback != null) {
-                mCallback.onError("seekTo cannot be calling in the absence of mediaId.");
-            }
+            mCurrentPosition = position;
             return;
         }
         try {
@@ -193,7 +186,7 @@ public class CastPlayback implements Playback {
 
     @Override
     public int getState() {
-        return mState;
+        return mPlaybackState;
     }
 
     private void loadMedia(String mediaId, boolean autoPlay) throws JSONException {
@@ -296,23 +289,23 @@ public class CastPlayback implements Playback {
                 }
                 break;
             case MediaStatus.PLAYER_STATE_BUFFERING:
-                mState = PlaybackStateCompat.STATE_BUFFERING;
+                mPlaybackState = PlaybackStateCompat.STATE_BUFFERING;
                 if (mCallback != null) {
-                    mCallback.onPlaybackStatusChanged(mState);
+                    mCallback.onPlaybackStatusChanged(mPlaybackState);
                 }
                 break;
             case MediaStatus.PLAYER_STATE_PLAYING:
-                mState = PlaybackStateCompat.STATE_PLAYING;
+                mPlaybackState = PlaybackStateCompat.STATE_PLAYING;
                 setMetadataFromRemote();
                 if (mCallback != null) {
-                    mCallback.onPlaybackStatusChanged(mState);
+                    mCallback.onPlaybackStatusChanged(mPlaybackState);
                 }
                 break;
             case MediaStatus.PLAYER_STATE_PAUSED:
-                mState = PlaybackStateCompat.STATE_PAUSED;
+                mPlaybackState = PlaybackStateCompat.STATE_PAUSED;
                 setMetadataFromRemote();
                 if (mCallback != null) {
-                    mCallback.onPlaybackStatusChanged(mState);
+                    mCallback.onPlaybackStatusChanged(mPlaybackState);
                 }
                 break;
             default: // case unknown
