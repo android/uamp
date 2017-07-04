@@ -15,13 +15,19 @@
  */
 package com.example.android.uamp.ui;
 
+import android.Manifest;
 import android.app.FragmentTransaction;
 import android.app.SearchManager;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.media.MediaBrowserCompat;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.example.android.uamp.R;
 import com.example.android.uamp.utils.LogHelper;
@@ -50,6 +56,8 @@ public class MusicPlayerActivity extends BaseActivity
     public static final String EXTRA_CURRENT_MEDIA_DESCRIPTION =
         "com.example.android.uamp.CURRENT_MEDIA_DESCRIPTION";
 
+    private static final int MY_PERMISSION_REQUEST_READ_EXT_STORAGE = 42;
+
     private Bundle mVoiceSearchParams;
 
     @Override
@@ -62,9 +70,35 @@ public class MusicPlayerActivity extends BaseActivity
         initializeToolbar();
         initializeFromParams(savedInstanceState, getIntent());
 
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) !=
+                PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.READ_EXTERNAL_STORAGE)) {
+
+            } else {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                        MY_PERMISSION_REQUEST_READ_EXT_STORAGE);
+            }
+        }
+
         // Only check if a full screen player is needed on the first time:
         if (savedInstanceState == null) {
             startFullScreenActivityIfNeeded(getIntent());
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+
+        switch(requestCode) {
+            case MY_PERMISSION_REQUEST_READ_EXT_STORAGE:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // good case
+                    Log.i(TAG, "onRequestPermissionsResult: has necessary permission");
+                } else {
+                    finish();
+                }
         }
     }
 
