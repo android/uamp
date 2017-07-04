@@ -34,6 +34,7 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.media.MediaRouter;
 
+import com.example.android.uamp.model.LocalSource;
 import com.example.android.uamp.model.MusicProvider;
 import com.example.android.uamp.playback.CastPlayback;
 import com.example.android.uamp.playback.LocalPlayback;
@@ -161,7 +162,7 @@ public class MusicService extends MediaBrowserServiceCompat implements
         super.onCreate();
         LogHelper.d(TAG, "onCreate");
 
-        mMusicProvider = new MusicProvider();
+        mMusicProvider = new MusicProvider(new LocalSource(getContentResolver()));
 
         // To make the app more responsive, fetch and cache catalog information now.
         // This can help improve the response time in the method
