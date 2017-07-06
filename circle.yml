@@ -1,0 +1,10 @@
+checkout:
+    post:
+            - cp -r licenses/. $ANDROID_HOME/licenses
+
+test:
+    override:
+        - ./gradlew build
+        - cp -r mobile/build/reports $CIRCLE_ARTIFACTS
+        - cp -r mobile/build/outputs $CIRCLE_ARTIFACTS
+
