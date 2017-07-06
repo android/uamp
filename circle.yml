@@ -5,5 +5,6 @@ checkout:
 test:
     override:
         - ./gradlew build
+        - cp -r mobile/build/reports $CIRCLE_ARTIFACTS
         - cp -r mobild/build/outputs $CIRCLE_ARTIFACTS
 
