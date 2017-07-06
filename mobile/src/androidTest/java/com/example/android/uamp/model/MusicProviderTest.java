@@ -62,6 +62,13 @@ public class MusicProviderTest {
                 "https://examplemusic.com/music4.mp3", "https://icons.com/album2.png", 1, 2, 4200);
         source.add("Romantic Song 2", "Album 2", "Joe Singer", "Genre 2",
                 "https://examplemusic.com/music5.mp3", "https://icons.com/album2.png", 2, 2, 4200);
+
+        source.add("Local Song 1", "Album Z", "Local Singer", "Genre Local",
+                "content://examplemusic.com/music5.mp3", "file:///sdcard/somewhere/album2.png", 1, 2, 4200);
+
+        source.add("Local Song 2", "Album Z", "Local Singer", "Genre Local",
+                "content://examplemusic.com/music5.mp3", "file:///sdcard/somewhere/album2.png", 2, 2, 4200);
+
         provider = TestSetupHelper.setupMusicProvider(source);
     }
 
@@ -72,10 +79,10 @@ public class MusicProviderTest {
         for (String genre: genres) {
             list.add(genre);
         }
-        assertEquals(2, list.size());
+        assertEquals(3, list.size());
 
         Collections.sort(list);
-        assertEquals(Arrays.asList(new String[]{"Genre 1", "Genre 2"}), list);
+        assertEquals(Arrays.asList(new String[]{"Genre 1", "Genre 2", "Genre Local"}), list);
     }
 
     @Test
@@ -121,7 +128,7 @@ public class MusicProviderTest {
             count++;
         }
 
-        assertEquals(5, count);
+        assertEquals(6, count);
     }
 
     @Test
