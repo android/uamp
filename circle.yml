@@ -2,3 +2,8 @@ checkout:
     post:
             - cp -r licenses/. $ANDROID_HOME/licenses
 
+test:
+    override:
+        - ./gradlew build
+        - cp -r mobild/build/outputs $CIRCLE_ARTIFACTS
+
