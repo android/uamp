@@ -1,0 +1,4 @@
+checkout:
+    post:
+            - cp -r licenses/. $ANDROID_HOME/licenses
+
