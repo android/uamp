@@ -51,20 +51,23 @@ repositories {
 dependencies {
     provided 'com.google.android.wearable:wearable:2.0.3'
 
-    compile 'com.google.android.gms:play-services-cast-framework:11.0.0'
-    compile 'com.google.android.support:wearable:2.0.3'
-    compile 'com.android.support:appcompat-v7:25.4.0'
-    compile 'com.android.support:cardview-v7:25.4.0'
-    compile 'com.android.support:mediarouter-v7:25.4.0'
-    compile 'com.android.support:leanback-v17:25.4.0'
-    compile 'com.android.support:design:25.4.0'
+    compile 'com.google.android.gms:play-services-cast-framework:11.0.2'
+    compile ('com.google.android.support:wearable:2.0.3') {
+        exclude group: 'com.android.support', module: 'percent'
+    }
+    compile 'com.android.support:percent:25.3.1'
+    compile 'com.android.support:appcompat-v7:25.3.1'
+    compile 'com.android.support:cardview-v7:25.3.1'
+    compile 'com.android.support:mediarouter-v7:25.3.1'
+    compile 'com.android.support:leanback-v17:25.3.1'
+    compile 'com.android.support:design:25.3.1'
 
     compile 'com.google.android.exoplayer:exoplayer:r2.4.1'
 
     testCompile 'junit:junit:4.12'
     testCompile 'org.mockito:mockito-core:1.10.19'
     androidTestCompile 'junit:junit:4.12'
-    androidTestCompile 'com.android.support:support-annotations:25.4.0'
+    androidTestCompile 'com.android.support:support-annotations:25.3.1'
     androidTestCompile 'com.android.support.test:runner:0.5'
     androidTestCompile 'com.android.support.test:rules:0.5'
 }

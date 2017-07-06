@@ -1,3 +1,5 @@
+[![CircleCI](https://circleci.com/gh/xCatG/android-UniversalMusicPlayer.svg?style=svg)](https://circleci.com/gh/xCatG/android-UniversalMusicPlayer)
+
 Universal Android Music Player Sample
 =====================================
 
