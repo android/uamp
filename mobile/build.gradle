@@ -59,7 +59,9 @@ dependencies {
     compile "com.android.support:leanback-v17:$supportLibraryVersion"
     compile "com.android.support:design:$supportLibraryVersion"
 
-    compile 'com.google.android.exoplayer:exoplayer:r2.4.1'
+    compile 'com.google.android.exoplayer:exoplayer-core:r2.4.3'
+    //compile project(':library-release')
+    compile project(':extension-flac-release')
 
     testCompile 'junit:junit:4.12'
     testCompile 'org.mockito:mockito-core:1.10.19'
