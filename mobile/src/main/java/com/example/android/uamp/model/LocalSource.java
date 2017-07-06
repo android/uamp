@@ -34,6 +34,7 @@ public class LocalSource implements MusicProviderSource {
     private final HashMap<Long, Long> mediaIdToGenreMap;
     private final HashMap<Long, String> genreNameMap;
     private final HashMap<Long, LinkedList<Long>> playlistIdMap;
+    private final HashMap<Long, String> albumIdToArtMap;
 
     public LocalSource(ContentResolver resolver) {
         this.mContentResolver = resolver;
@@ -42,6 +43,7 @@ public class LocalSource implements MusicProviderSource {
         mediaIdToGenreMap = new HashMap<>();
         playlistIdMap = new HashMap<>();
         genreNameMap = new HashMap<>();
+        albumIdToArtMap = new HashMap<>();
     }
 
     public boolean isInitialized() {
@@ -101,12 +103,50 @@ public class LocalSource implements MusicProviderSource {
         
     }
 
+
+    private void loadAlbumArtStuff() {
+        Uri uri = MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI;
+
+        Cursor cur = mContentResolver.query(uri, null, null, null, null);
+
+        if (cur == null || !cur.moveToFirst()) {
+            Log.d(TAG, "loadAlbumArtStuff: no Albums found?");
+            return;
+        }
+
+        int albumIdColumn = cur.getColumnIndex(MediaStore.Audio.Albums._ID);
+        int albumArtColumn = cur.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART);
+
+        do {
+            long albumId = cur.getLong(albumIdColumn);
+            String albumArt = cur.getString(albumArtColumn);
+
+            if (albumArt != null && (!albumArt.startsWith("file://") || !albumArt.startsWith("content://"))) {
+                albumArt = "file://" + albumArt;
+            }
+
+            albumIdToArtMap.put(albumId, albumArt);
+
+        } while (cur.moveToNext());
+
+        cur.close();
+    }
+
     public void prepare() {
         mCurrentState = State.INITIALIZING;
 
         loadGenreToIdMap();
+        loadAlbumArtStuff();
 
-        Uri uri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+        Uri extUri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+        storeScanMediaWithUri(extUri);
+
+//        Uri intUri = MediaStore.Audio.Media.INTERNAL_CONTENT_URI;
+//        storeScanMediaWithUri(intUri);
+        mCurrentState = State.INITIALIZED;
+    }
+
+    private void storeScanMediaWithUri(Uri uri) {
         Log.i(TAG, "Querying media...");
         Log.i(TAG, "URI: " + uri.toString());
 
@@ -132,6 +172,7 @@ public class LocalSource implements MusicProviderSource {
         int artistColumn = cur.getColumnIndex(MediaStore.Audio.Media.ARTIST);
         int titleColumn = cur.getColumnIndex(MediaStore.Audio.Media.TITLE);
         int albumColumn = cur.getColumnIndex(MediaStore.Audio.Media.ALBUM);
+        int albumIdColumn = cur.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID);
         int durationColumn = cur.getColumnIndex(MediaStore.Audio.Media.DURATION);
 
         int idColumn = cur.getColumnIndex(MediaStore.Audio.Media._ID);
@@ -159,6 +200,11 @@ public class LocalSource implements MusicProviderSource {
                     .putString(MusicProviderSource.CUSTOM_METADATA_TRACK_SOURCE, cur.getString(dataColumn))
                     .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, cur.getLong(durationColumn));
 
+            long albumId = cur.getLong(albumIdColumn);
+            if (albumIdToArtMap.containsKey(albumId)) {
+                builder.putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, albumIdToArtMap.get(albumId));
+            }
+
             mItems.put(String.valueOf(mediaId), builder.build());
 
         } while (cur.moveToNext());
@@ -166,9 +212,6 @@ public class LocalSource implements MusicProviderSource {
         Log.i(TAG, "Done querying media. MusicRetriever is ready.");
 
         cur.close();
-
-        mCurrentState = State.INITIALIZED;
-
     }
 
     private String getGenre(long audioId) {
