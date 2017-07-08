@@ -9,14 +9,9 @@ import android.provider.MediaStore;
 import android.support.v4.media.MediaMetadataCompat;
 import android.util.Log;
 
-import java.io.IOException;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
-
-import static com.example.android.uamp.utils.MediaIDHelper.CATEGORY_SEPARATOR;
-import static com.example.android.uamp.utils.MediaIDHelper.LEAF_SEPARATOR;
 
 public class LocalSource implements MusicProviderSource {
     private static final String TAG = "LocalSource";
@@ -31,19 +26,19 @@ public class LocalSource implements MusicProviderSource {
     private ContentResolver mContentResolver;
 
     private final LinkedHashMap<String, MediaMetadataCompat> mItems;
-    private final HashMap<Long, Long> mediaIdToGenreMap;
-    private final HashMap<Long, String> genreNameMap;
-    private final HashMap<Long, LinkedList<Long>> playlistIdMap;
-    private final HashMap<Long, String> albumIdToArtMap;
+    private final LinkedHashMap<Long, Long> mediaIdToGenreMap;
+    private final LinkedHashMap<Long, String> genreNameMap;
+    private final LinkedHashMap<Long, LinkedList<Long>> playlistIdMap;
+    private final LinkedHashMap<Long, String> albumIdToArtMap;
 
     public LocalSource(ContentResolver resolver) {
         this.mContentResolver = resolver;
 
         mItems = new LinkedHashMap<>();
-        mediaIdToGenreMap = new HashMap<>();
-        playlistIdMap = new HashMap<>();
-        genreNameMap = new HashMap<>();
-        albumIdToArtMap = new HashMap<>();
+        mediaIdToGenreMap = new LinkedHashMap<>();
+        playlistIdMap = new LinkedHashMap<>();
+        genreNameMap = new LinkedHashMap<>();
+        albumIdToArtMap = new LinkedHashMap<>();
     }
 
     public boolean isInitialized() {
@@ -100,9 +95,64 @@ public class LocalSource implements MusicProviderSource {
     }
 
     private void loadPlaylistIdMap() {
-        
+        Uri playlistUri = android.provider.MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI;
+        Cursor cur = mContentResolver.query(playlistUri, null, null, null, null);
+
+        if (cur == null || !cur.moveToFirst()) {
+            Log.i(TAG, "prepForPlaylist: No playlist");
+            return;
+        }
+
+        int nameColumn = cur.getColumnIndex(MediaStore.Audio.PlaylistsColumns.NAME);
+        int dataColumn = cur.getColumnIndex(MediaStore.Audio.PlaylistsColumns.DATA);
+        int idColumn = cur.getColumnIndex(MediaStore.Audio.Media._ID);
+
+        LinkedList<Long> idz = new LinkedList<Long>();
+        do {
+            Log.i(TAG, "ID: " + cur.getString(idColumn) + " Title: " + cur.getString(nameColumn));
+
+            Log.i(TAG, "prepForPlaylist: data" + cur.getString(dataColumn));
+
+            idz.add(cur.getLong(idColumn));
+
+        } while (cur.moveToNext());
+
+        cur.close();
+
+        for (Long id: idz) {
+            loadPlaylistContents(id);
+        }
+
     }
 
+    private void loadPlaylistContents(long playlistId) {
+        Uri pl = MediaStore.Audio.Playlists.Members.getContentUri("external", playlistId);
+
+        Cursor cur = mContentResolver.query(pl, null, String.valueOf(playlistId), null, null);
+
+        if (cur == null || !cur.moveToFirst()) {
+            Log.d(TAG, "loadPlaylistContents: No playlist found with _id:" + playlistId);
+            return;
+        }
+
+        int titleColumn = cur.getColumnIndex(MediaStore.Audio.Media.TITLE);
+        int idColumn = cur.getColumnIndex(MediaStore.Audio.Media._ID);
+
+        LinkedList<Long> mediaIds = new LinkedList<>();
+        do {
+            long id = cur.getLong(idColumn);
+            Log.d(TAG, "loadPlaylistContents: " + cur.getString(titleColumn) + "[" + id + "]");
+
+            mediaIds.add(id);
+
+        } while (cur.moveToNext());
+
+        cur.close();
+
+        if (!mediaIds.isEmpty()) {
+            playlistIdMap.put(playlistId, mediaIds);
+        }
+    }
 
     private void loadAlbumArtStuff() {
         Uri uri = MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI;
@@ -135,6 +185,7 @@ public class LocalSource implements MusicProviderSource {
     public void prepare() {
         mCurrentState = State.INITIALIZING;
 
+        loadPlaylistIdMap();
         loadGenreToIdMap();
         loadAlbumArtStuff();
 

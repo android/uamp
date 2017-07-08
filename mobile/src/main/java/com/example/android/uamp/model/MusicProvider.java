@@ -29,6 +29,7 @@ import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.MediaIDHelper;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -38,6 +39,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import static com.example.android.uamp.utils.MediaIDHelper.MEDIA_ID_MUSICS_BY_GENRE;
+import static com.example.android.uamp.utils.MediaIDHelper.MEDIA_ID_MUSIC_ALL;
+import static com.example.android.uamp.utils.MediaIDHelper.MEDIA_ID_MUSIC_BY_ALBUMS;
+import static com.example.android.uamp.utils.MediaIDHelper.MEDIA_ID_MUSIC_PLAYLISTS;
 import static com.example.android.uamp.utils.MediaIDHelper.MEDIA_ID_ROOT;
 import static com.example.android.uamp.utils.MediaIDHelper.createMediaID;
 
@@ -286,7 +290,7 @@ public class MusicProvider {
         }
 
         if (MEDIA_ID_ROOT.equals(mediaId)) {
-            mediaItems.add(createBrowsableMediaItemForRoot(resources));
+            mediaItems.addAll(createBrowsableMediaItemForRoot(resources));
 
         } else if (MEDIA_ID_MUSICS_BY_GENRE.equals(mediaId)) {
             for (String genre : getGenres()) {
@@ -298,23 +302,57 @@ public class MusicProvider {
             for (MediaMetadataCompat metadata : getMusicsByGenre(genre)) {
                 mediaItems.add(createMediaItem(metadata));
             }
-
+        } else if (MEDIA_ID_MUSIC_ALL.equals(mediaId)) {
+            for (MutableMediaMetadata m : mMusicListById.values()){
+                mediaItems.add(createMediaItem(m.metadata));
+            }
         } else {
             LogHelper.w(TAG, "Skipping unmatched mediaId: ", mediaId);
         }
         return mediaItems;
     }
 
-    private MediaBrowserCompat.MediaItem createBrowsableMediaItemForRoot(Resources resources) {
+    private List<MediaBrowserCompat.MediaItem> createBrowsableMediaItemForRoot(Resources resources) {
+        MediaBrowserCompat.MediaItem genre = createRootElement(resources, MEDIA_ID_MUSICS_BY_GENRE,
+                resources.getString(R.string.browse_genres),
+                resources.getString(R.string.browse_genre_subtitle),
+                Uri.parse("android.resource://com.example.android.uamp/drawable/ic_by_genre"));
+
+        MediaBrowserCompat.MediaItem album = createRootElement(resources, MEDIA_ID_MUSIC_BY_ALBUMS,
+                resources.getString(R.string.browse_albums),
+                resources.getString(R.string.browse_albums_subtitle),
+                Uri.parse("android.resource://com.example.android.uamp/drawable/ic_by_genre"));
+
+        MediaBrowserCompat.MediaItem playlist = createRootElement(resources, MEDIA_ID_MUSIC_PLAYLISTS,
+                resources.getString(R.string.browse_playlist),
+                resources.getString(R.string.browse_playlist_subtitle),
+                Uri.parse("android.resource://com.example.android.uamp/drawable/ic_by_genre"));
+
+        MediaBrowserCompat.MediaItem all = createRootElement(resources, MEDIA_ID_MUSIC_ALL,
+                resources.getString(R.string.browse_tracks),
+                resources.getString(R.string.browse_tracks_subtitle),
+                Uri.parse("android.resource://com.example.android.uamp/drawable/ic_by_genre"));
+
+        return Arrays.asList(playlist, album, genre, all);
+    }
+
+    private MediaBrowserCompat.MediaItem createRootElement(Resources resources, String mediaId, String title, String subtitle, Uri iconUri) {
         MediaDescriptionCompat description = new MediaDescriptionCompat.Builder()
-                .setMediaId(MEDIA_ID_MUSICS_BY_GENRE)
-                .setTitle(resources.getString(R.string.browse_genres))
-                .setSubtitle(resources.getString(R.string.browse_genre_subtitle))
-                .setIconUri(Uri.parse("android.resource://" +
-                        "com.example.android.uamp/drawable/ic_by_genre"))
+                .setMediaId(mediaId)
+                .setTitle(title)
+                .setSubtitle(subtitle)
+                .setIconUri(iconUri)
                 .build();
-        return new MediaBrowserCompat.MediaItem(description,
-                MediaBrowserCompat.MediaItem.FLAG_BROWSABLE);
+        return new MediaBrowserCompat.MediaItem(description, MediaBrowserCompat.MediaItem.FLAG_BROWSABLE);
+    }
+
+    private MediaBrowserCompat.MediaItem createBrowsableMediaItemForAlbum(String playlistId, Resources resources) {
+        return null;
+    }
+
+
+    private MediaBrowserCompat.MediaItem createBrowsableMediaItemForPlaylist(String playlistId, Resources resources) {
+        return null;
     }
 
     private MediaBrowserCompat.MediaItem createBrowsableMediaItemForGenre(String genre,
