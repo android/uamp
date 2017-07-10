@@ -23,6 +23,7 @@ import android.support.v4.media.session.MediaSessionCompat;
 
 import com.example.android.uamp.TestSetupHelper;
 import com.example.android.uamp.model.MusicProvider;
+import com.example.android.uamp.model.MusicProviderSource;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -167,5 +168,43 @@ public class QueueHelperTest {
             assertTrue(QueueHelper.isIndexPlayable(queue.size() - 1, queue));
             assertTrue(QueueHelper.isIndexPlayable(0, queue));
         }
+    }
+
+    @Test
+    public void testGetMusicFromAlbum() throws Exception {
+        MediaMetadataCompat selectedMusic = provider.getMusicsByAlbum((long) "Album 1".hashCode()).iterator().next();
+        String selectedAlbum = selectedMusic.getString(MediaMetadataCompat.METADATA_KEY_ALBUM);
+        Long selectedAlbumId = selectedMusic.getLong(MusicProviderSource.CUSTOM_METADATA_ALBUM_ID);
+
+        assertEquals("Album 1", selectedAlbum);
+
+        String mediaId = MediaIDHelper.createMediaID(
+                selectedMusic.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID),
+                MediaIDHelper.MEDIA_ID_MUSICS_BY_ALBUMS, String.valueOf(selectedAlbumId));
+
+        List<MediaSessionCompat.QueueItem> queue = QueueHelper.getPlayingQueue(mediaId, provider);
+        assertNotNull(queue);
+        assertFalse(queue.isEmpty());
+
+        // sort by music title to simplify assertions below
+        Collections.sort(queue, new Comparator<MediaSessionCompat.QueueItem>() {
+            @Override
+            public int compare(MediaSessionCompat.QueueItem lhs, MediaSessionCompat.QueueItem rhs) {
+                return String.valueOf(lhs.getDescription().getTitle()).compareTo(
+                        String.valueOf(rhs.getDescription().getTitle()));
+            }
+        });
+
+        // assert they are all of the expected genre
+        for (MediaSessionCompat.QueueItem item : queue) {
+            String musicId = MediaIDHelper.extractMusicIDFromMediaID(item.getDescription().getMediaId());
+            MediaMetadataCompat metadata = provider.getMusic(musicId);
+            assertEquals(selectedAlbum, metadata.getString(MediaMetadataCompat.METADATA_KEY_ALBUM));
+        }
+
+        // assert that all the tracks are what we expect
+        assertEquals("Music 1", queue.get(0).getDescription().getTitle());
+        assertEquals("Music 2", queue.get(1).getDescription().getTitle());
+        assertEquals("Music 3", queue.get(2).getDescription().getTitle());
     }
 }

@@ -254,6 +254,7 @@ public class LocalSource implements MusicProviderSource {
             long albumId = cur.getLong(albumIdColumn);
             if (albumIdToArtMap.containsKey(albumId)) {
                 builder.putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, albumIdToArtMap.get(albumId));
+                builder.putLong(MusicProviderSource.CUSTOM_METADATA_ALBUM_ID, albumId);
             }
 
             mItems.put(String.valueOf(mediaId), builder.build());

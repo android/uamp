@@ -22,6 +22,7 @@
     <string name="browse_genres">Genres</string>
     <string name="browse_genre_subtitle">Songs by genre</string>
     <string name="browse_musics_by_genre_subtitle">%1$s songs</string>
+    <string name="browse_musics_by_album_subtitle">Music in %1$s</string>
     <string name="random_queue_title">Random music</string>
     <string name="error_no_connection">Cannot connect to server. Please, check your Internet connectivity.</string>
     <string name="error_loading_media">Error Loading Media</string>
