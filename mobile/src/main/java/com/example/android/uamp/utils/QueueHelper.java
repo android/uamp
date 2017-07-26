@@ -236,7 +236,7 @@ public class QueueHelper {
                                              MediaSessionCompat.QueueItem queueItem) {
         // Queue item is considered to be playing or paused based on both the controller's
         // current media id and the controller's active queue item id
-        MediaControllerCompat controller = ((FragmentActivity) context).getSupportMediaController();
+        MediaControllerCompat controller = MediaControllerCompat.getMediaController((FragmentActivity)context);
         if (controller != null && controller.getPlaybackState() != null) {
             long currentPlayingQueueId = controller.getPlaybackState().getActiveQueueItemId();
             String currentPlayingMediaId = controller.getMetadata().getDescription()
