@@ -49,7 +49,7 @@ repositories {
 }
 
 dependencies {
-    provided 'com.google.android.wearable:wearable:2.0.3'
+    provided "com.google.android.wearable:wearable:$wearableVersion"
 
     compile "com.google.android.gms:play-services-cast-framework:$gmsVersion"
     compile "com.android.support:appcompat-v7:$supportLibraryVersion"
@@ -57,7 +57,7 @@ dependencies {
     compile "com.android.support:mediarouter-v7:$supportLibraryVersion"
     compile "com.android.support:leanback-v17:$supportLibraryVersion"
     compile "com.android.support:design:$supportLibraryVersion"
-    compile ('com.google.android.support:wearable:2.0.3') {
+    compile ("com.google.android.support:wearable:$wearableVersion") {
         exclude group: 'com.android.support', module: 'percent'
     }
     compile "com.android.support:percent:$supportLibraryVersion"

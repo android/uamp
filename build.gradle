@@ -47,6 +47,7 @@ ext {
     minSdkVersion = 17
     targetSdkVersion = 26
     supportLibraryVersion = '26.0.0'
-    gmsVersion = '11.0.2'
+    gmsVersion = '11.0.4'
+    wearableVersion = '2.0.4'
 }
 
