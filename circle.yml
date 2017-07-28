@@ -2,6 +2,13 @@ checkout:
     post:
             - cp -r licenses/. $ANDROID_HOME/licenses
 
+dependencies:
+    pre:
+            # Make sure we have the sdkmanager available, and update the Android SDK tools if not
+            - if [ ! -e $ANDROID_HOME/tools/bin/sdkmanager ]; then echo y | android update sdk --no-ui --all --filter tools; fi
+            # Install all the required SDK components
+            - $ANDROID_HOME/tools/bin/sdkmanager --verbose "platform-tools" "extras;google;m2repository"
+
 test:
     override:
         - ./gradlew build
