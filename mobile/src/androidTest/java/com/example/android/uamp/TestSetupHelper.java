@@ -18,7 +18,6 @@ package com.example.android.uamp;
 
 import com.example.android.uamp.model.MusicProvider;
 import com.example.android.uamp.model.MusicProviderSource;
-import com.example.android.uamp.utils.SimpleMusicProviderSource;
 
 import java.util.concurrent.CountDownLatch;
 
