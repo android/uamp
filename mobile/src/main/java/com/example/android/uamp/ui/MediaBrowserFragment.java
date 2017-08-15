@@ -308,8 +308,9 @@ public class MediaBrowserFragment extends Fragment {
             super(context, R.layout.media_list_item, new ArrayList<MediaBrowserCompat.MediaItem>());
         }
 
+        @NonNull
         @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
+        public View getView(int position, View convertView, @NonNull ViewGroup parent) {
             MediaBrowserCompat.MediaItem item = getItem(position);
             return MediaItemViewHolder.setupListView((Activity) getContext(), convertView, parent,
                     item);
