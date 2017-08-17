@@ -1,9 +1,17 @@
+[![CircleCI](https://circleci.com/gh/xCatG/android-UniversalMusicPlayer.svg?style=svg)](https://circleci.com/gh/xCatG/android-UniversalMusicPlayer)
+
 Universal Android Music Player Sample
 =====================================
 
 This sample shows how to implement an audio media app that works
 across multiple form factors and provide a consistent user experience
 on Android phones, tablets, Android Auto, Android Wear, Android TV and Google Cast devices.
+
+In order to build this modified fork, you'll need to get a copy of ExoPlayer and build the
+`extension-flac` extension to decode flac. I placed it as a aar project named
+`extension-flac-release` as that's what the default import wizard does. See how to build in 
+[ExoPlayer Flac Extension](https://github.com/google/ExoPlayer/tree/release-v2/extensions/flac).
+You might want to checkout out the ExoPlayer tree at the same Tag matching `library-core` release.
 
 
 Pre-requisites

@@ -23,6 +23,7 @@ import android.test.mock.MockResources;
 
 import com.example.android.uamp.TestSetupHelper;
 import com.example.android.uamp.model.MusicProvider;
+import com.example.android.uamp.model.MusicProviderSource;
 import com.example.android.uamp.utils.MediaIDHelper;
 import com.example.android.uamp.utils.QueueHelper;
 import com.example.android.uamp.utils.SimpleMusicProviderSource;
@@ -244,7 +245,7 @@ public class QueueManagerTest {
     }
 
     @Test
-    public void testSetQueueFromMusic() throws Exception {
+    public void testSetQueueFromMusicByGenre() throws Exception {
         QueueManager queueManager = createQueueManagerWithValidation(null, -1, null);
         // get the first music of the first genre and build a hierarchy-aware version of its
         // mediaId
@@ -275,6 +276,42 @@ public class QueueManagerTest {
             String itemGenre = provider.getMusic(musicId).getString(
                     MediaMetadataCompat.METADATA_KEY_GENRE);
             assertEquals(genre, itemGenre);
+            queueManager.skipQueuePosition(1);
+        }
+    }
+
+    @Test
+    public void testSetQueueFromMusicByAlbum() throws Exception {
+        QueueManager queueManager = createQueueManagerWithValidation(null, -1, null);
+        // get the first music of the first albumId and build a hierarchy-aware version of its
+        // mediaId
+        Long albumId = provider.getAlbums().iterator().next();
+        MediaMetadataCompat metadata = provider.getMusicsByAlbum(albumId).iterator().next();
+        String hierarchyAwareMediaID = MediaIDHelper.createMediaID(
+                metadata.getDescription().getMediaId(), MediaIDHelper.MEDIA_ID_MUSICS_BY_ALBUMS,
+                String.valueOf(albumId));
+
+        // set a queue from the hierarchyAwareMediaID. It should contain all music with the same
+        // albumId
+        queueManager.setQueueFromMusic(hierarchyAwareMediaID);
+
+        // count all songs with the same albumId
+        int count = 0;
+        for (MediaMetadataCompat m : provider.getMusicsByAlbum(albumId)) {
+            count++;
+        }
+
+        // check if size matches
+        assertEquals(count, queueManager.getCurrentQueueSize());
+
+        // Now check if all songs in current queue have the expected albumId:
+        for (int i = 0; i < queueManager.getCurrentQueueSize(); i++) {
+            MediaSessionCompat.QueueItem item = queueManager.getCurrentMusic();
+            String musicId = MediaIDHelper.extractMusicIDFromMediaID(
+                    item.getDescription().getMediaId());
+            Long itemAlbumId = provider.getMusic(musicId).getLong(
+                    MusicProviderSource.CUSTOM_METADATA_ALBUM_ID);
+            assertEquals(albumId, itemAlbumId);
             queueManager.skipQueuePosition(1);
         }
     }

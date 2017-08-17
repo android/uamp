@@ -19,6 +19,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
 import java.io.BufferedInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -60,14 +61,25 @@ public class BitmapHelper {
         return Math.min(actualW/targetW, actualH/targetH);
     }
 
+    private static boolean isLocal(URL url) {
+        String scheme = url.getProtocol();
+        return "file".equalsIgnoreCase(scheme) && (url.getHost() == null || "".equals(url.getHost()));
+    }
+
     @SuppressWarnings("SameParameterValue")
     public static Bitmap fetchAndRescaleBitmap(String uri, int width, int height)
             throws IOException {
         URL url = new URL(uri);
         BufferedInputStream is = null;
         try {
-            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-            is = new BufferedInputStream(urlConnection.getInputStream());
+
+            if (isLocal(url)) {
+                is = new BufferedInputStream(new FileInputStream(url.getFile()));
+            } else {
+                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                is = new BufferedInputStream(urlConnection.getInputStream());
+            }
+
             is.mark(MAX_READ_LIMIT_PER_IMG);
             int scaleFactor = findScaleFactor(width, height, is);
             LogHelper.d(TAG, "Scaling bitmap ", uri, " by factor ", scaleFactor, " to support ",

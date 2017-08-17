@@ -20,9 +20,12 @@
 buildscript {
     repositories {
         jcenter()
+        maven {
+            url "https://maven.google.com"
+        }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.3.2'
+        classpath 'com.android.tools.build:gradle:3.0.0-beta2'
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -37,3 +40,14 @@ allprojects {
         }
     }
 }
+
+ext {
+    buildToolsVersion = '26.0.1'
+    compileSdkVersion = 26
+    minSdkVersion = 17
+    targetSdkVersion = 26
+    supportLibraryVersion = '26.0.0'
+    gmsVersion = '11.0.4'
+    wearableVersion = '2.0.4'
+}
+

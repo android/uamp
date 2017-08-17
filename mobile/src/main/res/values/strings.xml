@@ -22,6 +22,7 @@
     <string name="browse_genres">Genres</string>
     <string name="browse_genre_subtitle">Songs by genre</string>
     <string name="browse_musics_by_genre_subtitle">%1$s songs</string>
+    <string name="browse_musics_by_album_subtitle">Music in %1$s</string>
     <string name="random_queue_title">Random music</string>
     <string name="error_no_connection">Cannot connect to server. Please, check your Internet connectivity.</string>
     <string name="error_loading_media">Error Loading Media</string>
@@ -51,4 +52,10 @@
     <string name="no_search_results">No search results.</string>
     <string name="loading">Loading…</string>
     <string name="media_route_menu_title">Play on…</string>
+    <string name="browse_albums">Albums</string>
+    <string name="browse_albums_subtitle">Songs in Albums</string>
+    <string name="browse_playlist">Playlist</string>
+    <string name="browse_playlist_subtitle">Songs in playlists</string>
+    <string name="browse_tracks">Tracks</string>
+    <string name="browse_tracks_subtitle">All individual Songs</string>
 </resources>

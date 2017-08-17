@@ -115,7 +115,7 @@ public class TvVerticalGridFragment extends VerticalGridSupportFragment {
         public void onItemClicked(Presenter.ViewHolder itemViewHolder, Object item,
                                   RowPresenter.ViewHolder rowViewHolder, Row row) {
 
-            MediaControllerCompat controller = getActivity().getSupportMediaController();
+            MediaControllerCompat controller = MediaControllerCompat.getMediaController(getActivity());
             if (controller == null) {
                 return;
             }

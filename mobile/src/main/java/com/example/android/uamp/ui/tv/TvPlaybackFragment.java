@@ -117,7 +117,7 @@ public class TvPlaybackFragment extends PlaybackOverlaySupportFragment {
                 if (getActivity() == null) {
                     return;
                 }
-                MediaControllerCompat controller = getActivity().getSupportMediaController();
+                MediaControllerCompat controller = MediaControllerCompat.getMediaController(getActivity());
                 if (controller == null) {
                     return;
                 }
@@ -188,7 +188,7 @@ public class TvPlaybackFragment extends PlaybackOverlaySupportFragment {
 
         if (mListRow == null) {
             int queueSize = 0;
-            MediaControllerCompat controller = getActivity().getSupportMediaController();
+            MediaControllerCompat controller = MediaControllerCompat.getMediaController(getActivity());
             if (controller != null && controller.getQueue() != null) {
                 queueSize = controller.getQueue().size();
             }
@@ -299,7 +299,7 @@ public class TvPlaybackFragment extends PlaybackOverlaySupportFragment {
                 break;
         }
 
-        MediaControllerCompat controller = getActivity().getSupportMediaController();
+        MediaControllerCompat controller = MediaControllerCompat.getMediaController(getActivity());
         updatePlayListRow(controller.getQueue());
         mRowsAdapter.notifyArrayItemRangeChanged(
                 mRowsAdapter.indexOf(mPlaybackControlsRow), 1);
@@ -322,7 +322,7 @@ public class TvPlaybackFragment extends PlaybackOverlaySupportFragment {
             if (clickedItem instanceof MediaSessionCompat.QueueItem) {
                 LogHelper.d(TAG, "item: ", clickedItem.toString());
 
-                MediaControllerCompat controller = getActivity().getSupportMediaController();
+                MediaControllerCompat controller = MediaControllerCompat.getMediaController(getActivity());
                 MediaSessionCompat.QueueItem item = (MediaSessionCompat.QueueItem) clickedItem;
                 if (!QueueHelper.isQueueItemPlaying(getActivity(), item)
                         || controller.getPlaybackState().getState()

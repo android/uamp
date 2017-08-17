@@ -35,9 +35,12 @@ public class MediaIDHelper {
     public static final String MEDIA_ID_ROOT = "__ROOT__";
     public static final String MEDIA_ID_MUSICS_BY_GENRE = "__BY_GENRE__";
     public static final String MEDIA_ID_MUSICS_BY_SEARCH = "__BY_SEARCH__";
+    public static final String MEDIA_ID_MUSIC_PLAYLISTS = "__MUSIC_PLAYLISTS__";
+    public static final String MEDIA_ID_MUSICS_BY_ALBUMS = "__BY_ALBUMS__";
+    public static final String MEDIA_ID_MUSIC_ALL = "__ALL__";
 
-    private static final char CATEGORY_SEPARATOR = '/';
-    private static final char LEAF_SEPARATOR = '|';
+    public static final char CATEGORY_SEPARATOR = '/';
+    public static final char LEAF_SEPARATOR = '|';
 
     /**
      * Create a String value that represents a playable or a browsable media.
@@ -150,8 +153,7 @@ public class MediaIDHelper {
                                              MediaBrowserCompat.MediaItem mediaItem) {
         // Media item is considered to be playing or paused based on the controller's current
         // media id
-        MediaControllerCompat controller = ((FragmentActivity) context)
-                .getSupportMediaController();
+        MediaControllerCompat controller = MediaControllerCompat.getMediaController((FragmentActivity) context);
         if (controller != null && controller.getMetadata() != null) {
             String currentPlayingMediaId = controller.getMetadata().getDescription()
                     .getMediaId();

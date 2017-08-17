@@ -30,8 +30,10 @@ import com.example.android.uamp.model.MusicProvider;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.example.android.uamp.utils.MediaIDHelper.MEDIA_ID_MUSICS_BY_ALBUMS;
 import static com.example.android.uamp.utils.MediaIDHelper.MEDIA_ID_MUSICS_BY_GENRE;
 import static com.example.android.uamp.utils.MediaIDHelper.MEDIA_ID_MUSICS_BY_SEARCH;
+import static com.example.android.uamp.utils.MediaIDHelper.MEDIA_ID_MUSIC_ALL;
 
 /**
  * Utility class to help on queue related tasks.
@@ -63,6 +65,11 @@ public class QueueHelper {
             tracks = musicProvider.getMusicsByGenre(categoryValue);
         } else if (categoryType.equals(MEDIA_ID_MUSICS_BY_SEARCH)) {
             tracks = musicProvider.searchMusicBySongTitle(categoryValue);
+        } else if (categoryType.equals(MEDIA_ID_MUSICS_BY_ALBUMS)) {
+            tracks = musicProvider.getMusicsByAlbum(Long.valueOf(categoryValue));
+        } else if (categoryType.equals(MEDIA_ID_MUSIC_ALL)) {
+            // TODO: this feels wrong.
+            tracks = musicProvider.getShuffledMusic();
         }
 
         if (tracks == null) {
@@ -229,7 +236,7 @@ public class QueueHelper {
                                              MediaSessionCompat.QueueItem queueItem) {
         // Queue item is considered to be playing or paused based on both the controller's
         // current media id and the controller's active queue item id
-        MediaControllerCompat controller = ((FragmentActivity) context).getSupportMediaController();
+        MediaControllerCompat controller = MediaControllerCompat.getMediaController((FragmentActivity)context);
         if (controller != null && controller.getPlaybackState() != null) {
             long currentPlayingQueueId = controller.getPlaybackState().getActiveQueueItemId();
             String currentPlayingMediaId = controller.getMetadata().getDescription()
