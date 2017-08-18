@@ -38,6 +38,7 @@ import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.Timeline;
+import com.google.android.exoplayer2.audio.AudioAttributes;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.extractor.ExtractorsFactory;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
@@ -50,6 +51,8 @@ import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 
 import static android.support.v4.media.session.MediaSessionCompat.QueueItem;
+import static com.google.android.exoplayer2.C.CONTENT_TYPE_MUSIC;
+import static com.google.android.exoplayer2.C.USAGE_MEDIA;
 
 /**
  * A class that implements local media playback using {@link
@@ -210,7 +213,16 @@ public final class LocalPlayback implements Playback {
                 mExoPlayer.addListener(mEventListener);
             }
 
-            mExoPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            // Android "O" makes much greater use of AudioAttributes, especially
+            // with regards to AudioFocus. All of UAMP's tracks are music, but
+            // if your content includes spoken word such as audiobooks or podcasts
+            // then the content type should be set to CONTENT_TYPE_SPEECH for those
+            // tracks.
+            final AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                    .setContentType(CONTENT_TYPE_MUSIC)
+                    .setUsage(USAGE_MEDIA)
+                    .build();
+            mExoPlayer.setAudioAttributes(audioAttributes);
 
             // Produces DataSource instances through which media data is loaded.
             DataSource.Factory dataSourceFactory =
@@ -458,6 +470,11 @@ public final class LocalPlayback implements Playback {
 
         @Override
         public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
+            // Nothing to do.
+        }
+
+        @Override
+        public void onRepeatModeChanged(int repeatMode) {
             // Nothing to do.
         }
     }
