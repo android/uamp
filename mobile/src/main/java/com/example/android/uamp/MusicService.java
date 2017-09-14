@@ -269,6 +269,16 @@ public class MusicService extends MediaBrowserServiceCompat implements
         return START_STICKY;
     }
 
+    /*
+     * Handle case when user swipes the app away from the recents apps list by
+     * stopping the service (and any ongoing playback).
+     */
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        super.onTaskRemoved(rootIntent);
+        stopSelf();
+    }
+
     /**
      * (non-Javadoc)
      * @see android.app.Service#onDestroy()
