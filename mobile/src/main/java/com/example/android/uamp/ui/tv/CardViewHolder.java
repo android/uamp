@@ -28,6 +28,7 @@ import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.support.v17.leanback.widget.ImageCardView;
 import android.support.v17.leanback.widget.Presenter;
 import android.support.v4.media.MediaDescriptionCompat;
@@ -52,10 +53,6 @@ public class CardViewHolder extends Presenter.ViewHolder {
 
     public void setState(int state) {
         mItemState = state;
-    }
-
-    public int getState() {
-        return mItemState;
     }
 
     public void attachView() {
@@ -153,7 +150,7 @@ public class CardViewHolder extends Presenter.ViewHolder {
         }
 
         @Override
-        public void draw(Canvas canvas) {
+        public void draw(@NonNull Canvas canvas) {
             Rect r = getBounds();
             int count = canvas.save();
             canvas.translate(r.left, r.top);

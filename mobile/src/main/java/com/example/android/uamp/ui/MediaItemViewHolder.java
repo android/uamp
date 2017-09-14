@@ -47,9 +47,9 @@ public class MediaItemViewHolder {
     private static ColorStateList sColorStatePlaying;
     private static ColorStateList sColorStateNotPlaying;
 
-    ImageView mImageView;
-    TextView mTitleView;
-    TextView mDescriptionView;
+    private ImageView mImageView;
+    private TextView mTitleView;
+    private TextView mDescriptionView;
 
     // Returns a view for use in media item list.
     static View setupListView(Activity activity, View convertView, ViewGroup parent,
