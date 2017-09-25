@@ -259,11 +259,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(mService);
         int playPauseButtonPosition = 0;
 
-        // If skip to previous action is enabled
         if ((mPlaybackState.getActions() & PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS) != 0) {
-            notificationBuilder.addAction(R.drawable.ic_skip_previous_white_24dp,
-                        mService.getString(R.string.label_previous), mPreviousIntent);
-
             // If there is a "skip to previous" button, the play/pause button will
             // be the second one. We need to keep track of it, because the MediaStyle notification
             // requires to specify the index of the buttons (actions) that should be visible
@@ -271,13 +267,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
             playPauseButtonPosition = 1;
         }
 
-        addPlayPauseAction(notificationBuilder);
-
-        // If skip to next action is enabled
-        if ((mPlaybackState.getActions() & PlaybackStateCompat.ACTION_SKIP_TO_NEXT) != 0) {
-            notificationBuilder.addAction(R.drawable.ic_skip_next_white_24dp,
-                mService.getString(R.string.label_next), mNextIntent);
-        }
+        setNotificationAction(notificationBuilder);
 
         MediaDescriptionCompat description = mMetadata.getDescription();
 
@@ -311,23 +301,40 @@ public class MediaNotificationManager extends BroadcastReceiver {
                 .setContentText(description.getSubtitle())
                 .setLargeIcon(art);
 
-        if (mController != null && mController.getExtras() != null) {
-            String castName = mController.getExtras().getString(MusicService.EXTRA_CONNECTED_CAST);
-            if (castName != null) {
-                String castInfo = mService.getResources()
-                        .getString(R.string.casting_to_device, castName);
-                notificationBuilder.setSubText(castInfo);
-                notificationBuilder.addAction(R.drawable.ic_close_black_24dp,
-                        mService.getString(R.string.stop_casting), mStopCastIntent);
-            }
-        }
-
         setNotificationPlaybackState(notificationBuilder);
         if (fetchArtUrl != null) {
             fetchBitmapFromURLAsync(fetchArtUrl, notificationBuilder);
         }
 
         return notificationBuilder.build();
+    }
+
+    private void setNotificationAction(NotificationCompat.Builder builder){
+        builder.mActions.clear();
+        // If skip to previous action is enabled
+        if ((mPlaybackState.getActions() & PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS) != 0) {
+            builder.addAction(R.drawable.ic_skip_previous_white_24dp,
+                    mService.getString(R.string.label_previous), mPreviousIntent);
+        }
+
+        addPlayPauseAction(builder);
+
+        // If skip to next action is enabled
+        if ((mPlaybackState.getActions() & PlaybackStateCompat.ACTION_SKIP_TO_NEXT) != 0) {
+            builder.addAction(R.drawable.ic_skip_next_white_24dp,
+                    mService.getString(R.string.label_next), mNextIntent);
+        }
+
+        if (mController != null && mController.getExtras() != null) {
+            String castName = mController.getExtras().getString(MusicService.EXTRA_CONNECTED_CAST);
+            if (castName != null) {
+                String castInfo = mService.getResources()
+                        .getString(R.string.casting_to_device, castName);
+                builder.setSubText(castInfo);
+                builder.addAction(R.drawable.ic_close_black_24dp,
+                        mService.getString(R.string.stop_casting), mStopCastIntent);
+            }
+        }
     }
 
     private void addPlayPauseAction(NotificationCompat.Builder builder) {
@@ -384,6 +391,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
                     // If the media is still the same, update the notification:
                     LogHelper.d(TAG, "fetchBitmapFromURLAsync: set bitmap to ", artUrl);
                     builder.setLargeIcon(bitmap);
+                    setNotificationAction(builder);//this task is async and the builder state is old,we should refresh to right state.
                     mNotificationManager.notify(NOTIFICATION_ID, builder.build());
                 }
             }
