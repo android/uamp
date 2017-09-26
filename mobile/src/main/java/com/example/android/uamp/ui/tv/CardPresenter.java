@@ -15,7 +15,7 @@
  */
 package com.example.android.uamp.ui.tv;
 
-import android.content.Context;
+import android.app.Activity;
 import android.support.v17.leanback.widget.ImageCardView;
 import android.support.v17.leanback.widget.Presenter;
 import android.support.v4.media.MediaBrowserCompat;
@@ -31,12 +31,16 @@ import com.example.android.uamp.utils.QueueHelper;
 public class CardPresenter extends Presenter {
     private static final String TAG = LogHelper.makeLogTag(CardPresenter.class);
 
-    private static Context mContext;
+    private static Activity mContext;
+
+
+    public CardPresenter(Activity activity) {
+        mContext = activity;
+    }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent) {
         LogHelper.d(TAG, "onCreateViewHolder");
-        mContext = parent.getContext();
 
         ImageCardView cardView = new ImageCardView(mContext);
         cardView.setFocusable(true);
