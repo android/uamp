@@ -21,6 +21,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.session.MediaControllerCompat;
 import android.text.TextUtils;
 
 import com.example.android.uamp.R;
@@ -81,7 +82,7 @@ public class MusicPlayerActivity extends BaseActivity
     public void onMediaItemSelected(MediaBrowserCompat.MediaItem item) {
         LogHelper.d(TAG, "onMediaItemSelected, mediaId=" + item.getMediaId());
         if (item.isPlayable()) {
-            getSupportMediaController().getTransportControls()
+            MediaControllerCompat.getMediaController(MusicPlayerActivity.this).getTransportControls()
                     .playFromMediaId(item.getMediaId(), null);
         } else if (item.isBrowsable()) {
             navigateToBrowser(item.getMediaId());
@@ -177,7 +178,7 @@ public class MusicPlayerActivity extends BaseActivity
             // send it to the media session and set it to null, so it won't play again
             // when the activity is stopped/started or recreated:
             String query = mVoiceSearchParams.getString(SearchManager.QUERY);
-            getSupportMediaController().getTransportControls()
+            MediaControllerCompat.getMediaController(MusicPlayerActivity.this).getTransportControls()
                     .playFromSearch(query, mVoiceSearchParams);
             mVoiceSearchParams = null;
         }

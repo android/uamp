@@ -130,7 +130,7 @@ public class MediaItemViewHolder {
         }
     }
 
-    public static int getMediaItemState(Context context, MediaBrowserCompat.MediaItem mediaItem) {
+    public static int getMediaItemState(Activity context, MediaBrowserCompat.MediaItem mediaItem) {
         int state = STATE_NONE;
         // Set state to playable first, then override to playing or paused state if needed
         if (mediaItem.isPlayable()) {
@@ -143,9 +143,8 @@ public class MediaItemViewHolder {
         return state;
     }
 
-    public static int getStateFromController(Context context) {
-        MediaControllerCompat controller = ((FragmentActivity) context)
-                .getSupportMediaController();
+    public static int getStateFromController(Activity context) {
+        MediaControllerCompat controller = MediaControllerCompat.getMediaController(context);
         PlaybackStateCompat pbState = controller.getPlaybackState();
         if (pbState == null ||
                 pbState.getState() == PlaybackStateCompat.STATE_ERROR) {
