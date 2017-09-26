@@ -16,7 +16,6 @@
 package com.example.android.uamp.ui.tv;
 
 import android.app.Activity;
-import android.content.Context;
 import android.support.v17.leanback.widget.ImageCardView;
 import android.support.v17.leanback.widget.Presenter;
 import android.support.v4.media.MediaBrowserCompat;
