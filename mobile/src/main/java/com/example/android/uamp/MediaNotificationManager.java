@@ -17,6 +17,8 @@
 package com.example.android.uamp;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -25,9 +27,10 @@ import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
-import android.support.v4.app.NotificationManagerCompat;
+import android.support.annotation.RequiresApi;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
@@ -47,6 +50,10 @@ import com.example.android.uamp.utils.ResourceHelper;
 public class MediaNotificationManager extends BroadcastReceiver {
     private static final String TAG = LogHelper.makeLogTag(MediaNotificationManager.class);
 
+    private static final String CHANNEL_ID = "MusicApp_Channel";
+    private static final String CHANNEL_NAME = "MusicApp Notification Channel";
+    private static final String CHANNEL_DESCRIPTION = "Notification used by MusicApp";
+
     private static final int NOTIFICATION_ID = 412;
     private static final int REQUEST_CODE = 100;
 
@@ -64,7 +71,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
     private PlaybackStateCompat mPlaybackState;
     private MediaMetadataCompat mMetadata;
 
-    private final NotificationManagerCompat mNotificationManager;
+    private final NotificationManager mNotificationManager;
 
     private final PendingIntent mPauseIntent;
     private final PendingIntent mPlayIntent;
@@ -84,7 +91,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
         mNotificationColor = ResourceHelper.getThemeColor(mService, R.attr.colorPrimary,
                 Color.DKGRAY);
 
-        mNotificationManager = NotificationManagerCompat.from(service);
+        mNotificationManager = (NotificationManager) mService.getSystemService(Context.NOTIFICATION_SERVICE);
 
         String pkg = mService.getPackageName();
         mPauseIntent = PendingIntent.getBroadcast(mService, REQUEST_CODE,
@@ -296,6 +303,12 @@ public class MediaNotificationManager extends BroadcastReceiver {
                     R.drawable.ic_default_art);
             }
         }
+        /**
+         * Call this method only if SDK is Oreo
+         * */
+        if (Build.VERSION.SDK_INT >= 26) {
+            createNotificationChannel();
+        }
 
         notificationBuilder
                 .setStyle(new NotificationCompat.MediaStyle()
@@ -309,6 +322,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
                 .setContentIntent(createContentIntent(description))
                 .setContentTitle(description.getTitle())
                 .setContentText(description.getSubtitle())
+                .setChannelId(CHANNEL_ID)
                 .setLargeIcon(art);
 
         if (mController != null && mController.getExtras() != null) {
@@ -388,5 +402,18 @@ public class MediaNotificationManager extends BroadcastReceiver {
                 }
             }
         });
+    }
+
+    /**
+     * create Notification Channel, this is required by SDK Oreo to display notifications.
+     * */
+    @RequiresApi(Build.VERSION_CODES.O)
+    private void createNotificationChannel() {
+        NotificationChannel notificationChannel = new NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_LOW);
+        notificationChannel.setDescription(CHANNEL_DESCRIPTION);
+        notificationChannel.enableLights(true);
+        notificationChannel.setLightColor(Color.RED);
+        notificationChannel.enableVibration(true);
+        mNotificationManager.createNotificationChannel(notificationChannel);
     }
 }
