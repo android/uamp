@@ -88,7 +88,7 @@ public class QueueHelper {
             return getRandomQueue(musicProvider);
         }
 
-        Iterable<MediaMetadataCompat> result = null;
+        List<MediaMetadataCompat> result = null;
         if (params.isAlbumFocus) {
             result = musicProvider.searchMusicByAlbum(params.album);
         } else if (params.isGenreFocus) {
@@ -106,8 +106,12 @@ public class QueueHelper {
         // Artist (podcast author). Then, we can instead do an unstructured search.
         if (params.isUnstructured || result == null || !result.iterator().hasNext()) {
             // To keep it simple for this example, we do unstructured searches on the
-            // song title only. A real world application could search on other fields as well.
+            // song title and genre only. A real world application could search
+            // on other fields as well.
             result = musicProvider.searchMusicBySongTitle(query);
+            if (result.isEmpty()) {
+                result = musicProvider.searchMusicByGenre(query);
+            }
         }
 
         return convertToQueue(result, MEDIA_ID_MUSICS_BY_SEARCH, query);

@@ -363,13 +363,22 @@ public class PlaybackManager implements Playback.Callback {
             LogHelper.d(TAG, "playFromSearch  query=", query, " extras=", extras);
 
             mPlayback.setState(PlaybackStateCompat.STATE_CONNECTING);
-            boolean successSearch = mQueueManager.setQueueFromSearch(query, extras);
-            if (successSearch) {
-                handlePlayRequest();
-                mQueueManager.updateMetadata();
-            } else {
-                updatePlaybackState("Could not find music");
-            }
+            mMusicProvider.retrieveMediaAsync(new MusicProvider.Callback() {
+                @Override
+                public void onMusicCatalogReady(boolean success) {
+                    if (!success) {
+                        updatePlaybackState("Could not load catalog");
+                    }
+
+                    boolean successSearch = mQueueManager.setQueueFromSearch(query, extras);
+                    if (successSearch) {
+                        handlePlayRequest();
+                        mQueueManager.updateMetadata();
+                    } else {
+                        updatePlaybackState("Could not find music");
+                    }
+                }
+            });
         }
     }
 
