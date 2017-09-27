@@ -33,7 +33,6 @@ public class CardPresenter extends Presenter {
 
     private static Activity mContext;
 
-
     public CardPresenter(Activity activity) {
         mContext = activity;
     }

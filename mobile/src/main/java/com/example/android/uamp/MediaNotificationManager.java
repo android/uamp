@@ -24,6 +24,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -50,9 +51,7 @@ import com.example.android.uamp.utils.ResourceHelper;
 public class MediaNotificationManager extends BroadcastReceiver {
     private static final String TAG = LogHelper.makeLogTag(MediaNotificationManager.class);
 
-    private static final String CHANNEL_ID = "MusicApp_Channel";
-    private static final String CHANNEL_NAME = "MusicApp Notification Channel";
-    private static final String CHANNEL_DESCRIPTION = "Notification used by MusicApp";
+    private static final String CHANNEL_ID = "com.example.android.uamp.MUSIC_CHANNEL_ID";
 
     private static final int NOTIFICATION_ID = 412;
     private static final int REQUEST_CODE = 100;
@@ -303,10 +302,9 @@ public class MediaNotificationManager extends BroadcastReceiver {
                     R.drawable.ic_default_art);
             }
         }
-        /**
-         * Call this method only if SDK is Oreo
-         * */
-        if (Build.VERSION.SDK_INT >= 26) {
+
+         //Call this method only if SDK is Oreo
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createNotificationChannel();
         }
 
@@ -409,11 +407,10 @@ public class MediaNotificationManager extends BroadcastReceiver {
      * */
     @RequiresApi(Build.VERSION_CODES.O)
     private void createNotificationChannel() {
-        NotificationChannel notificationChannel = new NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_LOW);
-        notificationChannel.setDescription(CHANNEL_DESCRIPTION);
-        notificationChannel.enableLights(true);
-        notificationChannel.setLightColor(Color.RED);
-        notificationChannel.enableVibration(true);
-        mNotificationManager.createNotificationChannel(notificationChannel);
+        if (mNotificationManager.getNotificationChannel(CHANNEL_ID) == null) {
+            NotificationChannel notificationChannel = new NotificationChannel(CHANNEL_ID, mService.getString(R.string.notification_channel), NotificationManager.IMPORTANCE_LOW);
+            notificationChannel.setDescription(mService.getString(R.string.notification_channel_description));
+            mNotificationManager.createNotificationChannel(notificationChannel);
+        }
     }
 }
