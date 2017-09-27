@@ -108,7 +108,7 @@ public class MusicProvider {
      * Get music tracks of the given genre
      *
      */
-    public Iterable<MediaMetadataCompat> getMusicsByGenre(String genre) {
+    public List<MediaMetadataCompat> getMusicsByGenre(String genre) {
         if (mCurrentState != State.INITIALIZED || !mMusicListByGenre.containsKey(genre)) {
             return Collections.emptyList();
         }
@@ -120,7 +120,7 @@ public class MusicProvider {
      * the given query.
      *
      */
-    public Iterable<MediaMetadataCompat> searchMusicBySongTitle(String query) {
+    public List<MediaMetadataCompat> searchMusicBySongTitle(String query) {
         return searchMusic(MediaMetadataCompat.METADATA_KEY_TITLE, query);
     }
 
@@ -129,7 +129,7 @@ public class MusicProvider {
      * the given query.
      *
      */
-    public Iterable<MediaMetadataCompat> searchMusicByAlbum(String query) {
+    public List<MediaMetadataCompat> searchMusicByAlbum(String query) {
         return searchMusic(MediaMetadataCompat.METADATA_KEY_ALBUM, query);
     }
 
@@ -138,11 +138,20 @@ public class MusicProvider {
      * the given query.
      *
      */
-    public Iterable<MediaMetadataCompat> searchMusicByArtist(String query) {
+    public List<MediaMetadataCompat> searchMusicByArtist(String query) {
         return searchMusic(MediaMetadataCompat.METADATA_KEY_ARTIST, query);
     }
 
-    Iterable<MediaMetadataCompat> searchMusic(String metadataField, String query) {
+    /**
+     * Very basic implementation of a search that filter music tracks with a genre containing
+     * the given query.
+     *
+     */
+    public List<MediaMetadataCompat> searchMusicByGenre(String query) {
+        return searchMusic(MediaMetadataCompat.METADATA_KEY_GENRE, query);
+    }
+
+    private List<MediaMetadataCompat> searchMusic(String metadataField, String query) {
         if (mCurrentState != State.INITIALIZED) {
             return Collections.emptyList();
         }
