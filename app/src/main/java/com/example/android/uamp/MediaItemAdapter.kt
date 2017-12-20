@@ -25,12 +25,27 @@ import android.view.ViewGroup
 import android.widget.TextView
 import kotlinx.android.synthetic.main.fragment_mediaitem.view.*
 
+interface MediaItemSelectedCallback {
+    fun onPlayableItemClicked(mediaItem: MediaItem)
+    fun onBrowsableItemClicked(mediaItem: MediaItem)
+}
+
 /**
  * [RecyclerView.Adapter] of [MediaItem]s used by the [MediaItemFragment].
  */
-class MediaItemAdapter : RecyclerView.Adapter<MediaViewHolder>() {
+class MediaItemAdapter(val itemSelectedCallback: MediaItemSelectedCallback) :
+        RecyclerView.Adapter<MediaViewHolder>() {
 
     private var mediaItems = emptyList<MediaItem>()
+
+    private val itemClickedListener: (MediaItem) -> Unit = { mediaItem ->
+        if (mediaItem.isPlayable) {
+            itemSelectedCallback.onPlayableItemClicked(mediaItem)
+        }
+        if (mediaItem.isBrowsable) {
+            itemSelectedCallback.onBrowsableItemClicked(mediaItem)
+        }
+    }
 
     fun setItems(newList: List<MediaItem>) {
         // Rather than simply set the new list, use [DiffUtil] to generate changes so
@@ -58,11 +73,11 @@ class MediaItemAdapter : RecyclerView.Adapter<MediaViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MediaViewHolder {
         val view = LayoutInflater.from(parent.context)
                 .inflate(R.layout.fragment_mediaitem, parent, false)
-        return MediaViewHolder(view)
+        return MediaViewHolder(view, itemClickedListener)
     }
 
     override fun onBindViewHolder(holder: MediaViewHolder, position: Int) {
-        holder.mItem = mediaItems[position]
+        holder.item = mediaItems[position]
         holder.titleView.text = mediaItems[position].description.title
         holder.subtitleView.text = mediaItems[position].description.subtitle
     }
@@ -70,8 +85,16 @@ class MediaItemAdapter : RecyclerView.Adapter<MediaViewHolder>() {
     override fun getItemCount(): Int = mediaItems.size
 }
 
-class MediaViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+class MediaViewHolder(view: View, itemClicked: (MediaItem) -> Unit) : RecyclerView.ViewHolder(view) {
     val titleView: TextView = view.title
     val subtitleView: TextView = view.subtitle
-    var mItem: MediaItem? = null
+    var item: MediaItem? = null
+
+    init {
+        view.setOnClickListener {
+            item?.let {
+                itemClicked(it)
+            }
+        }
+    }
 }

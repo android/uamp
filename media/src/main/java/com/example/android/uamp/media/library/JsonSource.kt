@@ -20,7 +20,20 @@ import android.content.Context
 import android.net.Uri
 import android.os.AsyncTask
 import android.support.v4.media.MediaMetadataCompat
-import android.util.Log
+import com.example.android.uamp.media.extensions.album
+import com.example.android.uamp.media.extensions.albumArtUri
+import com.example.android.uamp.media.extensions.artist
+import com.example.android.uamp.media.extensions.displayDescription
+import com.example.android.uamp.media.extensions.displayIconUri
+import com.example.android.uamp.media.extensions.displaySubtitle
+import com.example.android.uamp.media.extensions.displayTitle
+import com.example.android.uamp.media.extensions.duration
+import com.example.android.uamp.media.extensions.genre
+import com.example.android.uamp.media.extensions.id
+import com.example.android.uamp.media.extensions.mediaUri
+import com.example.android.uamp.media.extensions.title
+import com.example.android.uamp.media.extensions.trackCount
+import com.example.android.uamp.media.extensions.trackNumber
 import com.google.gson.Gson
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -97,28 +110,24 @@ private class UpdateCatalogTask(val listener: (List<MediaMetadataCompat>) -> Uni
 fun MediaMetadataCompat.Builder.from(jsonMusic: JsonMusic): MediaMetadataCompat.Builder {
     // The duration from the JSON is given in seconds, but the rest of the code works in
     // milliseconds. Here's where we convert to the proper units.
-    val duration: Long = TimeUnit.SECONDS.toMillis(jsonMusic.duration)
+    val durationMs = TimeUnit.SECONDS.toMillis(jsonMusic.duration)
 
-    with(jsonMusic) {
-        // Setup the core properties that will be used by the media library.
-        this@from
-                .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, id)
-                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
-                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
-                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, album)
-                .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration)
-                .putString(MediaMetadataCompat.METADATA_KEY_GENRE, genre)
-                .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, source)
-                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, image)
-                .putLong(MediaMetadataCompat.METADATA_KEY_TRACK_NUMBER, trackNumber)
-                .putLong(MediaMetadataCompat.METADATA_KEY_NUM_TRACKS, totalTrackCount)
+    id = jsonMusic.id
+    title = jsonMusic.title
+    artist = jsonMusic.artist
+    album = jsonMusic.album
+    duration = durationMs
+    genre = jsonMusic.genre
+    mediaUri = jsonMusic.source
+    albumArtUri = jsonMusic.image
+    trackNumber = jsonMusic.trackNumber
+    trackCount = jsonMusic.totalTrackCount
 
-                // To make things easier for *displaying* these, set the display properties as well.
-                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, title)
-                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, artist)
-                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION, album)
-                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI, image)
-    }
+    // To make things easier for *displaying* these, set the display properties as well.
+    displayTitle = jsonMusic.title
+    displaySubtitle = jsonMusic.artist
+    displayDescription = jsonMusic.album
+    displayIconUri = jsonMusic.image
 
     // Allow it to be used in the typical builder style.
     return this
@@ -163,12 +172,17 @@ class JsonCatalog {
  * at "https://www.example.com/json/ode_to_joy.jpg".
  */
 class JsonMusic {
+    // This regex matches all "non-word" (a-z, A-Z, 0-9) characters and will be used to remove
+    // them from the 'title' field to make an id.
+    val alphaNumericRegex = "[^\\w ]".toRegex()
+
     var id: String = ""
         get() {
-            // It's best if the media provider supplies a unique ID for the media, but in case
-            // they don't, generate our own using the object's hash code.
+            // It's best if the media provider supplies a unique ID for the media, but in this
+            // specific case, we can generate it from the title (since we know they're unique
+            // in our data).
             if (field.isEmpty()) {
-                id = "id#${hashCode()}"
+                id = title.replace(alphaNumericRegex, "").replace(' ', '_').toLowerCase()
             }
             return field
         }
