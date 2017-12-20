@@ -20,8 +20,10 @@ import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.session.PlaybackStateCompat
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -36,11 +38,26 @@ class MediaItemFragment : Fragment(), ConnectionCallback {
     private lateinit var mediaBrowserConnection: MediaBrowserViewModel
 
     private val subscriptionCallback = SubscriptionCallback()
-    private val listAdapter = MediaItemAdapter()
+    private val listAdapter = MediaItemAdapter(object : MediaItemSelectedCallback {
+        override fun onPlayableItemClicked(mediaItem: MediaBrowserCompat.MediaItem) {
+            if (mediaItem.mediaId != mediaBrowserConnection.nowPlayingId) {
+                mediaBrowserConnection
+                        .transportControls
+                        .playFromMediaId(mediaItem.mediaId, null)
+            } else {
+                if (mediaBrowserConnection.playbackState == PlaybackStateCompat.STATE_PLAYING) {
+                    mediaBrowserConnection.transportControls.pause()
+                } else {
+                    mediaBrowserConnection.transportControls.play()
+                }
+            }
+        }
+
+        override fun onBrowsableItemClicked(mediaItem: MediaBrowserCompat.MediaItem) {
+        }
+    })
 
     companion object {
-
-        // TODO: Customize parameter initialization
         fun newInstance(mediaId: String): MediaItemFragment {
             return MediaItemFragment().apply {
                 arguments = Bundle().apply {
@@ -56,7 +73,8 @@ class MediaItemFragment : Fragment(), ConnectionCallback {
         retainInstance = true
         mediaId = arguments.getString(MEDIA_ID_ARG)
 
-        mediaBrowserConnection = ViewModelProviders.of(this).get(MediaBrowserViewModel::class.java)
+        mediaBrowserConnection =
+                ViewModelProviders.of(activity).get(MediaBrowserViewModel::class.java)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,

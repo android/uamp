@@ -47,6 +47,7 @@ dependencies {
     api 'com.google.code.gson:gson:2.8.2'
 
     api 'com.android.support:support-media-compat:26.1.0'
+    api 'com.google.android.exoplayer:exoplayer:2.6.0'
 
     testImplementation 'junit:junit:4.12'
 

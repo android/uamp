@@ -16,23 +16,17 @@
 
 package com.example.android.uamp.media
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.support.v4.app.NotificationCompat
 import android.support.v4.media.MediaBrowserCompat.MediaItem
 import android.support.v4.media.MediaBrowserServiceCompat
 import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import com.example.android.uamp.media.extensions.id
 import com.example.android.uamp.media.library.JsonSource
-import android.support.v4.media.app.NotificationCompat.MediaStyle
-import android.support.v4.media.session.MediaButtonReceiver
 
 /**
  * UAMP's implementation of a [MediaBrowserServiceCompat].
@@ -54,8 +48,30 @@ class MusicService : MediaBrowserServiceCompat() {
 
     private lateinit var mediaSource: JsonSource
 
+    private lateinit var playback: Playback
+
+    private var announcedMetadata: MediaMetadataCompat? = null
+
     private val remoteJsonSource: Uri =
             Uri.parse("https://storage.googleapis.com/automotive-media/music.json")
+
+    private val playbackStateBuilder = PlaybackStateCompat.Builder()
+
+    // These actions are always supported.
+    private val supportedActionsDefault =
+            PlaybackStateCompat.ACTION_PLAY_FROM_MEDIA_ID
+
+    // These are the actions supported when the player is playing.
+    private val supportedActionsPlaying =
+            PlaybackStateCompat.ACTION_PLAY_PAUSE or
+                    PlaybackStateCompat.ACTION_PAUSE or
+                    PlaybackStateCompat.ACTION_SEEK_TO
+
+    // These are the actions supported when the player is paused.
+    private val supportedActionsPaused =
+            PlaybackStateCompat.ACTION_PLAY_PAUSE or
+                    PlaybackStateCompat.ACTION_PLAY or
+                    PlaybackStateCompat.ACTION_SEEK_TO
 
     override fun onCreate() {
         super.onCreate()
@@ -71,6 +87,9 @@ class MusicService : MediaBrowserServiceCompat() {
         sessionToken = mediaSession.sessionToken
 
         mediaSource = JsonSource(context = this, source = remoteJsonSource)
+        playback = Playback(this.applicationContext, { playerState ->
+            updateState(playerState)
+        })
     }
 
     override fun onTaskRemoved(rootIntent: Intent) {
@@ -108,6 +127,37 @@ class MusicService : MediaBrowserServiceCompat() {
         }
     }
 
+    private fun updateState(newState: Int?) {
+        val updateState = newState ?: playback.playerState
+        playbackStateBuilder.setState(updateState, playback.playerPosition, playback.playerSpeed)
+
+        // Add actions based on state.
+        val supportedActions = supportedActionsDefault or
+                when (updateState) {
+                    PlaybackStateCompat.STATE_PLAYING -> supportedActionsPlaying
+                    PlaybackStateCompat.STATE_PAUSED -> supportedActionsPaused
+                    else -> 0
+                }
+        playbackStateBuilder.setActions(supportedActions)
+
+        mediaSession.setPlaybackState(playbackStateBuilder.build())
+
+        // When the state changes, the metadata may have changed, so update that as well.
+        updateMetadata(playback.currentlyPlaying)
+    }
+
+    private fun updateMetadata(nowPlaying: MediaMetadataCompat) {
+        if (announcedMetadata == null || announcedMetadata != nowPlaying) {
+            mediaSession.setMetadata(nowPlaying)
+            announcedMetadata = nowPlaying
+        }
+    }
+
+    private fun announceError(errorCode: Int, errorMessage: String) {
+        playbackStateBuilder.setErrorMessage(errorCode, errorMessage)
+        updateState(PlaybackStateCompat.STATE_ERROR)
+    }
+
     // MediaSession Callback: Transport Controls -> MediaPlayerAdapter
     inner class MediaSessionCallback : MediaSessionCompat.Callback() {
         override fun onAddQueueItem(description: MediaDescriptionCompat?) {
@@ -120,9 +170,30 @@ class MusicService : MediaBrowserServiceCompat() {
         }
 
         override fun onPlay() {
+            if (playback.playerState == PlaybackStateCompat.STATE_PAUSED) {
+                playback.resume()
+            }
+        }
+
+        override fun onPlayFromMediaId(mediaId: String?, extras: Bundle?) {
+            mediaSource.whenReady {
+                val itemToPlay = mediaSource.catalog.find { item ->
+                    item.id == mediaId
+                }
+                if (itemToPlay == null) {
+                    announceError(0, "Content not found: MediaID=${mediaId}")
+                } else {
+                    if (playback.currentlyPlaying != itemToPlay) {
+                        playback.play(itemToPlay)
+                    } else {
+                        onPlay()
+                    }
+                }
+            }
         }
 
         override fun onPause() {
+            playback.pause()
         }
 
         override fun onStop() {
