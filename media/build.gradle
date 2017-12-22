@@ -21,11 +21,11 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
 android {
-    compileSdkVersion 26
+    compileSdkVersion 27
 
     defaultConfig {
         minSdkVersion 19
-        targetSdkVersion 26
+        targetSdkVersion 27
         versionCode 1
         versionName "1.0"
 
@@ -44,9 +44,10 @@ android {
 
 dependencies {
     api "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
-    api 'com.google.code.gson:gson:2.8.2'
 
-    api 'com.android.support:support-media-compat:26.1.0'
+    api "com.android.support:support-media-compat:$support_lib_version"
+
+    api 'com.google.code.gson:gson:2.8.2'
     api 'com.google.android.exoplayer:exoplayer:2.6.0'
 
     testImplementation 'junit:junit:4.12'

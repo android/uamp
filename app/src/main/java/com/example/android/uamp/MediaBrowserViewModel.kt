@@ -48,7 +48,7 @@ class MediaBrowserViewModel(application: Application) : AndroidViewModel(applica
             }
     val transportControls get() = mediaController.transportControls
 
-    private val callbacks = ArrayList<ConnectionCallback>()
+    private val callbacks = ArrayList<MediaBrowserStateChangeCallback>()
 
     init {
         mediaBrowser = MediaBrowserCompat(
@@ -59,7 +59,7 @@ class MediaBrowserViewModel(application: Application) : AndroidViewModel(applica
         mediaBrowser.connect()
     }
 
-    fun registerCallback(callback: ConnectionCallback) {
+    fun registerCallback(callback: MediaBrowserStateChangeCallback) {
         if (!callbacks.contains(callback)) {
             callbacks.add(callback)
 
@@ -69,7 +69,7 @@ class MediaBrowserViewModel(application: Application) : AndroidViewModel(applica
         }
     }
 
-    fun unregisterCallback(callback: ConnectionCallback) {
+    fun unregisterCallback(callback: MediaBrowserStateChangeCallback) {
         if (callbacks.contains(callback)) {
             callbacks.remove(callback)
         }
@@ -112,15 +112,21 @@ class MediaBrowserViewModel(application: Application) : AndroidViewModel(applica
     }
 
     private inner class MediaControllerCallback : MediaControllerCompat.Callback() {
-        private var lastStateUpdateTime = -1L
 
         override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
-            if (state != null && state.lastPositionUpdateTime > lastStateUpdateTime) {
-                lastStateUpdateTime = state.lastPositionUpdateTime
+            if (state == null) {
+                return
             }
+
+            callbacks.forEach { callback -> callback.onPlaybackStateChanged(state) }
         }
 
         override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
+            if (metadata == null) {
+                return
+            }
+
+            callbacks.forEach { callback -> callback.onMetadataChanged(metadata) }
         }
 
         override fun onSessionDestroyed() {
@@ -128,7 +134,7 @@ class MediaBrowserViewModel(application: Application) : AndroidViewModel(applica
 
             // Normally if a MediaBrowserService drops its connection the callback comes via
             // MediaControllerCompat.Callback (here). But since other connection status events
-            // are sent to MediaBrowserCompat.ConnectionCallback, we catch the disconnect here
+            // are sent to MediaBrowserCompat.MediaBrowserStateChangeCallback, we catch the disconnect here
             // and send it on to the other callback.
             callbacks.forEach { callback -> callback.onConnectionSuspended() }
         }
@@ -139,7 +145,7 @@ class MediaBrowserViewModel(application: Application) : AndroidViewModel(applica
  * Interface to allow a class to receive callbacks based on the changing state of a
  * [MediaBrowser] connection.
  */
-interface ConnectionCallback {
+interface MediaBrowserStateChangeCallback {
     fun onConnected() {
     }
 
@@ -147,5 +153,11 @@ interface ConnectionCallback {
     }
 
     fun onConnectionFailed() {
+    }
+
+    fun onPlaybackStateChanged(state: PlaybackStateCompat) {
+    }
+
+    fun onMetadataChanged(metadata: MediaMetadataCompat) {
     }
 }

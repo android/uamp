@@ -20,22 +20,33 @@
                 android:layout_height="@dimen/media_item_height">
 
     <ImageView
-        android:id="@+id/play_eq"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
+        android:id="@+id/albumb_art"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
         android:layout_alignParentStart="true"
         android:layout_centerVertical="true"
         android:layout_marginStart="@dimen/media_item_icon_margin_start"
+        android:scaleType="centerCrop"
         android:src="@drawable/ic_album_black_24dp"
         tools:ignore="ContentDescription" />
+
+    <ImageView
+        android:id="@+id/item_state"
+        style="@style/MediaStateIcon"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignBottom="@+id/albumb_art"
+        android:layout_alignEnd="@+id/albumb_art"
+        android:layout_alignStart="@+id/albumb_art"
+        android:layout_alignTop="@+id/albumb_art" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
         android:layout_centerVertical="true"
         android:layout_marginEnd="@dimen/text_margin"
         android:layout_marginStart="@dimen/media_item_text_margin_start"
+        android:layout_toEndOf="@+id/albumb_art"
         android:orientation="vertical">
 
         <TextView

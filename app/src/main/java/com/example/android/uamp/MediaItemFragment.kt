@@ -20,6 +20,7 @@ import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
@@ -27,13 +28,14 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.example.android.uamp.media.extensions.id
 
 private const val MEDIA_ID_ARG = "com.example.android.uamp.MediaItemFragment.MEDIA_ID"
 
 /**
  * A fragment representing a list of MediaItems.
  */
-class MediaItemFragment : Fragment(), ConnectionCallback {
+class MediaItemFragment : Fragment(), MediaBrowserStateChangeCallback {
     private lateinit var mediaId: String
     private lateinit var mediaBrowserConnection: MediaBrowserViewModel
 
@@ -54,6 +56,7 @@ class MediaItemFragment : Fragment(), ConnectionCallback {
         }
 
         override fun onBrowsableItemClicked(mediaItem: MediaBrowserCompat.MediaItem) {
+            // TODO: Support browsable items.
         }
     })
 
@@ -71,10 +74,10 @@ class MediaItemFragment : Fragment(), ConnectionCallback {
         super.onCreate(savedInstanceState)
 
         retainInstance = true
-        mediaId = arguments.getString(MEDIA_ID_ARG)
+        mediaId = arguments!!.getString(MEDIA_ID_ARG)
 
         mediaBrowserConnection =
-                ViewModelProviders.of(activity).get(MediaBrowserViewModel::class.java)
+                ViewModelProviders.of(activity!!).get(MediaBrowserViewModel::class.java)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -108,6 +111,16 @@ class MediaItemFragment : Fragment(), ConnectionCallback {
         super.onConnected()
 
         mediaBrowserConnection.subscribe(mediaId, subscriptionCallback)
+    }
+
+    override fun onPlaybackStateChanged(state: PlaybackStateCompat) {
+        listAdapter.playerState = state.state
+        listAdapter.notifyDataSetChanged()
+    }
+
+    override fun onMetadataChanged(metadata: MediaMetadataCompat) {
+        listAdapter.currentlyPlayingId = metadata.id
+        listAdapter.notifyDataSetChanged()
     }
 
     private inner class SubscriptionCallback : MediaBrowserCompat.SubscriptionCallback() {
