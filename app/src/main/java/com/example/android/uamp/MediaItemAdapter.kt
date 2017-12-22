@@ -17,12 +17,17 @@
 package com.example.android.uamp
 
 import android.support.v4.media.MediaBrowserCompat.MediaItem
+import android.support.v4.media.session.PlaybackStateCompat
 import android.support.v7.util.DiffUtil
 import android.support.v7.widget.RecyclerView
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import kotlinx.android.synthetic.main.fragment_mediaitem.view.*
 
 interface MediaItemSelectedCallback {
@@ -37,6 +42,9 @@ class MediaItemAdapter(val itemSelectedCallback: MediaItemSelectedCallback) :
         RecyclerView.Adapter<MediaViewHolder>() {
 
     private var mediaItems = emptyList<MediaItem>()
+
+    var currentlyPlayingId: String? = null
+    var playerState: Int = PlaybackStateCompat.STATE_NONE
 
     private val itemClickedListener: (MediaItem) -> Unit = { mediaItem ->
         if (mediaItem.isPlayable) {
@@ -77,9 +85,32 @@ class MediaItemAdapter(val itemSelectedCallback: MediaItemSelectedCallback) :
     }
 
     override fun onBindViewHolder(holder: MediaViewHolder, position: Int) {
-        holder.item = mediaItems[position]
-        holder.titleView.text = mediaItems[position].description.title
-        holder.subtitleView.text = mediaItems[position].description.subtitle
+        val mediaItem = mediaItems[position]
+        holder.item = mediaItem
+        holder.titleView.text = mediaItem.description.title
+        holder.subtitleView.text = mediaItem.description.subtitle
+
+        if (mediaItem.mediaId == currentlyPlayingId) {
+            val stateRes: Int = when(playerState) {
+                PlaybackStateCompat.STATE_BUFFERING -> R.drawable.ic_pause_black_24dp
+                PlaybackStateCompat.STATE_PLAYING -> R.drawable.ic_pause_black_24dp
+                PlaybackStateCompat.STATE_PAUSED -> R.drawable.ic_play_arrow_black_24dp
+                else -> 0
+            }
+
+            if (stateRes == 0) {
+                holder.playbackState.visibility = View.INVISIBLE
+            } else {
+                holder.playbackState.visibility = View.VISIBLE
+                holder.playbackState.setImageResource(stateRes)
+            }
+        } else {
+            holder.playbackState.visibility = View.INVISIBLE
+        }
+
+        Glide.with(holder.albumArt)
+                .load(mediaItems[position].description.iconUri)
+                .into(holder.albumArt)
     }
 
     override fun getItemCount(): Int = mediaItems.size
@@ -88,6 +119,9 @@ class MediaItemAdapter(val itemSelectedCallback: MediaItemSelectedCallback) :
 class MediaViewHolder(view: View, itemClicked: (MediaItem) -> Unit) : RecyclerView.ViewHolder(view) {
     val titleView: TextView = view.title
     val subtitleView: TextView = view.subtitle
+    val albumArt: ImageView = view.albumb_art
+    val playbackState: ImageView = view.item_state
+
     var item: MediaItem? = null
 
     init {

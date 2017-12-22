@@ -19,11 +19,11 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
 android {
-    compileSdkVersion 26
+    compileSdkVersion 27
     defaultConfig {
         applicationId "com.example.android.uamp.next"
         minSdkVersion 19
-        targetSdkVersion 26
+        targetSdkVersion 27
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -41,12 +41,16 @@ dependencies {
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
 
-    implementation 'com.android.support:appcompat-v7:26.1.0'
+    implementation "com.android.support:appcompat-v7:$support_lib_version"
+    implementation "com.android.support:support-v4:$support_lib_version"
+    implementation "com.android.support:recyclerview-v7:$support_lib_version"
+
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
     implementation "android.arch.lifecycle:extensions:1.0.0"
 
-    implementation 'com.android.support:support-v4:26.1.0'
-    implementation 'com.android.support:recyclerview-v7:26.1.0'
+    // Glide dependencies
+    implementation 'com.github.bumptech.glide:glide:4.4.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.4.0'
 
     testImplementation 'junit:junit:4.12'
 
