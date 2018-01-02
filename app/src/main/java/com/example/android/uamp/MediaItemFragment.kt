@@ -114,7 +114,7 @@ class MediaItemFragment : Fragment(), MediaBrowserStateChangeCallback {
     }
 
     override fun onPlaybackStateChanged(state: PlaybackStateCompat) {
-        listAdapter.playerState = state.state
+        listAdapter.playerState = state
         listAdapter.notifyDataSetChanged()
     }
 

@@ -17,6 +17,7 @@
 package com.example.android.uamp
 
 import android.arch.lifecycle.ViewModelProviders
+import android.media.AudioManager
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 
@@ -27,6 +28,10 @@ class MainActivity : AppCompatActivity(), MediaBrowserStateChangeCallback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        // Since UAMP is a music player, the volume controls should adjust the music
+        // volume while in the app.
+        setVolumeControlStream(AudioManager.STREAM_MUSIC)
 
         mediaBrowserConnection = ViewModelProviders.of(this).get(MediaBrowserViewModel::class.java)
     }

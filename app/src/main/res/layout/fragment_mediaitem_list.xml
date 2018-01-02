@@ -22,8 +22,11 @@
     android:name="com.example.android.uamp.MediaItemFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginLeft="16dp"
-    android:layout_marginRight="16dp"
+    android:background="@color/mediaListBackground"
+    android:paddingBottom="2dp"
+    android:paddingEnd="3dp"
+    android:paddingStart="2dp"
+    android:paddingTop="2dp"
     app:layoutManager="LinearLayoutManager"
     tools:context="com.example.android.uamp.MediaItemFragment"
     tools:listitem="@layout/fragment_mediaitem" />
