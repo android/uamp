@@ -44,7 +44,7 @@ class MediaItemAdapter(val itemSelectedCallback: MediaItemSelectedCallback) :
     private var mediaItems = emptyList<MediaItem>()
 
     var currentlyPlayingId: String? = null
-    var playerState: Int = PlaybackStateCompat.STATE_NONE
+    var playerState: PlaybackStateCompat? = null
 
     private val itemClickedListener: (MediaItem) -> Unit = { mediaItem ->
         if (mediaItem.isPlayable) {
@@ -91,11 +91,14 @@ class MediaItemAdapter(val itemSelectedCallback: MediaItemSelectedCallback) :
         holder.subtitleView.text = mediaItem.description.subtitle
 
         if (mediaItem.mediaId == currentlyPlayingId) {
-            val stateRes: Int = when(playerState) {
-                PlaybackStateCompat.STATE_BUFFERING -> R.drawable.ic_pause_black_24dp
-                PlaybackStateCompat.STATE_PLAYING -> R.drawable.ic_pause_black_24dp
-                PlaybackStateCompat.STATE_PAUSED -> R.drawable.ic_play_arrow_black_24dp
-                else -> 0
+
+            val actions = playerState?.actions ?: 0
+            val stateRes: Int = if (actions and PlaybackStateCompat.ACTION_PLAY != 0L) {
+                R.drawable.ic_play_arrow_black_24dp
+            } else if (actions and PlaybackStateCompat.ACTION_PAUSE != 0L) {
+                R.drawable.ic_pause_black_24dp
+            } else {
+                0
             }
 
             if (stateRes == 0) {
@@ -126,9 +129,7 @@ class MediaViewHolder(view: View, itemClicked: (MediaItem) -> Unit) : RecyclerVi
 
     init {
         view.setOnClickListener {
-            item?.let {
-                itemClicked(it)
-            }
+            item?.let { itemClicked(it) }
         }
     }
 }
