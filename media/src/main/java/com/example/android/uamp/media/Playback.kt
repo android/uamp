@@ -17,8 +17,13 @@
 package com.example.android.uamp.media
 
 import android.content.Context
+import android.media.AudioManager
+import android.support.v4.media.AudioAttributesCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import com.example.android.uamp.media.audiofocus.AudioFocusAwarePlayer
+import com.example.android.uamp.media.audiofocus.AudioFocusHelper
+import com.example.android.uamp.media.audiofocus.AudioFocusRequestCompat
 import com.example.android.uamp.media.extensions.mediaUri
 import com.google.android.exoplayer2.DefaultLoadControl
 import com.google.android.exoplayer2.DefaultRenderersFactory
@@ -63,7 +68,32 @@ class Playback(val context: Context, val stateUpdates: (Int) -> Unit) {
             ExoPlayerFactory.newSimpleInstance(DefaultRenderersFactory(context),
                     DefaultTrackSelector(),
                     DefaultLoadControl())
-    private val playbackStateBuilder = PlaybackStateCompat.Builder()
+
+    private val audioFocusHelper = AudioFocusHelper(context)
+    private var audioFocusRequest: AudioFocusRequestCompat? = null
+
+    private val exoPlayerWrapper = object : AudioFocusAwarePlayer {
+        override fun isPlaying(): Boolean {
+            return exoPlayer.playWhenReady
+        }
+
+        override fun play() {
+            exoPlayer.playWhenReady = true
+        }
+
+        override fun pause() {
+            exoPlayer.playWhenReady = false
+        }
+
+        override fun stop() {
+            this@Playback.pause()
+            exoPlayer.seekTo(0)
+        }
+
+        override fun setVolume(volume: Float) {
+            exoPlayer.volume = volume
+        }
+    }
 
     init {
         exoPlayer.addListener(playerListener)
@@ -87,67 +117,73 @@ class Playback(val context: Context, val stateUpdates: (Int) -> Unit) {
         // Update currently playing.
         currentlyPlaying = mediaMetadata
 
-        // TODO: Should actually request audio focus and only play once we receive it.
-        exoPlayer.playWhenReady = true
+        resume()
     }
 
     fun resume() {
-        exoPlayer.playWhenReady = true
+        if (audioFocusRequest == null) {
+            val listener = audioFocusHelper.createListenerForPlayer(exoPlayerWrapper)
+            val audioAttributes = AudioAttributesCompat.Builder()
+                    .setContentType(AudioAttributesCompat.CONTENT_TYPE_MUSIC)
+                    .setUsage(AudioAttributesCompat.USAGE_MEDIA)
+                    .build()
+
+            audioFocusRequest = AudioFocusRequestCompat.Builder(AudioManager.AUDIOFOCUS_GAIN)
+                    .setOnAudioFocusChangeListener(listener)
+                    .setAudioAttributes(audioAttributes)
+                    .build()
+        }
+
+        if (audioFocusHelper.requestAudioFocus(audioFocusRequest)) {
+            exoPlayer.playWhenReady = true
+        }
     }
 
     fun pause() {
         exoPlayer.playWhenReady = false
+        audioFocusRequest?.let {
+            audioFocusHelper.abandonAudioFocus(it)
+        }
     }
 
     private fun updatePlaybackState(newPlaybackState: Int?) {
-        val updateState = newPlaybackState ?: playerState
-        stateUpdates(updateState)
+        stateUpdates(newPlaybackState ?: playerState)
     }
 
-    private fun playerStateToCompatState(playWhenReady: Boolean, playbackState: Int): Int {
-        return when (exoPlayer.playbackState) {
-            STATE_IDLE -> PlaybackStateCompat.STATE_NONE
-            STATE_BUFFERING -> PlaybackStateCompat.STATE_BUFFERING
-            STATE_READY -> {
-                if (exoPlayer.playWhenReady) {
-                    PlaybackStateCompat.STATE_PLAYING
-                } else {
-                    PlaybackStateCompat.STATE_PAUSED
+    private fun playerStateToCompatState(playWhenReady: Boolean, playbackState: Int) =
+            when (playbackState) {
+                STATE_IDLE -> PlaybackStateCompat.STATE_NONE
+                STATE_BUFFERING -> PlaybackStateCompat.STATE_BUFFERING
+                STATE_READY -> {
+                    if (playWhenReady) {
+                        PlaybackStateCompat.STATE_PLAYING
+                    } else {
+                        PlaybackStateCompat.STATE_PAUSED
+                    }
                 }
+                STATE_ENDED -> PlaybackStateCompat.STATE_PAUSED
+                else -> PlaybackStateCompat.STATE_ERROR
             }
-            STATE_ENDED -> PlaybackStateCompat.STATE_PAUSED
-            else -> PlaybackStateCompat.STATE_ERROR
-        }
-    }
 
     inner class PlayerListener : Player.EventListener {
-        override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters?) {
-        }
+        override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters?) = Unit
 
-        override fun onSeekProcessed() {
-        }
+        override fun onSeekProcessed() = Unit
 
         override fun onTracksChanged(trackGroups: TrackGroupArray?,
-                                     trackSelections: TrackSelectionArray?) {
-        }
+                                     trackSelections: TrackSelectionArray?) = Unit
 
-        override fun onPlayerError(error: ExoPlaybackException?) {
-        }
+        override fun onPlayerError(error: ExoPlaybackException?) = Unit
 
-        override fun onLoadingChanged(isLoading: Boolean) {
-        }
+        override fun onLoadingChanged(isLoading: Boolean) = Unit
 
-        override fun onPositionDiscontinuity(reason: Int) {
-        }
+        override fun onPositionDiscontinuity(reason: Int) = Unit
 
-        override fun onRepeatModeChanged(repeatMode: Int) {
-        }
+        override fun onRepeatModeChanged(repeatMode: Int) = Unit
 
-        override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
-        }
+        override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) = Unit
 
-        override fun onTimelineChanged(timeline: Timeline?, manifest: Any?) {
-        }
+        override fun onTimelineChanged(timeline: Timeline?, manifest: Any?) = Unit
 
         override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
             updatePlaybackState(playerStateToCompatState(playWhenReady, playbackState))
