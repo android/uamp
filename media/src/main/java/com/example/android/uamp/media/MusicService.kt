@@ -16,21 +16,26 @@
 
 package com.example.android.uamp.media
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.media.AudioManager
 import android.net.Uri
 import android.os.Bundle
+import android.support.v4.app.NotificationManagerCompat
 import android.support.v4.media.MediaBrowserCompat.MediaItem
 import android.support.v4.media.MediaBrowserServiceCompat
 import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
+import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.util.Log
 import com.example.android.uamp.media.extensions.id
 import com.example.android.uamp.media.library.JsonSource
 
 /**
- * UAMP's implementation of a [MediaBrowserServiceCompat].
- *
  * This class is the entry point for browsing and playback commands from the APP's UI
  * and other apps that wish to play music via UAMP (for example, Android Auto or
  * the Google Assistant).
@@ -42,16 +47,15 @@ import com.example.android.uamp.media.library.JsonSource
  * visit [https://developer.android.com/guide/topics/media-apps/audio-app/building-a-mediabrowserservice.html](https://developer.android.com/guide/topics/media-apps/audio-app/building-a-mediabrowserservice.html).
  */
 class MusicService : MediaBrowserServiceCompat() {
-
     private lateinit var mediaSession: MediaSessionCompat
     private lateinit var mediaSessionCallback: MediaSessionCallback
-
+    private lateinit var becomingNoisyReceiver: BecomingNoisyReceiver
+    private lateinit var notificationManager: NotificationManagerCompat
+    private lateinit var notificationBuilder: NotificationBuilder
+    private var isForegroundService = false
     private lateinit var mediaSource: JsonSource
-
     private lateinit var playback: Playback
-
     private var announcedMetadata: MediaMetadataCompat? = null
-
     private val remoteJsonSource: Uri =
             Uri.parse("https://storage.googleapis.com/automotive-media/music.json")
 
@@ -86,10 +90,16 @@ class MusicService : MediaBrowserServiceCompat() {
                         MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS)
         sessionToken = mediaSession.sessionToken
 
+        notificationBuilder = NotificationBuilder(this)
+        notificationManager = NotificationManagerCompat.from(this)
+
+        becomingNoisyReceiver =
+                BecomingNoisyReceiver(context = this, sessionToken = mediaSession.sessionToken)
+
         mediaSource = JsonSource(context = this, source = remoteJsonSource)
-        playback = Playback(this.applicationContext, { playerState ->
+        playback = Playback(applicationContext) { playerState ->
             updateState(playerState)
-        })
+        }
     }
 
     override fun onTaskRemoved(rootIntent: Intent) {
@@ -134,6 +144,7 @@ class MusicService : MediaBrowserServiceCompat() {
         // Add actions based on state.
         val supportedActions = supportedActionsDefault or
                 when (updateState) {
+                    PlaybackStateCompat.STATE_BUFFERING,
                     PlaybackStateCompat.STATE_PLAYING -> supportedActionsPlaying
                     PlaybackStateCompat.STATE_PAUSED -> supportedActionsPaused
                     else -> 0
@@ -144,6 +155,27 @@ class MusicService : MediaBrowserServiceCompat() {
 
         // When the state changes, the metadata may have changed, so update that as well.
         updateMetadata(playback.currentlyPlaying)
+
+        val notification = notificationBuilder.buildNotification(sessionToken!!)
+        when (updateState) {
+            PlaybackStateCompat.STATE_BUFFERING,
+            PlaybackStateCompat.STATE_PLAYING -> {
+                becomingNoisyReceiver.register()
+
+                startForeground(NOW_PLAYING_NOTIFICATION, notification)
+                isForegroundService = true
+            }
+            else -> {
+                becomingNoisyReceiver.unregister()
+
+                if (isForegroundService) {
+                    stopForeground(false)
+
+                    notificationManager.notify(NOW_PLAYING_NOTIFICATION, notification)
+                    isForegroundService = false
+                }
+            }
+        }
     }
 
     private fun updateMetadata(nowPlaying: MediaMetadataCompat) {
@@ -160,14 +192,11 @@ class MusicService : MediaBrowserServiceCompat() {
 
     // MediaSession Callback: Transport Controls -> MediaPlayerAdapter
     inner class MediaSessionCallback : MediaSessionCompat.Callback() {
-        override fun onAddQueueItem(description: MediaDescriptionCompat?) {
-        }
+        override fun onAddQueueItem(description: MediaDescriptionCompat?) = Unit
 
-        override fun onRemoveQueueItem(description: MediaDescriptionCompat?) {
-        }
+        override fun onRemoveQueueItem(description: MediaDescriptionCompat?) = Unit
 
-        override fun onPrepare() {
-        }
+        override fun onPrepare() = Unit
 
         override fun onPlay() {
             if (playback.playerState == PlaybackStateCompat.STATE_PAUSED) {
@@ -181,7 +210,9 @@ class MusicService : MediaBrowserServiceCompat() {
                     item.id == mediaId
                 }
                 if (itemToPlay == null) {
-                    announceError(0, "Content not found: MediaID=${mediaId}")
+                    announceError(PlaybackStateCompat.ERROR_CODE_APP_ERROR,
+                            getString(R.string.error_media_not_found))
+                    Log.w(TAG, "Content not found: MediaID=$mediaId")
                 } else {
                     if (playback.currentlyPlaying != itemToPlay) {
                         playback.play(itemToPlay)
@@ -196,16 +227,49 @@ class MusicService : MediaBrowserServiceCompat() {
             playback.pause()
         }
 
-        override fun onStop() {
-        }
+        override fun onStop() = Unit
 
-        override fun onSkipToNext() {
-        }
+        override fun onSkipToNext() = Unit
 
-        override fun onSkipToPrevious() {
-        }
+        override fun onSkipToPrevious() = Unit
 
-        override fun onSeekTo(pos: Long) {
+        override fun onSeekTo(pos: Long) = Unit
+    }
+}
+
+/**
+ * Helper class for listening for when headphones are unplugged (or the audio
+ * will otherwise cause playback to become "noisy").
+ */
+private class BecomingNoisyReceiver(private val context: Context,
+                                    sessionToken: MediaSessionCompat.Token)
+    : BroadcastReceiver() {
+
+    private val noisyIntentFilter = IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY)
+    private val controller = MediaControllerCompat(context, sessionToken)
+
+    private var registered = false
+
+    fun register() {
+        if (!registered) {
+            context.registerReceiver(this, noisyIntentFilter)
+            registered = true
+        }
+    }
+
+    fun unregister() {
+        if (registered) {
+            context.unregisterReceiver(this)
+            registered = false
+        }
+    }
+
+    override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action == AudioManager.ACTION_AUDIO_BECOMING_NOISY) {
+            controller.transportControls.pause()
         }
     }
 }
+
+// For logcat.
+private const val TAG = "MusicService"
