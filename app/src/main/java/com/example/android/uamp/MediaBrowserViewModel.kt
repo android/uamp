@@ -26,6 +26,11 @@ import android.support.v4.media.session.PlaybackStateCompat
 import com.example.android.uamp.media.MusicService
 import com.example.android.uamp.media.extensions.id
 
+@Suppress("PropertyName")
+val EMPTY_PLAYBACK_STATE: PlaybackStateCompat = PlaybackStateCompat.Builder()
+        .setState(PlaybackStateCompat.STATE_NONE, 0, 0f)
+        .build()
+
 /**
  * ViewModel that implements (and holds onto) a MediaBrowser connection.
  */
@@ -38,15 +43,10 @@ class MediaBrowserViewModel(application: Application) : AndroidViewModel(applica
     private lateinit var mediaController: MediaControllerCompat
 
     val nowPlayingId
-        get() = if (mediaController.metadata != null) mediaController.metadata.id else ""
-    val playbackState
-        get() =
-            if (mediaController.playbackState != null) {
-                mediaController.playbackState.state
-            } else {
-                PlaybackStateCompat.STATE_NONE
-            }
-    val transportControls get() = mediaController.transportControls
+        get() = mediaController.metadata?.id ?: ""
+    val transportControls: MediaControllerCompat.TransportControls
+        get() = mediaController.transportControls
+    val playbackState get() = mediaController.playbackState ?: EMPTY_PLAYBACK_STATE
 
     private val callbacks = ArrayList<MediaBrowserStateChangeCallback>()
 
@@ -143,7 +143,7 @@ class MediaBrowserViewModel(application: Application) : AndroidViewModel(applica
 
 /**
  * Interface to allow a class to receive callbacks based on the changing state of a
- * [MediaBrowser] connection.
+ * [android.support.v4.media.MediaBrowserCompat] connection.
  */
 interface MediaBrowserStateChangeCallback {
     fun onConnected() {

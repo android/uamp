@@ -28,39 +28,24 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.example.android.uamp.media.extensions.id
+import com.example.android.uamp.media.extensions.isPauseEnabled
+import com.example.android.uamp.media.extensions.isPlayEnabled
 
 private const val MEDIA_ID_ARG = "com.example.android.uamp.MediaItemFragment.MEDIA_ID"
+private const val TAG = "MediaItemFragment"
 
 /**
  * A fragment representing a list of MediaItems.
  */
-class MediaItemFragment : Fragment(), MediaBrowserStateChangeCallback {
+class MediaItemFragment : Fragment(), MediaBrowserStateChangeCallback, MediaAdapterInterface {
     private lateinit var mediaId: String
     private lateinit var mediaBrowserConnection: MediaBrowserViewModel
 
     private val subscriptionCallback = SubscriptionCallback()
-    private val listAdapter = MediaItemAdapter(object : MediaItemSelectedCallback {
-        override fun onPlayableItemClicked(mediaItem: MediaBrowserCompat.MediaItem) {
-            if (mediaItem.mediaId != mediaBrowserConnection.nowPlayingId) {
-                mediaBrowserConnection
-                        .transportControls
-                        .playFromMediaId(mediaItem.mediaId, null)
-            } else {
-                if (mediaBrowserConnection.playbackState == PlaybackStateCompat.STATE_PLAYING) {
-                    mediaBrowserConnection.transportControls.pause()
-                } else {
-                    mediaBrowserConnection.transportControls.play()
-                }
-            }
-        }
-
-        override fun onBrowsableItemClicked(mediaItem: MediaBrowserCompat.MediaItem) {
-            // TODO: Support browsable items.
-        }
-    })
+    private val listAdapter = MediaItemAdapter(this)
 
     companion object {
+
         fun newInstance(mediaId: String): MediaItemFragment {
             return MediaItemFragment().apply {
                 arguments = Bundle().apply {
@@ -113,13 +98,35 @@ class MediaItemFragment : Fragment(), MediaBrowserStateChangeCallback {
         mediaBrowserConnection.subscribe(mediaId, subscriptionCallback)
     }
 
+    override val currentlyPlayingId: String get() = mediaBrowserConnection.nowPlayingId
+
+    override val playerState: PlaybackStateCompat get() = mediaBrowserConnection.playbackState
+
+    override fun onPlayableItemClicked(mediaItem: MediaBrowserCompat.MediaItem) {
+        if (mediaItem.mediaId != mediaBrowserConnection.nowPlayingId) {
+            mediaBrowserConnection
+                    .transportControls
+                    .playFromMediaId(mediaItem.mediaId, null)
+        } else {
+            if (mediaBrowserConnection.playbackState.isPauseEnabled) {
+                mediaBrowserConnection.transportControls.pause()
+            } else if (mediaBrowserConnection.playbackState.isPlayEnabled) {
+                mediaBrowserConnection.transportControls.play()
+            } else {
+                Log.w(TAG, "Playable item clicked but neither play nor pause are enabled!" +
+                        " (mediaId=${mediaItem.mediaId})")
+            }
+        }
+    }
+
+    // TODO: Implement browseable items.
+    override fun onBrowsableItemClicked(mediaItem: MediaBrowserCompat.MediaItem) = Unit
+
     override fun onPlaybackStateChanged(state: PlaybackStateCompat) {
-        listAdapter.playerState = state
         listAdapter.notifyDataSetChanged()
     }
 
     override fun onMetadataChanged(metadata: MediaMetadataCompat) {
-        listAdapter.currentlyPlayingId = metadata.id
         listAdapter.notifyDataSetChanged()
     }
 
