@@ -20,38 +20,53 @@ import android.support.v4.media.MediaBrowserCompat.MediaItem
 import android.support.v4.media.session.PlaybackStateCompat
 import android.support.v7.util.DiffUtil
 import android.support.v7.widget.RecyclerView
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import com.bumptech.glide.Glide
-import com.bumptech.glide.request.RequestOptions
+import com.example.android.uamp.MediaBrowserViewModel.Companion.EMPTY_PLAYBACK_STATE
+import com.example.android.uamp.media.extensions.isPauseEnabled
+import com.example.android.uamp.media.extensions.isPlayEnabled
 import kotlinx.android.synthetic.main.fragment_mediaitem.view.*
 
-interface MediaItemSelectedCallback {
+interface MediaAdapterInterface {
+    /**
+     * The media ID of the currently playing [MediaItem].
+     */
+    val currentlyPlayingId: String get() = ""
+
+    /**
+     * The current [PlaybackStateCompat].
+     */
+    val playerState: PlaybackStateCompat get() = EMPTY_PLAYBACK_STATE
+
+    /**
+     * Called when an item that is marked as [MediaItem.FLAG_PLAYABLE] is clicked.
+     */
     fun onPlayableItemClicked(mediaItem: MediaItem)
+
+    /**
+     * Called when an item that is marked as [MediaItem.FLAG_BROWSABLE] is clicked.
+     */
     fun onBrowsableItemClicked(mediaItem: MediaItem)
 }
 
 /**
  * [RecyclerView.Adapter] of [MediaItem]s used by the [MediaItemFragment].
  */
-class MediaItemAdapter(val itemSelectedCallback: MediaItemSelectedCallback) :
+class MediaItemAdapter(val mediaInterface: MediaAdapterInterface) :
         RecyclerView.Adapter<MediaViewHolder>() {
 
     private var mediaItems = emptyList<MediaItem>()
 
-    var currentlyPlayingId: String? = null
-    var playerState: PlaybackStateCompat? = null
-
     private val itemClickedListener: (MediaItem) -> Unit = { mediaItem ->
         if (mediaItem.isPlayable) {
-            itemSelectedCallback.onPlayableItemClicked(mediaItem)
+            mediaInterface.onPlayableItemClicked(mediaItem)
         }
         if (mediaItem.isBrowsable) {
-            itemSelectedCallback.onBrowsableItemClicked(mediaItem)
+            mediaInterface.onBrowsableItemClicked(mediaItem)
         }
     }
 
@@ -90,12 +105,11 @@ class MediaItemAdapter(val itemSelectedCallback: MediaItemSelectedCallback) :
         holder.titleView.text = mediaItem.description.title
         holder.subtitleView.text = mediaItem.description.subtitle
 
-        if (mediaItem.mediaId == currentlyPlayingId) {
+        if (mediaItem.mediaId == mediaInterface.currentlyPlayingId) {
 
-            val actions = playerState?.actions ?: 0
-            val stateRes: Int = if (actions and PlaybackStateCompat.ACTION_PLAY != 0L) {
+            val stateRes: Int = if (mediaInterface.playerState.isPlayEnabled) {
                 R.drawable.ic_play_arrow_black_24dp
-            } else if (actions and PlaybackStateCompat.ACTION_PAUSE != 0L) {
+            } else if (mediaInterface.playerState.isPauseEnabled) {
                 R.drawable.ic_pause_black_24dp
             } else {
                 0
