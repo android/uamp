@@ -26,7 +26,6 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import com.bumptech.glide.Glide
-import com.example.android.uamp.MediaBrowserViewModel.Companion.EMPTY_PLAYBACK_STATE
 import com.example.android.uamp.media.extensions.isPauseEnabled
 import com.example.android.uamp.media.extensions.isPlayEnabled
 import kotlinx.android.synthetic.main.fragment_mediaitem.view.*

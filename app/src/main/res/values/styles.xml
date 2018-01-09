@@ -39,4 +39,14 @@
         <item name="android:layout_margin">@dimen/media_item_control_margin</item>
     </style>
 
+    <style name="MediaItemList">
+        <item name="android:background">@color/mediaListBackground</item>
+        <item name="android:paddingBottom">2dp</item>
+        <!-- In order to account for optical illusions,
+        make the end padding a bit larger so it visually looks the same. -->
+        <item name="android:paddingEnd">3dp</item>
+        <item name="android:paddingStart">2dp</item>
+        <item name="android:paddingTop">2dp</item>
+    </style>
+
 </resources>
