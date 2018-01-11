@@ -48,8 +48,8 @@ import com.google.android.exoplayer2.util.Util
 /**
  * Class to handle local playback with a [SimpleExoPlayer].
  */
-class Playback(val context: Context, val stateUpdates: (Int) -> Unit) {
-    val nothingPlaying = MediaMetadataCompat.Builder()
+class Playback(val context: Context, private val stateUpdates: (Int) -> Unit) {
+    private val nothingPlaying = MediaMetadataCompat.Builder()
             .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, "EMPTY_ID")
             .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, 0)
             .build()
@@ -62,12 +62,18 @@ class Playback(val context: Context, val stateUpdates: (Int) -> Unit) {
         get() = playerStateToCompatState(exoPlayer.playWhenReady, exoPlayer.playbackState)
     val playerPosition get() = exoPlayer.currentPosition
     val playerSpeed get() = exoPlayer.playbackParameters.speed
-
     private val playerListener = PlayerListener()
-    private val exoPlayer: SimpleExoPlayer =
-            ExoPlayerFactory.newSimpleInstance(DefaultRenderersFactory(context),
-                    DefaultTrackSelector(),
-                    DefaultLoadControl())
+
+    // Use lazy initialization of the player so it doesn't take up any resources until something
+    // is about to be played.
+    private val exoPlayer: SimpleExoPlayer by lazy {
+        ExoPlayerFactory.newSimpleInstance(DefaultRenderersFactory(context),
+                DefaultTrackSelector(),
+                DefaultLoadControl())
+                .apply {
+                    addListener(playerListener)
+                }
+    }
 
     private val audioFocusHelper = AudioFocusHelper(context)
     private var audioFocusRequest: AudioFocusRequestCompat? = null
@@ -86,17 +92,12 @@ class Playback(val context: Context, val stateUpdates: (Int) -> Unit) {
         }
 
         override fun stop() {
-            this@Playback.pause()
-            exoPlayer.seekTo(0)
+            this@Playback.stop()
         }
 
         override fun setVolume(volume: Float) {
             exoPlayer.volume = volume
         }
-    }
-
-    init {
-        exoPlayer.addListener(playerListener)
     }
 
     fun play(mediaMetadata: MediaMetadataCompat) {
@@ -144,6 +145,13 @@ class Playback(val context: Context, val stateUpdates: (Int) -> Unit) {
         audioFocusRequest?.let {
             audioFocusHelper.abandonAudioFocus(it)
         }
+    }
+
+    fun stop() {
+        pause()
+        exoPlayer.release()
+
+        updatePlaybackState(PlaybackStateCompat.STATE_STOPPED)
     }
 
     private fun updatePlaybackState(newPlaybackState: Int?) {
