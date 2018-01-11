@@ -69,13 +69,20 @@ class MusicService : MediaBrowserServiceCompat() {
     private val supportedActionsPlaying =
             PlaybackStateCompat.ACTION_PLAY_PAUSE or
                     PlaybackStateCompat.ACTION_PAUSE or
+                    PlaybackStateCompat.ACTION_STOP or
                     PlaybackStateCompat.ACTION_SEEK_TO
 
     // These are the actions supported when the player is paused.
     private val supportedActionsPaused =
             PlaybackStateCompat.ACTION_PLAY_PAUSE or
                     PlaybackStateCompat.ACTION_PLAY or
+                    PlaybackStateCompat.ACTION_STOP or
                     PlaybackStateCompat.ACTION_SEEK_TO
+
+    // These are the actions supported when the player is stopped.
+    private val supportedActionsStopped =
+            PlaybackStateCompat.ACTION_PLAY_PAUSE or
+                    PlaybackStateCompat.ACTION_PLAY
 
     override fun onCreate() {
         super.onCreate()
@@ -97,9 +104,7 @@ class MusicService : MediaBrowserServiceCompat() {
                 BecomingNoisyReceiver(context = this, sessionToken = mediaSession.sessionToken)
 
         mediaSource = JsonSource(context = this, source = remoteJsonSource)
-        playback = Playback(applicationContext) { playerState ->
-            updateState(playerState)
-        }
+        playback = buildPlayback()
     }
 
     override fun onTaskRemoved(rootIntent: Intent) {
@@ -137,6 +142,12 @@ class MusicService : MediaBrowserServiceCompat() {
         }
     }
 
+    private fun buildPlayback(): Playback {
+        return Playback(applicationContext) { playerState ->
+            updateState(playerState)
+        }
+    }
+
     private fun updateState(newState: Int?) {
         val updateState = newState ?: playback.playerState
         playbackStateBuilder.setState(updateState, playback.playerPosition, playback.playerSpeed)
@@ -147,11 +158,17 @@ class MusicService : MediaBrowserServiceCompat() {
                     PlaybackStateCompat.STATE_BUFFERING,
                     PlaybackStateCompat.STATE_PLAYING -> supportedActionsPlaying
                     PlaybackStateCompat.STATE_PAUSED -> supportedActionsPaused
+                    PlaybackStateCompat.STATE_STOPPED -> supportedActionsStopped
                     else -> 0
                 }
         playbackStateBuilder.setActions(supportedActions)
 
         mediaSession.setPlaybackState(playbackStateBuilder.build())
+
+        // Stop requires a bit of special handling, since the player was released.
+        if (updateState == PlaybackStateCompat.STATE_STOPPED) {
+            playback = buildPlayback()
+        }
 
         // When the state changes, the metadata may have changed, so update that as well.
         updateMetadata(playback.currentlyPlaying)
@@ -227,7 +244,9 @@ class MusicService : MediaBrowserServiceCompat() {
             playback.pause()
         }
 
-        override fun onStop() = Unit
+        override fun onStop() {
+            playback.stop()
+        }
 
         override fun onSkipToNext() = Unit
 
