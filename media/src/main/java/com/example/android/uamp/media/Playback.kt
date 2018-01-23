@@ -21,13 +21,12 @@ import android.media.AudioManager
 import android.support.v4.media.AudioAttributesCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import com.example.android.uamp.media.audiofocus.AudioFocusAwarePlayer
-import com.example.android.uamp.media.audiofocus.AudioFocusHelper
-import com.example.android.uamp.media.audiofocus.AudioFocusRequestCompat
+import com.example.android.uamp.media.audiofocus.AudioFocusExoPlayerDecorator
 import com.example.android.uamp.media.extensions.mediaUri
 import com.google.android.exoplayer2.DefaultLoadControl
 import com.google.android.exoplayer2.DefaultRenderersFactory
 import com.google.android.exoplayer2.ExoPlaybackException
+import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.ExoPlayerFactory
 import com.google.android.exoplayer2.PlaybackParameters
 import com.google.android.exoplayer2.Player
@@ -64,40 +63,23 @@ class Playback(val context: Context, private val stateUpdates: (Int) -> Unit) {
     val playerSpeed get() = exoPlayer.playbackParameters.speed
     private val playerListener = PlayerListener()
 
+    private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+    private val audioAttributes = AudioAttributesCompat.Builder()
+            .setContentType(AudioAttributesCompat.CONTENT_TYPE_MUSIC)
+            .setUsage(AudioAttributesCompat.USAGE_MEDIA)
+            .build()
+
     // Use lazy initialization of the player so it doesn't take up any resources until something
     // is about to be played.
-    private val exoPlayer: SimpleExoPlayer by lazy {
-        ExoPlayerFactory.newSimpleInstance(DefaultRenderersFactory(context),
-                DefaultTrackSelector(),
-                DefaultLoadControl())
-                .apply {
-                    addListener(playerListener)
-                }
-    }
-
-    private val audioFocusHelper = AudioFocusHelper(context)
-    private var audioFocusRequest: AudioFocusRequestCompat? = null
-
-    private val exoPlayerWrapper = object : AudioFocusAwarePlayer {
-        override fun isPlaying(): Boolean {
-            return exoPlayer.playWhenReady
-        }
-
-        override fun play() {
-            exoPlayer.playWhenReady = true
-        }
-
-        override fun pause() {
-            exoPlayer.playWhenReady = false
-        }
-
-        override fun stop() {
-            this@Playback.stop()
-        }
-
-        override fun setVolume(volume: Float) {
-            exoPlayer.volume = volume
-        }
+    private val exoPlayer: ExoPlayer by lazy {
+        AudioFocusExoPlayerDecorator(audioAttributes,
+                audioManager,
+                ExoPlayerFactory.newSimpleInstance(DefaultRenderersFactory(context),
+                        DefaultTrackSelector(),
+                        DefaultLoadControl())
+                        .apply {
+                            addListener(playerListener)
+                        })
     }
 
     fun play(mediaMetadata: MediaMetadataCompat) {
@@ -122,29 +104,11 @@ class Playback(val context: Context, private val stateUpdates: (Int) -> Unit) {
     }
 
     fun resume() {
-        if (audioFocusRequest == null) {
-            val listener = audioFocusHelper.createListenerForPlayer(exoPlayerWrapper)
-            val audioAttributes = AudioAttributesCompat.Builder()
-                    .setContentType(AudioAttributesCompat.CONTENT_TYPE_MUSIC)
-                    .setUsage(AudioAttributesCompat.USAGE_MEDIA)
-                    .build()
-
-            audioFocusRequest = AudioFocusRequestCompat.Builder(AudioManager.AUDIOFOCUS_GAIN)
-                    .setOnAudioFocusChangeListener(listener)
-                    .setAudioAttributes(audioAttributes)
-                    .build()
-        }
-
-        if (audioFocusHelper.requestAudioFocus(audioFocusRequest)) {
-            exoPlayer.playWhenReady = true
-        }
+        exoPlayer.playWhenReady = true
     }
 
     fun pause() {
         exoPlayer.playWhenReady = false
-        audioFocusRequest?.let {
-            audioFocusHelper.abandonAudioFocus(it)
-        }
     }
 
     fun stop() {

@@ -34,6 +34,7 @@ import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import com.example.android.uamp.media.extensions.id
 import com.example.android.uamp.media.library.JsonSource
+import com.example.android.uamp.media.library.MusicSource
 
 /**
  * This class is the entry point for browsing and playback commands from the APP's UI
@@ -53,11 +54,11 @@ class MusicService : MediaBrowserServiceCompat() {
     private lateinit var notificationManager: NotificationManagerCompat
     private lateinit var notificationBuilder: NotificationBuilder
     private var isForegroundService = false
-    private lateinit var mediaSource: JsonSource
+    private lateinit var mediaSource: MusicSource
     private lateinit var playback: Playback
     private var announcedMetadata: MediaMetadataCompat? = null
     private val remoteJsonSource: Uri =
-            Uri.parse("https://storage.googleapis.com/automotive-media/music.json")
+            Uri.parse("https://storage.googleapis.com/automotive-media/catalog.json")
 
     private val playbackStateBuilder = PlaybackStateCompat.Builder()
 
@@ -128,7 +129,7 @@ class MusicService : MediaBrowserServiceCompat() {
 
         val resultsSent = mediaSource.whenReady { successfullyInitialized ->
             if (successfullyInitialized) {
-                val children = mediaSource.catalog.map { item ->
+                val children = mediaSource.map { item ->
                     MediaItem(item.description, MediaItem.FLAG_PLAYABLE)
                 }
                 result.sendResult(children)
@@ -223,7 +224,7 @@ class MusicService : MediaBrowserServiceCompat() {
 
         override fun onPlayFromMediaId(mediaId: String?, extras: Bundle?) {
             mediaSource.whenReady {
-                val itemToPlay = mediaSource.catalog.find { item ->
+                val itemToPlay = mediaSource.find { item ->
                     item.id == mediaId
                 }
                 if (itemToPlay == null) {
