@@ -57,6 +57,8 @@ class JsonSource(context: Context, source: Uri) : AbstractMusicSource(context) {
             state = STATE_INITIALIZED
         }.execute(source)
     }
+
+    override fun iterator(): Iterator<MediaMetadataCompat> = catalog.iterator()
 }
 
 /**
@@ -172,21 +174,7 @@ class JsonCatalog {
  * at "https://www.example.com/json/ode_to_joy.jpg".
  */
 class JsonMusic {
-    // This regex matches all "non-word" (a-z, A-Z, 0-9) characters and will be used to remove
-    // them from the 'title' field to make an id.
-    val alphaNumericRegex = "[^\\w ]".toRegex()
-
     var id: String = ""
-        get() {
-            // It's best if the media provider supplies a unique ID for the media, but in this
-            // specific case, we can generate it from the title (since we know they're unique
-            // in our data).
-            if (field.isEmpty()) {
-                id = title.replace(alphaNumericRegex, "").replace(' ', '_').toLowerCase()
-            }
-            return field
-        }
-
     var title: String = ""
     var album: String = ""
     var artist: String = ""

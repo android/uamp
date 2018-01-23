@@ -18,7 +18,11 @@ package com.example.android.uamp.media.library
 
 import android.content.Context
 import android.support.annotation.IntDef
-import android.util.Log
+import android.support.v4.media.MediaMetadataCompat
+
+interface MusicSource : Iterable<MediaMetadataCompat> {
+    fun whenReady(performAction: (Boolean) -> Unit): Boolean
+}
 
 @IntDef(STATE_CREATED,
         STATE_INITIALIZING,
@@ -50,7 +54,7 @@ const val STATE_ERROR = 4L
 /**
  * Base class for music sources in UAMP.
  */
-abstract class AbstractMusicSource(val context: Context) {
+abstract class AbstractMusicSource(val context: Context) : MusicSource {
     @State
     var state: Long = STATE_CREATED
         set(value) {
@@ -74,7 +78,7 @@ abstract class AbstractMusicSource(val context: Context) {
      * This method is *not* threadsafe. Ensure actions and state changes are only performed
      * on a single thread.
      */
-    fun whenReady(performAction: (Boolean) -> Unit): Boolean =
+    override fun whenReady(performAction: (Boolean) -> Unit): Boolean =
             when (state) {
                 STATE_CREATED, STATE_INITIALIZING -> {
                     onReadyListeners += performAction

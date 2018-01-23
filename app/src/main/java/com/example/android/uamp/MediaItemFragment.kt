@@ -55,16 +55,6 @@ class MediaItemFragment : Fragment(), MediaBrowserStateChangeCallback, MediaAdap
         }
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        retainInstance = true
-        mediaId = arguments!!.getString(MEDIA_ID_ARG)
-
-        mediaBrowserConnection =
-                ViewModelProviders.of(activity!!).get(MediaBrowserViewModel::class.java)
-    }
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_mediaitem_list, container, false)
@@ -77,6 +67,16 @@ class MediaItemFragment : Fragment(), MediaBrowserStateChangeCallback, MediaAdap
             view.adapter = listAdapter
         }
         return view
+    }
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+
+        retainInstance = true
+        mediaId = arguments!!.getString(MEDIA_ID_ARG)
+
+        mediaBrowserConnection =
+                ViewModelProviders.of(activity!!).get(MediaBrowserViewModel::class.java)
     }
 
     override fun onStart() {
