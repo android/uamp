@@ -22,6 +22,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.media.AudioManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.support.v4.app.NotificationManagerCompat
 import android.support.v4.media.MediaBrowserCompat.MediaItem
@@ -174,7 +175,13 @@ class MusicService : MediaBrowserServiceCompat() {
         // When the state changes, the metadata may have changed, so update that as well.
         updateMetadata(playback.currentlyPlaying)
 
-        val notification = notificationBuilder.buildNotification(sessionToken!!)
+        // Skip building a notification when state is "none".
+        val notification = if (updateState != PlaybackStateCompat.STATE_NONE) {
+            notificationBuilder.buildNotification(sessionToken!!)
+        } else {
+            null
+        }
+
         when (updateState) {
             PlaybackStateCompat.STATE_BUFFERING,
             PlaybackStateCompat.STATE_PLAYING -> {
@@ -189,7 +196,11 @@ class MusicService : MediaBrowserServiceCompat() {
                 if (isForegroundService) {
                     stopForeground(false)
 
-                    notificationManager.notify(NOW_PLAYING_NOTIFICATION, notification)
+                    if (notification != null) {
+                        notificationManager.notify(NOW_PLAYING_NOTIFICATION, notification)
+                    } else {
+                        removeNotification()
+                    }
                     isForegroundService = false
                 }
             }
@@ -206,6 +217,15 @@ class MusicService : MediaBrowserServiceCompat() {
     private fun announceError(errorCode: Int, errorMessage: String) {
         playbackStateBuilder.setErrorMessage(errorCode, errorMessage)
         updateState(PlaybackStateCompat.STATE_ERROR)
+    }
+
+    private fun removeNotification() {
+        // On Kitkat (and below), removing the notification is a bit different.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            stopForeground(true)
+        } else {
+            notificationManager.cancelAll()
+        }
     }
 
     // MediaSession Callback: Transport Controls -> MediaPlayerAdapter
@@ -246,6 +266,7 @@ class MusicService : MediaBrowserServiceCompat() {
         }
 
         override fun onStop() {
+            removeNotification()
             playback.stop()
         }
 
