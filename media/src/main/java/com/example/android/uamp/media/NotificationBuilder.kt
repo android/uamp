@@ -101,6 +101,7 @@ class NotificationBuilder(private val context: Context) {
         return builder.setContentText(description.subtitle)
                 .setContentTitle(description.title)
                 .setDeleteIntent(stopPendingIntent)
+                .setLargeIcon(description.iconBitmap)
                 .setOnlyAlertOnce(true)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setStyle(mediaStyle)

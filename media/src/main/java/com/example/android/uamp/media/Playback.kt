@@ -16,6 +16,8 @@
 
 package com.example.android.uamp.media
 
+import android.app.Activity
+import android.app.Service
 import android.content.Context
 import android.media.AudioManager
 import android.support.v4.media.AudioAttributesCompat
@@ -36,7 +38,6 @@ import com.google.android.exoplayer2.Player.STATE_IDLE
 import com.google.android.exoplayer2.Player.STATE_READY
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.Timeline
-import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
 import com.google.android.exoplayer2.source.ExtractorMediaSource
 import com.google.android.exoplayer2.source.TrackGroupArray
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
@@ -71,27 +72,30 @@ class Playback(val context: Context, private val stateUpdates: (Int) -> Unit) {
 
     // Use lazy initialization of the player so it doesn't take up any resources until something
     // is about to be played.
-    private val exoPlayer: ExoPlayer by lazy {
-        AudioFocusExoPlayerDecorator(audioAttributes,
-                audioManager,
-                ExoPlayerFactory.newSimpleInstance(DefaultRenderersFactory(context),
-                        DefaultTrackSelector(),
-                        DefaultLoadControl())
-                        .apply {
-                            addListener(playerListener)
-                        })
-    }
+    private val exoPlayer: ExoPlayer =
+            AudioFocusExoPlayerDecorator(audioAttributes,
+                    audioManager,
+                    ExoPlayerFactory.newSimpleInstance(DefaultRenderersFactory(context),
+                            DefaultTrackSelector(),
+                            DefaultLoadControl())
+                            .apply {
+                                addListener(playerListener)
+                            })
+
+    /**
+     * ExoPlayer returns [STATE_IDLE] in two different situations: when the player has just been
+     * created, and after calling [ExoPlayer.stop]. In order to differentiate between these two
+     * keep track of which state the player is in.
+     */
+    var idleIsStopped = false
 
     fun play(mediaMetadata: MediaMetadataCompat) {
         // Produces DataSource instances through which media data is loaded.
         val dataSourceFactory = DefaultDataSourceFactory(
                 context, Util.getUserAgent(context, "uamp.next"), null)
-        // Produces Extractor instances for parsing the media data.
-        val extractorsFactory = DefaultExtractorsFactory()
         // The MediaSource represents the media to be played.
-        val mediaSource =
-                ExtractorMediaSource(mediaMetadata.mediaUri, dataSourceFactory,
-                        extractorsFactory, null, null)
+        val mediaSource = ExtractorMediaSource.Factory(dataSourceFactory)
+                .createMediaSource(mediaMetadata.mediaUri)
 
         // Prepares media to play (happens on background thread) and triggers
         // {@code onPlayerStateChanged} callback when the stream is ready to play.
@@ -105,6 +109,7 @@ class Playback(val context: Context, private val stateUpdates: (Int) -> Unit) {
 
     fun resume() {
         exoPlayer.playWhenReady = true
+        idleIsStopped = true
     }
 
     fun pause() {
@@ -112,10 +117,22 @@ class Playback(val context: Context, private val stateUpdates: (Int) -> Unit) {
     }
 
     fun stop() {
-        pause()
-        exoPlayer.release()
+        /**
+         * Calling [ExoPlayer.stop] not only stops playback, but it also releases codecs and the
+         * media source(s) associated with the player. The player, however, can be reused later.
+         * [ExoPlayer.release] is only necessary when it's certain the player will not be used
+         * again, such as in [Service.onDestroy] or [Activity.onDestroy]
+         */
+        exoPlayer.stop()
+        exoPlayer.seekTo(0)
 
+        currentlyPlaying = nothingPlaying
         updatePlaybackState(PlaybackStateCompat.STATE_STOPPED)
+    }
+
+    fun release() {
+        stop()
+        exoPlayer.release()
     }
 
     private fun updatePlaybackState(newPlaybackState: Int?) {
@@ -124,7 +141,9 @@ class Playback(val context: Context, private val stateUpdates: (Int) -> Unit) {
 
     private fun playerStateToCompatState(playWhenReady: Boolean, playbackState: Int) =
             when (playbackState) {
-                STATE_IDLE -> PlaybackStateCompat.STATE_NONE
+                STATE_IDLE ->
+                    if (idleIsStopped) PlaybackStateCompat.STATE_STOPPED
+                    else PlaybackStateCompat.STATE_NONE
                 STATE_BUFFERING -> PlaybackStateCompat.STATE_BUFFERING
                 STATE_READY -> {
                     if (playWhenReady) {
