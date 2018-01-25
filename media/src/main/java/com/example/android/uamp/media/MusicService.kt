@@ -16,6 +16,7 @@
 
 package com.example.android.uamp.media
 
+import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -59,7 +60,7 @@ class MusicService : MediaBrowserServiceCompat() {
     private lateinit var playback: Playback
     private var announcedMetadata: MediaMetadataCompat? = null
     private val remoteJsonSource: Uri =
-            Uri.parse("https://storage.googleapis.com/automotive-media/catalog.json")
+            Uri.parse("https://storage.googleapis.com/uamp/catalog.json")
 
     private val playbackStateBuilder = PlaybackStateCompat.Builder()
 
@@ -116,6 +117,7 @@ class MusicService : MediaBrowserServiceCompat() {
 
     override fun onDestroy() {
         mediaSession.release()
+        playback.release()
     }
 
     override fun onGetRoot(clientPackageName: String,
@@ -151,12 +153,12 @@ class MusicService : MediaBrowserServiceCompat() {
     }
 
     private fun updateState(newState: Int?) {
-        val updateState = newState ?: playback.playerState
-        playbackStateBuilder.setState(updateState, playback.playerPosition, playback.playerSpeed)
+        val updatedState = newState ?: playback.playerState
+        playbackStateBuilder.setState(updatedState, playback.playerPosition, playback.playerSpeed)
 
         // Add actions based on state.
         val supportedActions = supportedActionsDefault or
-                when (updateState) {
+                when (updatedState) {
                     PlaybackStateCompat.STATE_BUFFERING,
                     PlaybackStateCompat.STATE_PLAYING -> supportedActionsPlaying
                     PlaybackStateCompat.STATE_PAUSED -> supportedActionsPaused
@@ -167,22 +169,17 @@ class MusicService : MediaBrowserServiceCompat() {
 
         mediaSession.setPlaybackState(playbackStateBuilder.build())
 
-        // Stop requires a bit of special handling, since the player was released.
-        if (updateState == PlaybackStateCompat.STATE_STOPPED) {
-            playback = buildPlayback()
-        }
-
         // When the state changes, the metadata may have changed, so update that as well.
         updateMetadata(playback.currentlyPlaying)
 
         // Skip building a notification when state is "none".
-        val notification = if (updateState != PlaybackStateCompat.STATE_NONE) {
+        val notification = if (updatedState != PlaybackStateCompat.STATE_NONE) {
             notificationBuilder.buildNotification(sessionToken!!)
         } else {
             null
         }
 
-        when (updateState) {
+        when (updatedState) {
             PlaybackStateCompat.STATE_BUFFERING,
             PlaybackStateCompat.STATE_PLAYING -> {
                 becomingNoisyReceiver.register()
@@ -199,7 +196,7 @@ class MusicService : MediaBrowserServiceCompat() {
                     if (notification != null) {
                         notificationManager.notify(NOW_PLAYING_NOTIFICATION, notification)
                     } else {
-                        removeNotification()
+                        removeNowPlayingNotification()
                     }
                     isForegroundService = false
                 }
@@ -219,13 +216,24 @@ class MusicService : MediaBrowserServiceCompat() {
         updateState(PlaybackStateCompat.STATE_ERROR)
     }
 
-    private fun removeNotification() {
-        // On Kitkat (and below), removing the notification is a bit different.
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            stopForeground(true)
-        } else {
-            notificationManager.cancelAll()
-        }
+    /**
+     * Removes the [NOW_PLAYING_NOTIFICATION] notification.
+     *
+     * Since `stopForeground(false)` was already called (see [MusicService.updateState], it's
+     * possible to cancel the notification with
+     * `notificationManager.cancel(NOW_PLAYING_NOTIFICATION)` if minSdkVersion is >=
+     * [Build.VERSION_CODES.LOLLIPOP].
+     *
+     * Prior to [Build.VERSION_CODES.LOLLIPOP], notifications associated with a foreground
+     * service remained marked as "ongoing" even after calling [Service.stopForeground],
+     * and cannot be cancelled normally.
+     *
+     * Fortunately, it's possible to simply call [Service.stopForeground] a second time, this
+     * time with `true`. This won't change anything about the service's state, but will simply
+     * remove the notification.
+     */
+    private fun removeNowPlayingNotification() {
+        stopForeground(true)
     }
 
     // MediaSession Callback: Transport Controls -> MediaPlayerAdapter
@@ -266,7 +274,7 @@ class MusicService : MediaBrowserServiceCompat() {
         }
 
         override fun onStop() {
-            removeNotification()
+            removeNowPlayingNotification()
             playback.stop()
         }
 

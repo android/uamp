@@ -20,7 +20,13 @@ import android.content.Context
 import android.net.Uri
 import android.os.AsyncTask
 import android.support.v4.media.MediaMetadataCompat
+import com.bumptech.glide.Glide
+import com.bumptech.glide.RequestManager
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.request.RequestOptions
+import com.example.android.uamp.media.R
 import com.example.android.uamp.media.extensions.album
+import com.example.android.uamp.media.extensions.albumArt
 import com.example.android.uamp.media.extensions.albumArtUri
 import com.example.android.uamp.media.extensions.artist
 import com.example.android.uamp.media.extensions.displayDescription
@@ -52,7 +58,7 @@ class JsonSource(context: Context, source: Uri) : AbstractMusicSource(context) {
     init {
         state = STATE_INITIALIZING
 
-        UpdateCatalogTask { mediaItems ->
+        UpdateCatalogTask(Glide.with(context)) { mediaItems ->
             catalog = mediaItems
             state = STATE_INITIALIZED
         }.execute(source)
@@ -65,7 +71,8 @@ class JsonSource(context: Context, source: Uri) : AbstractMusicSource(context) {
  * Task to connect to remote URIs and download/process JSON files that correspond to
  * [MediaMetadataCompat] objects.
  */
-private class UpdateCatalogTask(val listener: (List<MediaMetadataCompat>) -> Unit) :
+private class UpdateCatalogTask(val glide: RequestManager,
+                                val listener: (List<MediaMetadataCompat>) -> Unit) :
         AsyncTask<Uri, Void, List<MediaMetadataCompat>>() {
 
     override fun doInBackground(vararg params: Uri): List<MediaMetadataCompat> {
@@ -90,8 +97,18 @@ private class UpdateCatalogTask(val listener: (List<MediaMetadataCompat>) -> Uni
                     song.image = baseUri + song.image
                 }
 
+                // Block on downloading artwork.
+                val art = glide.applyDefaultRequestOptions(glideOptions)
+                        .asBitmap()
+                        .load(song.image)
+                        .submit(NOTIFICATION_LARGE_ICON_SIZE, NOTIFICATION_LARGE_ICON_SIZE)
+                        .get()
+
                 MediaMetadataCompat.Builder()
                         .from(song)
+                        .apply {
+                            albumArt = art
+                        }
                         .build()
             }.toList()
         }
@@ -187,3 +204,8 @@ class JsonMusic {
     var site: String = ""
 }
 
+private const val NOTIFICATION_LARGE_ICON_SIZE = 144 // px
+
+private val glideOptions = RequestOptions()
+        .fallback(R.drawable.default_art)
+        .diskCacheStrategy(DiskCacheStrategy.RESOURCE)

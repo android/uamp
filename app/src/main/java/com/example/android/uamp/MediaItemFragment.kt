@@ -30,6 +30,7 @@ import android.view.View
 import android.view.ViewGroup
 import com.example.android.uamp.media.extensions.isPauseEnabled
 import com.example.android.uamp.media.extensions.isPlayEnabled
+import kotlinx.android.synthetic.main.fragment_mediaitem_list.view.*
 
 private const val MEDIA_ID_ARG = "com.example.android.uamp.MediaItemFragment.MEDIA_ID"
 private const val TAG = "MediaItemFragment"
@@ -58,13 +59,14 @@ class MediaItemFragment : Fragment(), MediaBrowserStateChangeCallback, MediaAdap
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_mediaitem_list, container, false)
+        val list = view?.list
 
         // Set the adapter
-        if (view is RecyclerView) {
-            val context = view.getContext()
+        if (list is RecyclerView) {
+            val context = list.getContext()
 
-            view.layoutManager = LinearLayoutManager(context)
-            view.adapter = listAdapter
+            list.layoutManager = LinearLayoutManager(context)
+            list.adapter = listAdapter
         }
         return view
     }
@@ -135,6 +137,7 @@ class MediaItemFragment : Fragment(), MediaBrowserStateChangeCallback, MediaAdap
                                       children: MutableList<MediaBrowserCompat.MediaItem>) {
             super.onChildrenLoaded(parentId, children)
 
+            view?.loadingSpinner?.visibility = View.GONE
             listAdapter.setItems(children)
         }
     }
