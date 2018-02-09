@@ -16,37 +16,31 @@
 
 package com.example.android.uamp
 
+import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.support.v4.media.MediaBrowserCompat
-import android.support.v4.media.MediaMetadataCompat
-import android.support.v4.media.session.PlaybackStateCompat
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.example.android.uamp.media.extensions.isPauseEnabled
-import com.example.android.uamp.media.extensions.isPlayEnabled
-import kotlinx.android.synthetic.main.fragment_mediaitem_list.view.*
-
-private const val MEDIA_ID_ARG = "com.example.android.uamp.MediaItemFragment.MEDIA_ID"
-private const val TAG = "MediaItemFragment"
+import com.example.android.uamp.utils.InjectorUtils
+import com.example.android.uamp.viewmodels.MediaItemFragmentViewModel
+import kotlinx.android.synthetic.main.fragment_mediaitem_list.*
 
 /**
  * A fragment representing a list of MediaItems.
  */
-class MediaItemFragment : Fragment(), MediaBrowserStateChangeCallback, MediaAdapterInterface {
+class MediaItemFragment : Fragment() {
     private lateinit var mediaId: String
-    private lateinit var mediaBrowserConnection: MediaBrowserViewModel
+    private lateinit var mediaItemFragmentViewModel: MediaItemFragmentViewModel
 
-    private val subscriptionCallback = SubscriptionCallback()
-    private val listAdapter = MediaItemAdapter(this)
+    private val listAdapter = MediaItemAdapter { clickedItem ->
+        mediaItemFragmentViewModel.playMedia(clickedItem)
+    }
 
     companion object {
-
         fun newInstance(mediaId: String): MediaItemFragment {
             return MediaItemFragment().apply {
                 arguments = Bundle().apply {
@@ -58,87 +52,32 @@ class MediaItemFragment : Fragment(), MediaBrowserStateChangeCallback, MediaAdap
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
-        val view = inflater.inflate(R.layout.fragment_mediaitem_list, container, false)
-        val list = view?.list
-
-        // Set the adapter
-        if (list is RecyclerView) {
-            val context = list.getContext()
-
-            list.layoutManager = LinearLayoutManager(context)
-            list.adapter = listAdapter
-        }
-        return view
+        return inflater.inflate(R.layout.fragment_mediaitem_list, container, false)
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        retainInstance = true
-        mediaId = arguments!!.getString(MEDIA_ID_ARG)
+        // Always true, but lets lint know that as well.
+        val context = activity ?: return
+        mediaId = arguments?.getString(MEDIA_ID_ARG) ?: return
 
-        mediaBrowserConnection =
-                ViewModelProviders.of(activity!!).get(MediaBrowserViewModel::class.java)
-    }
+        mediaItemFragmentViewModel = ViewModelProviders
+                .of(this, InjectorUtils.provideMediaItemFragmentViewModel(context, mediaId))
+                .get(MediaItemFragmentViewModel::class.java)
+        mediaItemFragmentViewModel.mediaItems.observe(this,
+                Observer<List<MediaItemData>> { list ->
+                    val isEmptyList = list?.isEmpty() ?: true
+                    loadingSpinner.visibility = if (isEmptyList) View.VISIBLE else View.GONE
+                    listAdapter.submitList(list)
+                })
 
-    override fun onStart() {
-        super.onStart()
-
-        mediaBrowserConnection.registerCallback(this)
-    }
-
-    override fun onStop() {
-        super.onStop()
-
-        mediaBrowserConnection.unsubscribe(mediaId, subscriptionCallback)
-        mediaBrowserConnection.unregisterCallback(this)
-    }
-
-    override fun onConnected() {
-        super.onConnected()
-
-        mediaBrowserConnection.subscribe(mediaId, subscriptionCallback)
-    }
-
-    override val currentlyPlayingId: String get() = mediaBrowserConnection.nowPlayingId
-
-    override val playerState: PlaybackStateCompat get() = mediaBrowserConnection.playbackState
-
-    override fun onPlayableItemClicked(mediaItem: MediaBrowserCompat.MediaItem) {
-        if (mediaItem.mediaId != mediaBrowserConnection.nowPlayingId) {
-            mediaBrowserConnection
-                    .transportControls
-                    .playFromMediaId(mediaItem.mediaId, null)
-        } else {
-            if (mediaBrowserConnection.playbackState.isPauseEnabled) {
-                mediaBrowserConnection.transportControls.pause()
-            } else if (mediaBrowserConnection.playbackState.isPlayEnabled) {
-                mediaBrowserConnection.transportControls.play()
-            } else {
-                Log.w(TAG, "Playable item clicked but neither play nor pause are enabled!" +
-                        " (mediaId=${mediaItem.mediaId})")
-            }
-        }
-    }
-
-    // TODO: Implement browseable items.
-    override fun onBrowsableItemClicked(mediaItem: MediaBrowserCompat.MediaItem) = Unit
-
-    override fun onPlaybackStateChanged(state: PlaybackStateCompat) {
-        listAdapter.notifyDataSetChanged()
-    }
-
-    override fun onMetadataChanged(metadata: MediaMetadataCompat) {
-        listAdapter.notifyDataSetChanged()
-    }
-
-    private inner class SubscriptionCallback : MediaBrowserCompat.SubscriptionCallback() {
-        override fun onChildrenLoaded(parentId: String,
-                                      children: MutableList<MediaBrowserCompat.MediaItem>) {
-            super.onChildrenLoaded(parentId, children)
-
-            view?.loadingSpinner?.visibility = View.GONE
-            listAdapter.setItems(children)
+        // Set the adapter
+        if (list is RecyclerView) {
+            list.layoutManager = LinearLayoutManager(list.context)
+            list.adapter = listAdapter
         }
     }
 }
+
+private const val MEDIA_ID_ARG = "com.example.android.uamp.MediaItemFragment.MEDIA_ID"

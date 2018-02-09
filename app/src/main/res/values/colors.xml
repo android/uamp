@@ -24,4 +24,9 @@
     <color name="mediaListBackground">#F1F1F1</color>
 
     <color name="mediaControlColor">#f8f8f8</color>
+
+    <color name="nowPlayingBackground">#eff0f0</color>
+    <color name="nowPlayingWhiteBackground">#fdfdfd</color>
+
+    <color name="menu_icon_tint">#ffffff</color>
 </resources>
