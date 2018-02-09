@@ -16,6 +16,7 @@
 
 package com.example.android.uamp.media
 
+import android.app.PendingIntent
 import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -34,6 +35,7 @@ import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
+import com.example.android.uamp.media.extensions.album
 import com.example.android.uamp.media.extensions.id
 import com.example.android.uamp.media.library.JsonSource
 import com.example.android.uamp.media.library.MusicSource
@@ -51,7 +53,6 @@ import com.example.android.uamp.media.library.MusicSource
  */
 class MusicService : MediaBrowserServiceCompat() {
     private lateinit var mediaSession: MediaSessionCompat
-    private lateinit var mediaSessionCallback: MediaSessionCallback
     private lateinit var becomingNoisyReceiver: BecomingNoisyReceiver
     private lateinit var notificationManager: NotificationManagerCompat
     private lateinit var notificationBuilder: NotificationBuilder
@@ -62,6 +63,7 @@ class MusicService : MediaBrowserServiceCompat() {
     private val remoteJsonSource: Uri =
             Uri.parse("https://storage.googleapis.com/uamp/catalog.json")
 
+    private val mediaSessionCallback = MediaSessionCallback()
     private val playbackStateBuilder = PlaybackStateCompat.Builder()
 
     // These actions are always supported.
@@ -90,14 +92,18 @@ class MusicService : MediaBrowserServiceCompat() {
     override fun onCreate() {
         super.onCreate()
 
+        // Build a PendingIntent that can be used to launch the UI.
+        val sessionIntent = packageManager?.getLaunchIntentForPackage(packageName)
+        val sessionActivityPendingIntent = PendingIntent.getActivity(this, 0, sessionIntent, 0)
+
         // Create a new MediaSession.
-        mediaSession = MediaSessionCompat(this, "MusicService")
-        mediaSessionCallback = MediaSessionCallback()
-        mediaSession.setCallback(mediaSessionCallback)
-        mediaSession.setFlags(
-                MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS or
-                        MediaSessionCompat.FLAG_HANDLES_QUEUE_COMMANDS or
-                        MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS)
+        mediaSession = MediaSessionCompat(this, "MusicService").apply {
+            setCallback(mediaSessionCallback)
+            setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS or
+                    MediaSessionCompat.FLAG_HANDLES_QUEUE_COMMANDS or
+                    MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS)
+            setSessionActivity(sessionActivityPendingIntent)
+        }
         sessionToken = mediaSession.sessionToken
 
         notificationBuilder = NotificationBuilder(this)
@@ -155,16 +161,30 @@ class MusicService : MediaBrowserServiceCompat() {
     private fun updateState(newState: Int?) {
         val updatedState = newState ?: playback.playerState
         playbackStateBuilder.setState(updatedState, playback.playerPosition, playback.playerSpeed)
+                .setActiveQueueItemId(playback.queueIndex)
+
+        // Check if it's possible to skip to previous/next
+        val skipToPrevious = if (playback.canSkipToPrevious) {
+            PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS
+        } else {
+            UNSUPPORTED_ACTION
+        }
+        val skipToNext = if (playback.canSkipToNext) {
+            PlaybackStateCompat.ACTION_SKIP_TO_NEXT
+        } else {
+            UNSUPPORTED_ACTION
+        }
 
         // Add actions based on state.
-        val supportedActions = supportedActionsDefault or
+        val supportedActions = supportedActionsDefault or skipToPrevious or skipToNext or
                 when (updatedState) {
                     PlaybackStateCompat.STATE_BUFFERING,
                     PlaybackStateCompat.STATE_PLAYING -> supportedActionsPlaying
                     PlaybackStateCompat.STATE_PAUSED -> supportedActionsPaused
                     PlaybackStateCompat.STATE_STOPPED -> supportedActionsStopped
-                    else -> 0
+                    else -> NO_ADDITIONAL_SUPPORTED_ACTIONS
                 }
+
         playbackStateBuilder.setActions(supportedActions)
 
         mediaSession.setPlaybackState(playbackStateBuilder.build())
@@ -206,6 +226,7 @@ class MusicService : MediaBrowserServiceCompat() {
 
     private fun updateMetadata(nowPlaying: MediaMetadataCompat) {
         if (announcedMetadata == null || announcedMetadata != nowPlaying) {
+            mediaSession.setQueue(playback.queue)
             mediaSession.setMetadata(nowPlaying)
             announcedMetadata = nowPlaying
         }
@@ -260,11 +281,15 @@ class MusicService : MediaBrowserServiceCompat() {
                             getString(R.string.error_media_not_found))
                     Log.w(TAG, "Content not found: MediaID=$mediaId")
                 } else {
-                    if (playback.currentlyPlaying != itemToPlay) {
-                        playback.play(itemToPlay)
-                    } else {
-                        onPlay()
+                    // TODO: Use extras to not always queue the entire album.
+                    val playlist = mediaSource.filter { item ->
+                        item.album == itemToPlay.album
                     }
+
+                    if (!playback.isPrepared(itemToPlay)) {
+                        playback.prepare(playlist)
+                    }
+                    playback.play(itemToPlay)
                 }
             }
         }
@@ -278,11 +303,13 @@ class MusicService : MediaBrowserServiceCompat() {
             playback.stop()
         }
 
-        override fun onSkipToNext() = Unit
+        override fun onSkipToNext() =
+                if (playback.canSkipToNext) playback.skipToNext() else Unit
 
-        override fun onSkipToPrevious() = Unit
+        override fun onSkipToPrevious() =
+                if (playback.canSkipToPrevious) playback.skipToPrevious() else Unit
 
-        override fun onSeekTo(pos: Long) = Unit
+        override fun onSeekTo(pos: Long) = playback.seekTo(pos)
     }
 }
 
@@ -320,5 +347,11 @@ private class BecomingNoisyReceiver(private val context: Context,
     }
 }
 
-// For logcat.
 private const val TAG = "MusicService"
+
+/**
+ * These provide context to the meaning of "0" in the various bit fields set in a
+ * [PlaybackStateCompat]. See [MusicService.updateState] for details.
+ */
+private const val UNSUPPORTED_ACTION = 0L
+private const val NO_ADDITIONAL_SUPPORTED_ACTIONS = 0L

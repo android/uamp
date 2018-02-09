@@ -16,129 +16,52 @@
 
 package com.example.android.uamp
 
-import android.support.v4.media.MediaBrowserCompat.MediaItem
-import android.support.v4.media.session.PlaybackStateCompat
-import android.support.v7.util.DiffUtil
+import android.support.v7.recyclerview.extensions.ListAdapter
 import android.support.v7.widget.RecyclerView
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import com.bumptech.glide.Glide
-import com.example.android.uamp.media.extensions.isPauseEnabled
-import com.example.android.uamp.media.extensions.isPlayEnabled
 import kotlinx.android.synthetic.main.fragment_mediaitem.view.*
 
-interface MediaAdapterInterface {
-    /**
-     * The media ID of the currently playing [MediaItem].
-     */
-    val currentlyPlayingId: String get() = ""
-
-    /**
-     * The current [PlaybackStateCompat].
-     */
-    val playerState: PlaybackStateCompat get() = EMPTY_PLAYBACK_STATE
-
-    /**
-     * Called when an item that is marked as [MediaItem.FLAG_PLAYABLE] is clicked.
-     */
-    fun onPlayableItemClicked(mediaItem: MediaItem)
-
-    /**
-     * Called when an item that is marked as [MediaItem.FLAG_BROWSABLE] is clicked.
-     */
-    fun onBrowsableItemClicked(mediaItem: MediaItem)
-}
-
 /**
- * [RecyclerView.Adapter] of [MediaItem]s used by the [MediaItemFragment].
+ * [RecyclerView.Adapter] of [MediaItemData]s used by the [MediaItemFragment].
  */
-class MediaItemAdapter(val mediaInterface: MediaAdapterInterface) :
-        RecyclerView.Adapter<MediaViewHolder>() {
-
-    private var mediaItems = emptyList<MediaItem>()
-
-    private val itemClickedListener: (MediaItem) -> Unit = { mediaItem ->
-        if (mediaItem.isPlayable) {
-            mediaInterface.onPlayableItemClicked(mediaItem)
-        }
-        if (mediaItem.isBrowsable) {
-            mediaInterface.onBrowsableItemClicked(mediaItem)
-        }
-    }
-
-    fun setItems(newList: List<MediaItem>) {
-        // Rather than simply set the new list, use [DiffUtil] to generate changes so
-        // only items that changed are updated.
-        val diffResult = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
-            override fun getOldListSize(): Int = mediaItems.size
-
-            override fun getNewListSize(): Int = newList.size
-
-            override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-                val oldItem = mediaItems[oldItemPosition].description.mediaId
-                val newItem = newList[newItemPosition].description.mediaId
-
-                return oldItem == newItem
-            }
-
-            override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
-                    mediaItems[oldItemPosition] == newList[newItemPosition]
-        })
-
-        mediaItems = newList
-        diffResult.dispatchUpdatesTo(this)
-    }
+class MediaItemAdapter(private val itemClicked: (MediaItemData) -> Unit
+) : ListAdapter<MediaItemData, MediaViewHolder>(MediaItemData.diffCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MediaViewHolder {
         val view = LayoutInflater.from(parent.context)
                 .inflate(R.layout.fragment_mediaitem, parent, false)
-        return MediaViewHolder(view, itemClickedListener)
+        return MediaViewHolder(view, itemClicked)
     }
 
     override fun onBindViewHolder(holder: MediaViewHolder, position: Int) {
-        val mediaItem = mediaItems[position]
+        val mediaItem = getItem(position)
         holder.item = mediaItem
-        holder.titleView.text = mediaItem.description.title
-        holder.subtitleView.text = mediaItem.description.subtitle
-
-        if (mediaItem.mediaId == mediaInterface.currentlyPlayingId) {
-
-            val stateRes: Int = if (mediaInterface.playerState.isPlayEnabled) {
-                R.drawable.ic_play_arrow_black_24dp
-            } else if (mediaInterface.playerState.isPauseEnabled) {
-                R.drawable.ic_pause_black_24dp
-            } else {
-                0
-            }
-
-            if (stateRes == 0) {
-                holder.playbackState.visibility = View.INVISIBLE
-            } else {
-                holder.playbackState.visibility = View.VISIBLE
-                holder.playbackState.setImageResource(stateRes)
-            }
-        } else {
-            holder.playbackState.visibility = View.INVISIBLE
-        }
+        holder.titleView.text = mediaItem.title
+        holder.subtitleView.text = mediaItem.subtitle
+        holder.playbackState.setImageResource(mediaItem.playbackRes)
 
         Glide.with(holder.albumArt)
-                .load(mediaItems[position].description.iconUri)
+                .load(mediaItem.albumArtUri)
                 .into(holder.albumArt)
     }
-
-    override fun getItemCount(): Int = mediaItems.size
 }
 
-class MediaViewHolder(view: View, itemClicked: (MediaItem) -> Unit) : RecyclerView.ViewHolder(view) {
+class MediaViewHolder(view: View,
+                      itemClicked: (MediaItemData) -> Unit
+) : RecyclerView.ViewHolder(view) {
+
     val titleView: TextView = view.title
     val subtitleView: TextView = view.subtitle
-    val albumArt: ImageView = view.albumb_art
+    val albumArt: ImageView = view.albumbArt
     val playbackState: ImageView = view.item_state
 
-    var item: MediaItem? = null
+    var item: MediaItemData? = null
 
     init {
         view.setOnClickListener {

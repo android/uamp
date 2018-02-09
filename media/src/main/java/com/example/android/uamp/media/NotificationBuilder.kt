@@ -19,7 +19,9 @@ package com.example.android.uamp.media
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import android.support.annotation.RequiresApi
 import android.support.v4.app.NotificationCompat
@@ -98,7 +100,8 @@ class NotificationBuilder(private val context: Context) {
                 .setShowActionsInCompactView(playPauseIndex)
                 .setShowCancelButton(true)
 
-        return builder.setContentText(description.subtitle)
+        return builder.setContentIntent(controller.sessionActivity)
+                .setContentText(description.subtitle)
                 .setContentTitle(description.title)
                 .setDeleteIntent(stopPendingIntent)
                 .setLargeIcon(description.iconBitmap)

@@ -16,40 +16,35 @@
 
 package com.example.android.uamp
 
+import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.media.AudioManager
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import com.example.android.uamp.utils.InjectorUtils
+import com.example.android.uamp.viewmodels.MainActivityViewModel
 
-class MainActivity : AppCompatActivity(), MediaBrowserStateChangeCallback {
-
-    private lateinit var mediaBrowserConnection: MediaBrowserViewModel
+class MainActivity : AppCompatActivity() {
+    private lateinit var viewModel: MainActivityViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Since UAMP is a music player, the volume controls should adjust the music
-        // volume while in the app.
-        setVolumeControlStream(AudioManager.STREAM_MUSIC)
+        // Since UAMP is a music player, the volume controls should adjust the music volume while
+        // in the app.
+        volumeControlStream = AudioManager.STREAM_MUSIC
 
-        mediaBrowserConnection = ViewModelProviders.of(this).get(MediaBrowserViewModel::class.java)
-    }
+        viewModel = ViewModelProviders
+                .of(this, InjectorUtils.provideMainActivityViewModel(this))
+                .get(MainActivityViewModel::class.java)
 
-    override fun onStart() {
-        super.onStart()
-        mediaBrowserConnection.registerCallback(this)
-    }
-
-    override fun onStop() {
-        super.onStop()
-        mediaBrowserConnection.unregisterCallback(this)
-    }
-
-    override fun onConnected() {
-        super.onConnected()
-
-        navigateToBrowser(mediaBrowserConnection.getRoot())
+        viewModel.rootMediaId.observe(this,
+                Observer<String> { rootMediaId ->
+                    if (rootMediaId != null) {
+                        navigateToBrowser(rootMediaId)
+                    }
+                })
     }
 
     private fun navigateToBrowser(mediaId: String) {
@@ -57,19 +52,23 @@ class MainActivity : AppCompatActivity(), MediaBrowserStateChangeCallback {
 
         if (fragment == null) {
             fragment = MediaItemFragment.newInstance(mediaId)
-            val transaction = supportFragmentManager.beginTransaction()
-            transaction.replace(R.id.browse_fragment, fragment, mediaId)
+            supportFragmentManager.beginTransaction()
+                    .apply {
+                        replace(R.id.browseFragment, fragment, mediaId)
 
-            // If this is not the top level media (root), we add it to the fragment back stack,
-            // so that actionbar toggle and Back will work appropriately:
-            if (mediaId != mediaBrowserConnection.getRoot()) {
-                transaction.addToBackStack(null)
-            }
-            transaction.commit()
+                        // If this is not the top level media (root), we add it to the fragment
+                        // back stack, so that actionbar toggle and Back will work appropriately:
+                        if (!isRootId(mediaId)) {
+                            addToBackStack(null)
+                        }
+                    }
+                    .commit()
         }
     }
 
+    private fun isRootId(mediaId: String) = mediaId == viewModel.rootMediaId.value
+
     private fun getBrowseFragment(mediaId: String): MediaItemFragment? {
-        return fragmentManager.findFragmentByTag(mediaId) as MediaItemFragment?
+        return supportFragmentManager.findFragmentByTag(mediaId) as MediaItemFragment?
     }
 }

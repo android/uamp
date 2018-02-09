@@ -34,29 +34,29 @@ annotation class State
 /**
  * State indicating the source was created, but no initalization has performed.
  */
-const val STATE_CREATED = 1L
+const val STATE_CREATED = 1
 
 /**
  * State indicating initalization of the source is in progress.
  */
-const val STATE_INITIALIZING = 2L
+const val STATE_INITIALIZING = 2
 
 /**
  * State indicating the source has been initialized and is ready to be used.
  */
-const val STATE_INITIALIZED = 3L
+const val STATE_INITIALIZED = 3
 
 /**
  * State indicating an error has occurred.
  */
-const val STATE_ERROR = 4L
+const val STATE_ERROR = 4
 
 /**
  * Base class for music sources in UAMP.
  */
 abstract class AbstractMusicSource(val context: Context) : MusicSource {
     @State
-    var state: Long = STATE_CREATED
+    var state: Int = STATE_CREATED
         set(value) {
             if (value == STATE_INITIALIZED || value == STATE_ERROR) {
                 synchronized(onReadyListeners) {

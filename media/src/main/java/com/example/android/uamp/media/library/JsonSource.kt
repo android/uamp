@@ -53,7 +53,7 @@ import java.util.concurrent.TimeUnit
  * which is the object representation of it.
  */
 class JsonSource(context: Context, source: Uri) : AbstractMusicSource(context) {
-    var catalog: List<MediaMetadataCompat> = emptyList()
+    private var catalog: List<MediaMetadataCompat> = emptyList()
 
     init {
         state = STATE_INITIALIZING

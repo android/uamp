@@ -28,9 +28,6 @@ android {
         targetSdkVersion 27
         versionCode 1
         versionName "1.0"
-
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-
     }
 
     buildTypes {
@@ -45,17 +42,14 @@ android {
 dependencies {
     api "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
 
+    api "com.android.support:support-core-ui:$support_lib_version"
+    api "com.android.support:support-fragment:$support_lib_version"
     api "com.android.support:support-media-compat:$support_lib_version"
 
-    api 'com.google.code.gson:gson:2.8.2'
-    api 'com.google.android.exoplayer:exoplayer:2.6.1'
+    api "com.google.code.gson:gson:$gson_version"
+    api "com.google.android.exoplayer:exoplayer:$exoplayer_version"
 
     // Glide dependencies
-    implementation 'com.github.bumptech.glide:glide:4.4.0'
-    annotationProcessor 'com.github.bumptech.glide:compiler:4.4.0'
-
-    testImplementation 'junit:junit:4.12'
-
-    androidTestImplementation 'com.android.support.test:runner:1.0.1'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+    api "com.github.bumptech.glide:glide:$glide_version"
+    annotationProcessor "com.github.bumptech.glide:compiler:$glide_version"
 }
