@@ -23,15 +23,12 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <style name="MediaText">
+    <style name="TextAppearance.Uamp.Title" parent="@style/TextAppearance.AppCompat.Title">
+        <item name="android:textColor">?android:textColorSecondary</item>
     </style>
 
-    <style name="MediaText.Title">
-        <item name="android:textSize">24sp</item>
-    </style>
-
-    <style name="MediaText.Subtitle">
-        <item name="android:textSize">14sp</item>
+    <style name="TextAppearance.Uamp.Subtitle" parent="@style/TextAppearance.AppCompat.Small">
+        <item name="android:textColor">?android:textColorSecondary</item>
     </style>
 
     <style name="MediaStateIcon">
