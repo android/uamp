@@ -27,6 +27,8 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.support.v4.app.NotificationManagerCompat
+import android.support.v4.media.AudioAttributesCompat
+import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaBrowserCompat.MediaItem
 import android.support.v4.media.MediaBrowserServiceCompat
 import android.support.v4.media.MediaDescriptionCompat
@@ -34,11 +36,18 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.util.Log
-import com.example.android.uamp.media.extensions.album
-import com.example.android.uamp.media.extensions.id
+import com.example.android.uamp.media.audiofocus.AudioFocusExoPlayerDecorator
 import com.example.android.uamp.media.library.JsonSource
 import com.example.android.uamp.media.library.MusicSource
+import com.google.android.exoplayer2.DefaultLoadControl
+import com.google.android.exoplayer2.DefaultRenderersFactory
+import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.ExoPlayerFactory
+import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
+import com.google.android.exoplayer2.ext.mediasession.TimelineQueueNavigator
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
+import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
+import com.google.android.exoplayer2.util.Util
 
 /**
  * This class is the entry point for browsing and playback commands from the APP's UI
@@ -53,41 +62,33 @@ import com.example.android.uamp.media.library.MusicSource
  */
 class MusicService : MediaBrowserServiceCompat() {
     private lateinit var mediaSession: MediaSessionCompat
+    private lateinit var mediaController: MediaControllerCompat
     private lateinit var becomingNoisyReceiver: BecomingNoisyReceiver
     private lateinit var notificationManager: NotificationManagerCompat
     private lateinit var notificationBuilder: NotificationBuilder
-    private var isForegroundService = false
     private lateinit var mediaSource: MusicSource
-    private lateinit var playback: Playback
-    private var announcedMetadata: MediaMetadataCompat? = null
+    private lateinit var mediaSessionConnector: MediaSessionConnector
+
+    private var isForegroundService = false
+
     private val remoteJsonSource: Uri =
             Uri.parse("https://storage.googleapis.com/uamp/catalog.json")
 
-    private val mediaSessionCallback = MediaSessionCallback()
-    private val playbackStateBuilder = PlaybackStateCompat.Builder()
+    private val audioAttributes = AudioAttributesCompat.Builder()
+            .setContentType(AudioAttributesCompat.CONTENT_TYPE_MUSIC)
+            .setUsage(AudioAttributesCompat.USAGE_MEDIA)
+            .build()
 
-    // These actions are always supported.
-    private val supportedActionsDefault =
-            PlaybackStateCompat.ACTION_PLAY_FROM_MEDIA_ID
-
-    // These are the actions supported when the player is playing.
-    private val supportedActionsPlaying =
-            PlaybackStateCompat.ACTION_PLAY_PAUSE or
-                    PlaybackStateCompat.ACTION_PAUSE or
-                    PlaybackStateCompat.ACTION_STOP or
-                    PlaybackStateCompat.ACTION_SEEK_TO
-
-    // These are the actions supported when the player is paused.
-    private val supportedActionsPaused =
-            PlaybackStateCompat.ACTION_PLAY_PAUSE or
-                    PlaybackStateCompat.ACTION_PLAY or
-                    PlaybackStateCompat.ACTION_STOP or
-                    PlaybackStateCompat.ACTION_SEEK_TO
-
-    // These are the actions supported when the player is stopped.
-    private val supportedActionsStopped =
-            PlaybackStateCompat.ACTION_PLAY_PAUSE or
-                    PlaybackStateCompat.ACTION_PLAY
+    // Wrap a SimpleExoPlayer with a decorator to handle audio focus for us.
+    private val timelineMetadata = mutableListOf<MediaMetadataCompat>()
+    private val exoPlayer: ExoPlayer by lazy {
+        val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        AudioFocusExoPlayerDecorator(audioAttributes,
+                audioManager,
+                ExoPlayerFactory.newSimpleInstance(DefaultRenderersFactory(this),
+                        DefaultTrackSelector(),
+                        DefaultLoadControl()))
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -97,14 +98,25 @@ class MusicService : MediaBrowserServiceCompat() {
         val sessionActivityPendingIntent = PendingIntent.getActivity(this, 0, sessionIntent, 0)
 
         // Create a new MediaSession.
-        mediaSession = MediaSessionCompat(this, "MusicService").apply {
-            setCallback(mediaSessionCallback)
-            setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS or
-                    MediaSessionCompat.FLAG_HANDLES_QUEUE_COMMANDS or
-                    MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS)
-            setSessionActivity(sessionActivityPendingIntent)
-        }
+        mediaSession = MediaSessionCompat(this, "MusicService")
+                .apply { setSessionActivity(sessionActivityPendingIntent) }
+
+        /**
+         * In order for [MediaBrowserCompat.ConnectionCallback.onConnected] to be called,
+         * a [MediaSessionCompat.Token] needs to be set on the [MediaBrowserServiceCompat].
+         *
+         * It is possible to wait to set the session token, if required for a specific use-case.
+         * However, the token *must* be set by the time [MediaBrowserServiceCompat.onGetRoot]
+         * returns, or the connection will fail silently. (The system will not even call
+         * [MediaBrowserCompat.ConnectionCallback.onConnectionFailed].)
+         */
         sessionToken = mediaSession.sessionToken
+
+        // Because ExoPlayer will manage the MediaSession, add the service as a callback for
+        // state changes.
+        mediaController = MediaControllerCompat(this, mediaSession).also {
+            it.registerCallback(MediaControllerCallback())
+        }
 
         notificationBuilder = NotificationBuilder(this)
         notificationManager = NotificationManagerCompat.from(this)
@@ -113,7 +125,28 @@ class MusicService : MediaBrowserServiceCompat() {
                 BecomingNoisyReceiver(context = this, sessionToken = mediaSession.sessionToken)
 
         mediaSource = JsonSource(context = this, source = remoteJsonSource)
-        playback = buildPlayback()
+
+        // ExoPlayer will manage the MediaSession for us.
+        mediaSessionConnector = MediaSessionConnector(mediaSession).also {
+            // Produces DataSource instances through which media data is loaded.
+            val dataSourceFactory = DefaultDataSourceFactory(
+                    this, Util.getUserAgent(this, UAMP_USER_AGENT), null)
+
+            // Create the PlaybackPreparer of the media session connector.
+            val playbackPreparer = UampPlaybackPreparer(
+                    mediaSource,
+                    exoPlayer,
+                    dataSourceFactory
+            ) { updatedTimeline ->
+                timelineMetadata.run {
+                    clear()
+                    addAll(updatedTimeline)
+                }
+            }
+
+            it.setPlayer(exoPlayer, playbackPreparer)
+            it.setQueueNavigator(UampQueueNavigator(mediaSession, timelineMetadata))
+        }
     }
 
     override fun onTaskRemoved(rootIntent: Intent) {
@@ -123,7 +156,6 @@ class MusicService : MediaBrowserServiceCompat() {
 
     override fun onDestroy() {
         mediaSession.release()
-        playback.release()
     }
 
     override fun onGetRoot(clientPackageName: String,
@@ -152,97 +184,12 @@ class MusicService : MediaBrowserServiceCompat() {
         }
     }
 
-    private fun buildPlayback(): Playback {
-        return Playback(applicationContext) { playerState ->
-            updateState(playerState)
-        }
-    }
-
-    private fun updateState(newState: Int?) {
-        val updatedState = newState ?: playback.playerState
-        playbackStateBuilder.setState(updatedState, playback.playerPosition, playback.playerSpeed)
-                .setActiveQueueItemId(playback.queueIndex)
-
-        // Check if it's possible to skip to previous/next
-        val skipToPrevious = if (playback.canSkipToPrevious) {
-            PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS
-        } else {
-            UNSUPPORTED_ACTION
-        }
-        val skipToNext = if (playback.canSkipToNext) {
-            PlaybackStateCompat.ACTION_SKIP_TO_NEXT
-        } else {
-            UNSUPPORTED_ACTION
-        }
-
-        // Add actions based on state.
-        val supportedActions = supportedActionsDefault or skipToPrevious or skipToNext or
-                when (updatedState) {
-                    PlaybackStateCompat.STATE_BUFFERING,
-                    PlaybackStateCompat.STATE_PLAYING -> supportedActionsPlaying
-                    PlaybackStateCompat.STATE_PAUSED -> supportedActionsPaused
-                    PlaybackStateCompat.STATE_STOPPED -> supportedActionsStopped
-                    else -> NO_ADDITIONAL_SUPPORTED_ACTIONS
-                }
-
-        playbackStateBuilder.setActions(supportedActions)
-
-        mediaSession.setPlaybackState(playbackStateBuilder.build())
-
-        // When the state changes, the metadata may have changed, so update that as well.
-        updateMetadata(playback.currentlyPlaying)
-
-        // Skip building a notification when state is "none".
-        val notification = if (updatedState != PlaybackStateCompat.STATE_NONE) {
-            notificationBuilder.buildNotification(sessionToken!!)
-        } else {
-            null
-        }
-
-        when (updatedState) {
-            PlaybackStateCompat.STATE_BUFFERING,
-            PlaybackStateCompat.STATE_PLAYING -> {
-                becomingNoisyReceiver.register()
-
-                startForeground(NOW_PLAYING_NOTIFICATION, notification)
-                isForegroundService = true
-            }
-            else -> {
-                becomingNoisyReceiver.unregister()
-
-                if (isForegroundService) {
-                    stopForeground(false)
-
-                    if (notification != null) {
-                        notificationManager.notify(NOW_PLAYING_NOTIFICATION, notification)
-                    } else {
-                        removeNowPlayingNotification()
-                    }
-                    isForegroundService = false
-                }
-            }
-        }
-    }
-
-    private fun updateMetadata(nowPlaying: MediaMetadataCompat) {
-        if (announcedMetadata == null || announcedMetadata != nowPlaying) {
-            mediaSession.setQueue(playback.queue)
-            mediaSession.setMetadata(nowPlaying)
-            announcedMetadata = nowPlaying
-        }
-    }
-
-    private fun announceError(errorCode: Int, errorMessage: String) {
-        playbackStateBuilder.setErrorMessage(errorCode, errorMessage)
-        updateState(PlaybackStateCompat.STATE_ERROR)
-    }
-
     /**
      * Removes the [NOW_PLAYING_NOTIFICATION] notification.
      *
-     * Since `stopForeground(false)` was already called (see [MusicService.updateState], it's
-     * possible to cancel the notification with
-     * `notificationManager.cancel(NOW_PLAYING_NOTIFICATION)` if minSdkVersion is >=
+     * Since `stopForeground(false)` was already called (see
+     * [MediaControllerCallback.onPlaybackStateChanged], it's possible to cancel the notification
+     * with `notificationManager.cancel(NOW_PLAYING_NOTIFICATION)` if minSdkVersion is >=
      * [Build.VERSION_CODES.LOLLIPOP].
      *
      * Prior to [Build.VERSION_CODES.LOLLIPOP], notifications associated with a foreground
@@ -257,60 +204,62 @@ class MusicService : MediaBrowserServiceCompat() {
         stopForeground(true)
     }
 
-    // MediaSession Callback: Transport Controls -> MediaPlayerAdapter
-    inner class MediaSessionCallback : MediaSessionCompat.Callback() {
-        override fun onAddQueueItem(description: MediaDescriptionCompat?) = Unit
+    /**
+     * Class to receive callbacks about state changes to the [MediaSessionCompat]. In response
+     * to those callbacks, this class:
+     *
+     * - Build/update the service's notification.
+     * - Register/unregister a broadcast receiver for [AudioManager.ACTION_AUDIO_BECOMING_NOISY].
+     * - Calls [Service.startForeground] and [Service.stopForeground].
+     */
+    private inner class MediaControllerCallback : MediaControllerCompat.Callback() {
+        override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
+            val updatedState = state?.state ?: return
 
-        override fun onRemoveQueueItem(description: MediaDescriptionCompat?) = Unit
+            // Skip building a notification when state is "none".
+            val notification = if (updatedState != PlaybackStateCompat.STATE_NONE) {
+                notificationBuilder.buildNotification(mediaSession.sessionToken)
+            } else {
+                null
+            }
 
-        override fun onPrepare() = Unit
+            when (updatedState) {
+                PlaybackStateCompat.STATE_BUFFERING,
+                PlaybackStateCompat.STATE_PLAYING -> {
+                    becomingNoisyReceiver.register()
 
-        override fun onPlay() {
-            if (playback.playerState == PlaybackStateCompat.STATE_PAUSED) {
-                playback.resume()
+                    startForeground(NOW_PLAYING_NOTIFICATION, notification)
+                    isForegroundService = true
+                }
+                else -> {
+                    becomingNoisyReceiver.unregister()
+
+                    if (isForegroundService) {
+                        stopForeground(false)
+
+                        if (notification != null) {
+                            notificationManager.notify(NOW_PLAYING_NOTIFICATION, notification)
+                        } else {
+                            removeNowPlayingNotification()
+                        }
+                        isForegroundService = false
+                    }
+                }
             }
         }
-
-        override fun onPlayFromMediaId(mediaId: String?, extras: Bundle?) {
-            mediaSource.whenReady {
-                val itemToPlay = mediaSource.find { item ->
-                    item.id == mediaId
-                }
-                if (itemToPlay == null) {
-                    announceError(PlaybackStateCompat.ERROR_CODE_APP_ERROR,
-                            getString(R.string.error_media_not_found))
-                    Log.w(TAG, "Content not found: MediaID=$mediaId")
-                } else {
-                    // TODO: Use extras to not always queue the entire album.
-                    val playlist = mediaSource.filter { item ->
-                        item.album == itemToPlay.album
-                    }
-
-                    if (!playback.isPrepared(itemToPlay)) {
-                        playback.prepare(playlist)
-                    }
-                    playback.play(itemToPlay)
-                }
-            }
-        }
-
-        override fun onPause() {
-            playback.pause()
-        }
-
-        override fun onStop() {
-            removeNowPlayingNotification()
-            playback.stop()
-        }
-
-        override fun onSkipToNext() =
-                if (playback.canSkipToNext) playback.skipToNext() else Unit
-
-        override fun onSkipToPrevious() =
-                if (playback.canSkipToPrevious) playback.skipToPrevious() else Unit
-
-        override fun onSeekTo(pos: Long) = playback.seekTo(pos)
     }
+}
+
+/**
+ * Helper class to retrieve the the Metadata necessary for the ExoPlayer MediaSession connection
+ * extension to call [MediaSessionCompat.setMetadata].
+ */
+private class UampQueueNavigator(
+        mediaSession: MediaSessionCompat,
+        private val timelineMetadata: List<MediaMetadataCompat>
+) : TimelineQueueNavigator(mediaSession) {
+    override fun getMediaDescription(windowIndex: Int): MediaDescriptionCompat =
+            timelineMetadata[windowIndex].description
 }
 
 /**
@@ -347,11 +296,4 @@ private class BecomingNoisyReceiver(private val context: Context,
     }
 }
 
-private const val TAG = "MusicService"
-
-/**
- * These provide context to the meaning of "0" in the various bit fields set in a
- * [PlaybackStateCompat]. See [MusicService.updateState] for details.
- */
-private const val UNSUPPORTED_ACTION = 0L
-private const val NO_ADDITIONAL_SUPPORTED_ACTIONS = 0L
+private const val UAMP_USER_AGENT = "uamp.next"

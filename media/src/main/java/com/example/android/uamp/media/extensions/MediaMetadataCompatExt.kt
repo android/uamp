@@ -19,6 +19,9 @@ package com.example.android.uamp.media.extensions
 import android.graphics.Bitmap
 import android.net.Uri
 import android.support.v4.media.MediaMetadataCompat
+import com.google.android.exoplayer2.source.DynamicConcatenatingMediaSource
+import com.google.android.exoplayer2.source.ExtractorMediaSource
+import com.google.android.exoplayer2.upstream.DataSource
 
 /**
  * Useful extensions for [MediaMetadataCompat].
@@ -205,3 +208,24 @@ inline var MediaMetadataCompat.Builder.displayIconUri: String?
     set(value) {
         putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI, value)
     }
+
+/**
+ * Extension method for building an [ExtractorMediaSource] from a [MediaMetadataCompat] object.
+ */
+fun MediaMetadataCompat.toMediaSource(dataSourceFactory: DataSource.Factory) =
+        ExtractorMediaSource.Factory(dataSourceFactory).createMediaSource(mediaUri)
+
+/**
+ * Extension method for building a [DynamicConcatenatingMediaSource] given a [List]
+ * of [MediaMetadataCompat] objects.
+ */
+fun List<MediaMetadataCompat>.toMediaSource(
+        dataSourceFactory: DataSource.Factory
+): DynamicConcatenatingMediaSource {
+
+    val dynamicMediaSource = DynamicConcatenatingMediaSource()
+    forEach {
+        dynamicMediaSource.addMediaSource(it.toMediaSource(dataSourceFactory))
+    }
+    return dynamicMediaSource
+}

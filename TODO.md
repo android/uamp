@@ -12,8 +12,6 @@ Please only supply Kotlin PRs to the 'next' branch.
 Service Side Tasks
 ------------------
 
-- Move to using the [MediaSession extension](https://medium.com/google-exoplayer/the-mediasession-extension-for-exoplayer-82b9619deb2d)
-with ExoPlayer.
 - Implement rating (ideally "favorite" vs "thumbs up/down").
 - Provide integration with the Google Assistant.
 
