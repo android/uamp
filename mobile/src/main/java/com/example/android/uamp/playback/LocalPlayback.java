@@ -406,7 +406,7 @@ public final class LocalPlayback implements Playback {
 
     private final class ExoPlayerEventListener implements ExoPlayer.EventListener {
         @Override
-        public void onTimelineChanged(Timeline timeline, Object manifest) {
+        public void onTimelineChanged(Timeline timeline, Object manifest, int reason) {
             // Nothing to do.
         }
 
@@ -464,7 +464,7 @@ public final class LocalPlayback implements Playback {
         }
 
         @Override
-        public void onPositionDiscontinuity() {
+        public void onPositionDiscontinuity(int reason) {
             // Nothing to do.
         }
 
@@ -474,7 +474,17 @@ public final class LocalPlayback implements Playback {
         }
 
         @Override
+        public void onSeekProcessed() {
+            // Nothing to do.
+        }
+
+        @Override
         public void onRepeatModeChanged(int repeatMode) {
+            // Nothing to do.
+        }
+
+        @Override
+        public void onShuffleModeEnabledChanged(boolean shuffleModeEnabled) {
             // Nothing to do.
         }
     }

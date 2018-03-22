@@ -23,8 +23,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.support.v17.leanback.app.BackgroundManager;
-import android.support.v17.leanback.app.PlaybackOverlayFragment;
-import android.support.v17.leanback.app.PlaybackOverlaySupportFragment;
+import android.support.v17.leanback.app.PlaybackSupportFragment;
 import android.support.v17.leanback.widget.AbstractDetailsDescriptionPresenter;
 import android.support.v17.leanback.widget.Action;
 import android.support.v17.leanback.widget.ArrayObjectAdapter;
@@ -57,10 +56,10 @@ import java.util.List;
 /*
  * Show details of the currently playing song, along with playback controls and the playing queue.
  */
-public class TvPlaybackFragment extends PlaybackOverlaySupportFragment {
+public class TvPlaybackFragment extends PlaybackSupportFragment {
     private static final String TAG = LogHelper.makeLogTag(TvPlaybackFragment.class);
 
-    private static final int BACKGROUND_TYPE = PlaybackOverlayFragment.BG_DARK;
+    private static final int BACKGROUND_TYPE = PlaybackSupportFragment.BG_DARK;
     private static final int DEFAULT_UPDATE_PERIOD = 1000;
     private static final int UPDATE_PERIOD = 16;
 
