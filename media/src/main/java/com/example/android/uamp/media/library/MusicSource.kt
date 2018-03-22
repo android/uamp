@@ -20,7 +20,23 @@ import android.content.Context
 import android.support.annotation.IntDef
 import android.support.v4.media.MediaMetadataCompat
 
+import com.example.android.uamp.media.MusicService
+
+/**
+ * Interface used by [MusicService] for looking up [MediaMetadataCompat] objects.
+ *
+ * Because Kotlin provides methods such as [Iterable.find] and [Iterable.filter],
+ * this is a convient interface to have on sources.
+ */
 interface MusicSource : Iterable<MediaMetadataCompat> {
+
+    /**
+     * Method which will perform a given action after this [MusicSource] is ready to be used.
+     *
+     * @param performAction A lambda expression to be called with a boolean parameter when
+     * the source is ready. `true` indicates the source was successfully prepared, `false`
+     * indicates an error occurred.
+     */
     fun whenReady(performAction: (Boolean) -> Unit): Boolean
 }
 
@@ -32,12 +48,12 @@ interface MusicSource : Iterable<MediaMetadataCompat> {
 annotation class State
 
 /**
- * State indicating the source was created, but no initalization has performed.
+ * State indicating the source was created, but no initialization has performed.
  */
 const val STATE_CREATED = 1
 
 /**
- * State indicating initalization of the source is in progress.
+ * State indicating initialization of the source is in progress.
  */
 const val STATE_INITIALIZING = 2
 
@@ -70,7 +86,7 @@ abstract class AbstractMusicSource(val context: Context) : MusicSource {
             }
         }
 
-    val onReadyListeners = mutableListOf<(Boolean) -> Unit>()
+    private val onReadyListeners = mutableListOf<(Boolean) -> Unit>()
 
     /**
      * Performs an action when this MusicSource is ready.

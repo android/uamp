@@ -35,8 +35,8 @@ import com.example.android.uamp.MediaSessionConnection
 import com.example.android.uamp.NOTHING_PLAYING
 import com.example.android.uamp.R
 import com.example.android.uamp.media.extensions.id
-import com.example.android.uamp.media.extensions.isPauseEnabled
 import com.example.android.uamp.media.extensions.isPlayEnabled
+import com.example.android.uamp.media.extensions.isPlaying
 
 /**
  * [ViewModel] for [MediaItemFragment].
@@ -140,7 +140,7 @@ class MediaItemFragmentViewModel(private val mediaId: String,
         if (mediaItem.mediaId == nowPlaying?.id) {
             mediaSessionConnection.playbackState.value?.let { playbackState ->
                 when {
-                    playbackState.isPauseEnabled -> transportControls.pause()
+                    playbackState.isPlaying -> transportControls.pause()
                     playbackState.isPlayEnabled -> transportControls.play()
                     else -> {
                         Log.w(TAG, "Playable item clicked but neither play nor pause are enabled!" +
@@ -155,19 +155,18 @@ class MediaItemFragmentViewModel(private val mediaId: String,
 
     private fun getResourceForMediaId(mediaId: String): Int {
         val isActive = mediaId == mediaSessionConnection.nowPlaying.value?.id
-        return if (!isActive) {
-            0 // Item isn't active, so don't show a button at all.
-        } else {
-            val pauseEnabled = mediaSessionConnection.playbackState.value?.isPauseEnabled ?: false
-            return if (pauseEnabled) R.drawable.ic_pause_black_24dp
-            else R.drawable.ic_play_arrow_black_24dp
+        val isPlaying = mediaSessionConnection.playbackState.value?.isPlaying ?: false
+        return when {
+            !isActive -> NO_RES
+            isPlaying -> R.drawable.ic_pause_black_24dp
+            else -> R.drawable.ic_play_arrow_black_24dp
         }
     }
 
     private fun updateState(playbackState: PlaybackStateCompat,
                             mediaMetadata: MediaMetadataCompat): List<MediaItemData> {
 
-        val newResId = when (playbackState.isPauseEnabled) {
+        val newResId = when (playbackState.isPlaying) {
             true -> R.drawable.ic_pause_black_24dp
             else -> R.drawable.ic_play_arrow_black_24dp
         }
@@ -190,3 +189,4 @@ class MediaItemFragmentViewModel(private val mediaId: String,
 }
 
 private const val TAG = "MediaItemFragmentVM"
+private const val NO_RES = 0

@@ -19,9 +19,7 @@ package com.example.android.uamp.media
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.Context
-import android.content.Intent
 import android.os.Build
 import android.support.annotation.RequiresApi
 import android.support.v4.app.NotificationCompat
@@ -34,8 +32,8 @@ import android.support.v4.media.session.PlaybackStateCompat.ACTION_PLAY
 import android.support.v4.media.session.PlaybackStateCompat.ACTION_SKIP_TO_NEXT
 import android.support.v4.media.session.PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS
 import android.support.v4.media.session.PlaybackStateCompat.ACTION_STOP
-import com.example.android.uamp.media.extensions.isPauseEnabled
 import com.example.android.uamp.media.extensions.isPlayEnabled
+import com.example.android.uamp.media.extensions.isPlaying
 import com.example.android.uamp.media.extensions.isSkipToNextEnabled
 import com.example.android.uamp.media.extensions.isSkipToPreviousEnabled
 
@@ -85,10 +83,10 @@ class NotificationBuilder(private val context: Context) {
             builder.addAction(skipToPreviousAction)
             ++playPauseIndex
         }
-        if (playbackState.isPlayEnabled) {
-            builder.addAction(playAction)
-        } else if (playbackState.isPauseEnabled) {
+        if (playbackState.isPlaying) {
             builder.addAction(pauseAction)
+        } else if (playbackState.isPlayEnabled) {
+            builder.addAction(playAction)
         }
         if (playbackState.isSkipToNextEnabled) {
             builder.addAction(skipToNextAction)

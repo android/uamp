@@ -17,12 +17,12 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-    ext.arch_lifecycle_version = '1.1.0'
+    ext.arch_lifecycle_version = '1.1.1'
     ext.constraint_layout_version = '1.0.2'
-    ext.exoplayer_version = '2.7.0'
+    ext.exoplayer_version = '2.7.1'
     ext.glide_version = '4.4.0'
     ext.gson_version = '2.8.2'
-    ext.kotlin_version = '1.2.30'
+    ext.kotlin_version = '1.2.41'
     ext.support_lib_version = '27.1.0'
 
 
@@ -31,7 +31,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.0.1'
+        classpath 'com.android.tools.build:gradle:3.1.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 
         // NOTE: Do not place your application dependencies here; they belong
