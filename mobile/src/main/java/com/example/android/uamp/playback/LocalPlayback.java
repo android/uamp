@@ -33,9 +33,9 @@ import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.MediaIDHelper;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.ExoPlaybackException;
-import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.PlaybackParameters;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.audio.AudioAttributes;
@@ -148,15 +148,15 @@ public final class LocalPlayback implements Playback {
                     : PlaybackStateCompat.STATE_NONE;
         }
         switch (mExoPlayer.getPlaybackState()) {
-            case ExoPlayer.STATE_IDLE:
+            case Player.STATE_IDLE:
                 return PlaybackStateCompat.STATE_PAUSED;
-            case ExoPlayer.STATE_BUFFERING:
+            case Player.STATE_BUFFERING:
                 return PlaybackStateCompat.STATE_BUFFERING;
-            case ExoPlayer.STATE_READY:
+            case Player.STATE_READY:
                 return mExoPlayer.getPlayWhenReady()
                         ? PlaybackStateCompat.STATE_PLAYING
                         : PlaybackStateCompat.STATE_PAUSED;
-            case ExoPlayer.STATE_ENDED:
+            case Player.STATE_ENDED:
                 return PlaybackStateCompat.STATE_PAUSED;
             default:
                 return PlaybackStateCompat.STATE_NONE;
@@ -404,7 +404,7 @@ public final class LocalPlayback implements Playback {
         }
     }
 
-    private final class ExoPlayerEventListener implements ExoPlayer.EventListener {
+    private final class ExoPlayerEventListener implements Player.EventListener {
         @Override
         public void onTimelineChanged(Timeline timeline, Object manifest, int reason) {
             // Nothing to do.
@@ -424,14 +424,14 @@ public final class LocalPlayback implements Playback {
         @Override
         public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
             switch (playbackState) {
-                case ExoPlayer.STATE_IDLE:
-                case ExoPlayer.STATE_BUFFERING:
-                case ExoPlayer.STATE_READY:
+                case Player.STATE_IDLE:
+                case Player.STATE_BUFFERING:
+                case Player.STATE_READY:
                     if (mCallback != null) {
                         mCallback.onPlaybackStatusChanged(getState());
                     }
                     break;
-                case ExoPlayer.STATE_ENDED:
+                case Player.STATE_ENDED:
                     // The media player finished playing the current song.
                     if (mCallback != null) {
                         mCallback.onCompletion();
