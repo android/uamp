@@ -60,7 +60,7 @@ dependencies {
     implementation 'com.android.support:design:27.1.1'
     implementation 'com.android.support:percent:27.1.1'
 
-    implementation 'com.google.android.exoplayer:exoplayer:r2.5.4'
+    implementation 'com.google.android.exoplayer:exoplayer:2.7.3'
 
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.mockito:mockito-core:2.15.0'
