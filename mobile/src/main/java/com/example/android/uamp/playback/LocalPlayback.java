@@ -32,6 +32,7 @@ import com.example.android.uamp.model.MusicProviderSource;
 import com.example.android.uamp.utils.LogHelper;
 import com.example.android.uamp.utils.MediaIDHelper;
 import com.google.android.exoplayer2.DefaultLoadControl;
+import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.PlaybackParameters;
@@ -207,9 +208,10 @@ public final class LocalPlayback implements Playback {
             }
 
             if (mExoPlayer == null) {
-                mExoPlayer =
-                        ExoPlayerFactory.newSimpleInstance(
-                                mContext, new DefaultTrackSelector(), new DefaultLoadControl());
+                mExoPlayer = ExoPlayerFactory.newSimpleInstance(
+                        new DefaultRenderersFactory(mContext),
+                        new DefaultTrackSelector(),
+                        new DefaultLoadControl());
                 mExoPlayer.addListener(mEventListener);
             }
 
@@ -231,9 +233,11 @@ public final class LocalPlayback implements Playback {
             // Produces Extractor instances for parsing the media data.
             ExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
             // The MediaSource represents the media to be played.
+            ExtractorMediaSource.Factory extractorMediaFactory =
+                    new ExtractorMediaSource.Factory(dataSourceFactory);
+            extractorMediaFactory.setExtractorsFactory(extractorsFactory);
             MediaSource mediaSource =
-                    new ExtractorMediaSource(
-                            Uri.parse(source), dataSourceFactory, extractorsFactory, null, null);
+                    extractorMediaFactory.createMediaSource(Uri.parse(source));
 
             // Prepares media to play (happens on background thread) and triggers
             // {@code onPlayerStateChanged} callback when the stream is ready to play.
