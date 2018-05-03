@@ -27,6 +27,7 @@ import com.example.android.uamp.media.extensions.album
 import com.example.android.uamp.media.extensions.id
 import com.example.android.uamp.media.extensions.toMediaSource
 import com.example.android.uamp.media.extensions.trackNumber
+import com.example.android.uamp.media.library.AbstractMusicSource
 import com.example.android.uamp.media.library.MusicSource
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.Player
@@ -43,10 +44,17 @@ class UampPlaybackPreparer(
         private val onTimelineUpdated: (List<MediaMetadataCompat>) -> Unit
 ) : MediaSessionConnector.PlaybackPreparer {
 
-    // TODO: Support more than preparing/playing from a media ID.
+    /**
+     * UAMP supports preparing (and playing) from search, as well as media ID, so those
+     * capabilities are declared here.
+     *
+     * TODO: Add support for ACTION_PREPARE and ACTION_PLAY, which mean "prepare/play something".
+     */
     override fun getSupportedPrepareActions(): Long =
             PlaybackStateCompat.ACTION_PREPARE_FROM_MEDIA_ID or
-                    PlaybackStateCompat.ACTION_PLAY_FROM_MEDIA_ID
+                    PlaybackStateCompat.ACTION_PLAY_FROM_MEDIA_ID or
+                    PlaybackStateCompat.ACTION_PREPARE_FROM_SEARCH or
+                    PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH
 
     override fun onPrepare() = Unit
 
@@ -85,7 +93,28 @@ class UampPlaybackPreparer(
         }
     }
 
-    override fun onPrepareFromSearch(query: String?, extras: Bundle?) = Unit
+    /**
+     * Handles callbacks to both [MediaSessionCompat.Callback.onPrepareFromSearch]
+     * *AND* [MediaSessionCompat.Callback.onPlayFromSearch] when using [MediaSessionConnector].
+     * (See above for details.)
+     *
+     * This method is used by the Google Assistant to respond to requests such as:
+     * - Play Geisha from Wake Up on UAMP
+     * - Play electronic music on UAMP
+     * - Play music on UAMP
+     *
+     * For details on how search is handled, see [AbstractMusicSource.search].
+     */
+    override fun onPrepareFromSearch(query: String?, extras: Bundle?) {
+        musicSource.whenReady {
+            val metadataList = musicSource.search(query ?: "", extras ?: Bundle.EMPTY)
+            if (metadataList.isNotEmpty()) {
+                val mediaSource = metadataList.toMediaSource(dataSourceFactory)
+                onTimelineUpdated(metadataList)
+                exoPlayer.prepare(mediaSource)
+            }
+        }
+    }
 
     override fun onPrepareFromUri(uri: Uri?, extras: Bundle?) = Unit
 
@@ -108,7 +137,6 @@ class UampPlaybackPreparer(
      */
     private fun buildPlaylist(item: MediaMetadataCompat): List<MediaMetadataCompat> =
             musicSource.filter { it.album == item.album }.sortedBy { it.trackNumber }
-
 }
 
 private const val TAG = "MediaSessionHelper"
