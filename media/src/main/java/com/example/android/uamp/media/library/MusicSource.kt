@@ -16,14 +16,12 @@
 
 package com.example.android.uamp.media.library
 
-import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.support.annotation.IntDef
 import android.support.v4.media.MediaMetadataCompat
 import android.util.Log
-
 import com.example.android.uamp.media.MusicService
 import com.example.android.uamp.media.extensions.album
 import com.example.android.uamp.media.extensions.albumArtist
@@ -82,7 +80,7 @@ const val STATE_ERROR = 4
 /**
  * Base class for music sources in UAMP.
  */
-abstract class AbstractMusicSource(val context: Context) : MusicSource {
+abstract class AbstractMusicSource : MusicSource {
     @State
     var state: Int = STATE_CREATED
         set(value) {

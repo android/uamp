@@ -52,7 +52,7 @@ import java.util.concurrent.TimeUnit
  * The definition of the JSON is specified in the docs of [JsonMusic] in this file,
  * which is the object representation of it.
  */
-class JsonSource(context: Context, source: Uri) : AbstractMusicSource(context) {
+class JsonSource(context: Context, source: Uri) : AbstractMusicSource() {
     private var catalog: List<MediaMetadataCompat> = emptyList()
 
     init {
