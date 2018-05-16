@@ -51,7 +51,10 @@ class MainActivity : AppCompatActivity() {
         var fragment: MediaItemFragment? = getBrowseFragment(mediaId)
 
         if (fragment == null) {
-            fragment = MediaItemFragment.newInstance(mediaId)
+            fragment = MediaItemFragment.newInstance(mediaId) { mediaItem ->
+                navigateToBrowser(mediaItem.mediaId)
+            }
+
             supportFragmentManager.beginTransaction()
                     .apply {
                         replace(R.id.browseFragment, fragment, mediaId)

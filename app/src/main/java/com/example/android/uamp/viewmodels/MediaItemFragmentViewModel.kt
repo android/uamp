@@ -60,6 +60,7 @@ class MediaItemFragmentViewModel(private val mediaId: String,
                         child.description.title.toString(),
                         child.description.subtitle.toString(),
                         child.description.iconUri!!,
+                        child.isBrowsable,
                         getResourceForMediaId(child.mediaId!!))
             }
             _mediaItems.postValue(itemsList)

@@ -35,14 +35,25 @@ import kotlinx.android.synthetic.main.fragment_mediaitem_list.*
 class MediaItemFragment : Fragment() {
     private lateinit var mediaId: String
     private lateinit var mediaItemFragmentViewModel: MediaItemFragmentViewModel
+    private lateinit var browsableItemClicked: (MediaItemData) -> Unit
 
     private val listAdapter = MediaItemAdapter { clickedItem ->
-        mediaItemFragmentViewModel.playMedia(clickedItem)
+        if (clickedItem.browsable) {
+            browsableItemClicked(clickedItem)
+        } else {
+            mediaItemFragmentViewModel.playMedia(clickedItem)
+        }
+
     }
 
     companion object {
-        fun newInstance(mediaId: String): MediaItemFragment {
+        fun newInstance(
+                mediaId: String,
+                browsableItemClicked: (MediaItemData) -> Unit
+        ): MediaItemFragment {
+
             return MediaItemFragment().apply {
+                this.browsableItemClicked = browsableItemClicked
                 arguments = Bundle().apply {
                     putString(MEDIA_ID_ARG, mediaId)
                 }
