@@ -17,17 +17,27 @@
 package com.example.android.uamp
 
 import android.net.Uri
+import android.support.v4.media.MediaBrowserCompat
 import android.support.v7.util.DiffUtil
 import android.support.v4.media.MediaBrowserCompat.MediaItem
+import com.example.android.uamp.viewmodels.MediaItemFragmentViewModel
 
 /**
  * Data class to encapsulate properties of a [MediaItem].
+ *
+ * If an item is [browsable] it means that it has a list of child media items that
+ * can be retrieved by passing the mediaId to [MediaBrowserCompat.subscribe].
+ *
+ * Objects of this class are built from [MediaItem]s in
+ * [MediaItemFragmentViewModel.subscriptionCallback].
  */
-data class MediaItemData(val mediaId: String,
-                         val title: String,
-                         val subtitle: String,
-                         val albumArtUri: Uri,
-                         var playbackRes: Int) {
+data class MediaItemData(
+        val mediaId: String,
+        val title: String,
+        val subtitle: String,
+        val albumArtUri: Uri,
+        val browsable: Boolean,
+        var playbackRes: Int) {
 
     companion object {
         val diffCallback = object : DiffUtil.ItemCallback<MediaItemData>() {
