@@ -19,6 +19,7 @@ package com.example.android.uamp.media.library
 import android.content.Context
 import android.net.Uri
 import android.os.AsyncTask
+import android.support.v4.media.MediaBrowserCompat.MediaItem
 import android.support.v4.media.MediaMetadataCompat
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
@@ -34,6 +35,7 @@ import com.example.android.uamp.media.extensions.displayIconUri
 import com.example.android.uamp.media.extensions.displaySubtitle
 import com.example.android.uamp.media.extensions.displayTitle
 import com.example.android.uamp.media.extensions.duration
+import com.example.android.uamp.media.extensions.flag
 import com.example.android.uamp.media.extensions.genre
 import com.example.android.uamp.media.extensions.id
 import com.example.android.uamp.media.extensions.mediaUri
@@ -141,6 +143,7 @@ fun MediaMetadataCompat.Builder.from(jsonMusic: JsonMusic): MediaMetadataCompat.
     albumArtUri = jsonMusic.image
     trackNumber = jsonMusic.trackNumber
     trackCount = jsonMusic.totalTrackCount
+    flag = MediaItem.FLAG_PLAYABLE
 
     // To make things easier for *displaying* these, set the display properties as well.
     displayTitle = jsonMusic.title
