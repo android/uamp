@@ -18,6 +18,7 @@ package com.example.android.uamp.media.extensions
 
 import android.graphics.Bitmap
 import android.net.Uri
+import android.support.v4.media.MediaBrowserCompat.MediaItem
 import android.support.v4.media.MediaMetadataCompat
 import com.google.android.exoplayer2.source.DynamicConcatenatingMediaSource
 import com.google.android.exoplayer2.source.ExtractorMediaSource
@@ -96,6 +97,13 @@ inline val MediaMetadataCompat.displayIconUri
 
 inline val MediaMetadataCompat.mediaUri
     get() = Uri.parse(this.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI))
+
+/**
+ * Custom property for storing whether a [MediaMetadataCompat] item represents an
+ * item that is [MediaItem.FLAG_BROWSABLE] or [MediaItem.FLAG_PLAYABLE].
+ */
+@MediaItem.Flags
+inline val MediaMetadataCompat.flag get() = this.getLong(METADATA_KEY_UAMP_FLAGS).toInt()
 
 /**
  * Useful extensions for [MediaMetadataCompat.Builder].
@@ -210,6 +218,18 @@ inline var MediaMetadataCompat.Builder.displayIconUri: String?
     }
 
 /**
+ * Custom property for storing whether a [MediaMetadataCompat] item represents an
+ * item that is [MediaItem.FLAG_BROWSABLE] or [MediaItem.FLAG_PLAYABLE].
+ */
+@MediaItem.Flags
+inline var MediaMetadataCompat.Builder.flag: Int
+    @Deprecated(NO_GET, level = DeprecationLevel.ERROR)
+    get() = throw IllegalAccessException("Cannot get from MediaMetadataCompat.Builder")
+    set(value) {
+        putLong(METADATA_KEY_UAMP_FLAGS, value.toLong())
+    }
+
+/**
  * Extension method for building an [ExtractorMediaSource] from a [MediaMetadataCompat] object.
  */
 fun MediaMetadataCompat.toMediaSource(dataSourceFactory: DataSource.Factory) =
@@ -229,3 +249,9 @@ fun List<MediaMetadataCompat>.toMediaSource(
     }
     return dynamicMediaSource
 }
+
+/**
+ * Custom property that holds whether an item is [MediaItem.FLAG_BROWSABLE] or
+ * [MediaItem.FLAG_PLAYABLE].
+ */
+const val METADATA_KEY_UAMP_FLAGS = "com.example.android.uamp.media.METADATA_KEY_UAMP_FLAGS"

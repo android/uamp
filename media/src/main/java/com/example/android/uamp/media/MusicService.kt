@@ -37,8 +37,12 @@ import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import com.example.android.uamp.media.audiofocus.AudioFocusExoPlayerDecorator
+import com.example.android.uamp.media.extensions.flag
+import com.example.android.uamp.media.extensions.mediaUri
+import com.example.android.uamp.media.library.BrowseTree
 import com.example.android.uamp.media.library.JsonSource
 import com.example.android.uamp.media.library.MusicSource
+import com.example.android.uamp.media.library.UAMP_BROWSABLE_ROOT
 import com.google.android.exoplayer2.DefaultLoadControl
 import com.google.android.exoplayer2.DefaultRenderersFactory
 import com.google.android.exoplayer2.ExoPlayer
@@ -68,6 +72,15 @@ class MusicService : MediaBrowserServiceCompat() {
     private lateinit var notificationBuilder: NotificationBuilder
     private lateinit var mediaSource: MusicSource
     private lateinit var mediaSessionConnector: MediaSessionConnector
+
+    /**
+     * This must be `by lazy` because the source won't initially be ready.
+     * See [MusicService.onLoadChildren] to see where it's accessed (and first
+     * constructed).
+     */
+    private val browseTree: BrowseTree by lazy {
+        BrowseTree(mediaSource)
+    }
 
     private var isForegroundService = false
 
@@ -158,20 +171,32 @@ class MusicService : MediaBrowserServiceCompat() {
         mediaSession.release()
     }
 
+    /**
+     * Returns the "root" media ID that the client should request to get the list of
+     * [MediaItem]s to browse/play.
+     *
+     * TODO: Allow different roots based on which app is attempting to connect.
+     */
     override fun onGetRoot(clientPackageName: String,
                            clientUid: Int,
                            rootHints: Bundle?): MediaBrowserServiceCompat.BrowserRoot? {
-        return BrowserRoot("/", null)
+        return BrowserRoot(UAMP_BROWSABLE_ROOT, null)
     }
 
+    /**
+     * Returns (via the [result] parameter) a list of [MediaItem]s that are child
+     * items of the provided [parentMediaId]. See [BrowseTree] for more details on
+     * how this is build/more details about the relationships.
+     */
     override fun onLoadChildren(
             parentMediaId: String,
             result: MediaBrowserServiceCompat.Result<List<MediaItem>>) {
 
+        // If the media source is ready, the results will be set synchronously here.
         val resultsSent = mediaSource.whenReady { successfullyInitialized ->
             if (successfullyInitialized) {
-                val children = mediaSource.map { item ->
-                    MediaItem(item.description, MediaItem.FLAG_PLAYABLE)
+                val children = browseTree[parentMediaId]?.map { item ->
+                    MediaItem(item.description, item.flag)
                 }
                 result.sendResult(children)
             } else {
@@ -179,6 +204,12 @@ class MusicService : MediaBrowserServiceCompat() {
             }
         }
 
+        // If the results are not ready, the service must "detach" the results before
+        // the method returns. After the source is ready, the lambda above will run,
+        // and the caller will be notified that the results are ready.
+        //
+        // See [MediaItemFragmentViewModel.subscriptionCallback] for how this is passed to the
+        // UI/displayed in the [RecyclerView].
         if (!resultsSent) {
             result.detach()
         }

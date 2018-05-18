@@ -16,6 +16,8 @@
 
 package com.example.android.uamp.media.extensions
 
+import java.net.URLEncoder
+
 /**
  * This file contains extension methods for the java.lang package.
  */
@@ -31,3 +33,9 @@ fun String?.containsCaseInsensitive(other: String?) =
         } else {
             false
         }
+
+/**
+ * Helper extension to URL encode a [String]. Returns an empty string when called on null.
+ */
+inline val String?.urlEncoded: String
+    get() = URLEncoder.encode(this ?: "", java.nio.charset.StandardCharsets.UTF_8.toString())
