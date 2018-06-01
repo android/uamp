@@ -24,7 +24,10 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import com.bumptech.glide.Glide
-import kotlinx.android.synthetic.main.fragment_mediaitem.view.*
+import kotlinx.android.synthetic.main.fragment_mediaitem.view.albumbArt
+import kotlinx.android.synthetic.main.fragment_mediaitem.view.item_state
+import kotlinx.android.synthetic.main.fragment_mediaitem.view.subtitle
+import kotlinx.android.synthetic.main.fragment_mediaitem.view.title
 
 /**
  * [RecyclerView.Adapter] of [MediaItemData]s used by the [MediaItemFragment].
