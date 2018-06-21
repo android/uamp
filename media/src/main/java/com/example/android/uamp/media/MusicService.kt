@@ -111,7 +111,10 @@ class MusicService : MediaBrowserServiceCompat() {
 
         // Create a new MediaSession.
         mediaSession = MediaSessionCompat(this, "MusicService")
-                .apply { setSessionActivity(sessionActivityPendingIntent) }
+                .apply {
+                    setSessionActivity(sessionActivityPendingIntent)
+                    isActive = true
+                }
 
         /**
          * In order for [MediaBrowserCompat.ConnectionCallback.onConnected] to be called,
@@ -161,7 +164,10 @@ class MusicService : MediaBrowserServiceCompat() {
     }
 
     override fun onDestroy() {
-        mediaSession.release()
+        mediaSession.run {
+            isActive = false
+            release()
+        }
     }
 
     /**
