@@ -32,13 +32,11 @@ import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaBrowserCompat.MediaItem
 import android.support.v4.media.MediaBrowserServiceCompat
 import android.support.v4.media.MediaDescriptionCompat
-import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import com.example.android.uamp.media.audiofocus.AudioFocusExoPlayerDecorator
 import com.example.android.uamp.media.extensions.flag
-import com.example.android.uamp.media.extensions.mediaUri
 import com.example.android.uamp.media.library.BrowseTree
 import com.example.android.uamp.media.library.JsonSource
 import com.example.android.uamp.media.library.MusicSource
@@ -47,6 +45,8 @@ import com.google.android.exoplayer2.DefaultLoadControl
 import com.google.android.exoplayer2.DefaultRenderersFactory
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.ExoPlayerFactory
+import com.google.android.exoplayer2.Player
+import com.google.android.exoplayer2.Timeline
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.ext.mediasession.TimelineQueueNavigator
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
@@ -93,7 +93,6 @@ class MusicService : MediaBrowserServiceCompat() {
             .build()
 
     // Wrap a SimpleExoPlayer with a decorator to handle audio focus for us.
-    private val timelineMetadata = mutableListOf<MediaMetadataCompat>()
     private val exoPlayer: ExoPlayer by lazy {
         val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
         AudioFocusExoPlayerDecorator(audioAttributes,
@@ -112,7 +111,10 @@ class MusicService : MediaBrowserServiceCompat() {
 
         // Create a new MediaSession.
         mediaSession = MediaSessionCompat(this, "MusicService")
-                .apply { setSessionActivity(sessionActivityPendingIntent) }
+                .apply {
+                    setSessionActivity(sessionActivityPendingIntent)
+                    isActive = true
+                }
 
         /**
          * In order for [MediaBrowserCompat.ConnectionCallback.onConnected] to be called,
@@ -149,16 +151,10 @@ class MusicService : MediaBrowserServiceCompat() {
             val playbackPreparer = UampPlaybackPreparer(
                     mediaSource,
                     exoPlayer,
-                    dataSourceFactory
-            ) { updatedTimeline ->
-                timelineMetadata.run {
-                    clear()
-                    addAll(updatedTimeline)
-                }
-            }
+                    dataSourceFactory)
 
             it.setPlayer(exoPlayer, playbackPreparer)
-            it.setQueueNavigator(UampQueueNavigator(mediaSession, timelineMetadata))
+            it.setQueueNavigator(UampQueueNavigator(mediaSession))
         }
     }
 
@@ -168,7 +164,10 @@ class MusicService : MediaBrowserServiceCompat() {
     }
 
     override fun onDestroy() {
-        mediaSession.release()
+        mediaSession.run {
+            isActive = false
+            release()
+        }
     }
 
     /**
@@ -286,11 +285,12 @@ class MusicService : MediaBrowserServiceCompat() {
  * extension to call [MediaSessionCompat.setMetadata].
  */
 private class UampQueueNavigator(
-        mediaSession: MediaSessionCompat,
-        private val timelineMetadata: List<MediaMetadataCompat>
+        mediaSession: MediaSessionCompat
 ) : TimelineQueueNavigator(mediaSession) {
-    override fun getMediaDescription(windowIndex: Int): MediaDescriptionCompat =
-            timelineMetadata[windowIndex].description
+    private val window = Timeline.Window()
+    override fun getMediaDescription(player: Player, windowIndex: Int): MediaDescriptionCompat =
+            player.currentTimeline
+                    .getWindow(windowIndex, window, true).tag as MediaDescriptionCompat
 }
 
 /**
