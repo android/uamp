@@ -24,17 +24,20 @@ Support
 - Google+ Community: https://plus.google.com/communities/105153134372062985968
 - Stack Overflow: http://stackoverflow.com/questions/tagged/android
 
-If you've found an error in this sample, please file an issue:
-https://github.com/googlesamples/android-UniversalMusicPlayer/issues
+If you've found an error in this sample, please
+[file an issue](https://github.com/googlesamples/android-UniversalMusicPlayer/issues)
 
 Patches are encouraged, and may be submitted by forking this project and
-submitting a pull request through GitHub. Please see CONTRIBUTING.md for more details.
+submitting a pull request through GitHub. Please see [CONTRIBUTING.md](CONTRIBUTING.md) for more
+details.
 
 Music
 -----
 
 Music provided by the [Free Music Archive](http://freemusicarchive.org/).
 
+- [Irsen's Tale](http://freemusicarchive.org/music/Kai_Engel/Irsens_Tale/) by
+[Kai Engel](http://freemusicarchive.org/music/Kai_Engel/).
 - [Wake Up](http://freemusicarchive.org/music/The_Kyoto_Connection/Wake_Up_1957/) by
 [The Kyoto Connection](http://freemusicarchive.org/music/The_Kyoto_Connection/).
 
