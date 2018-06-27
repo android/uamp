@@ -27,7 +27,8 @@ import android.view.View
 import android.view.ViewGroup
 import com.example.android.uamp.utils.InjectorUtils
 import com.example.android.uamp.viewmodels.MediaItemFragmentViewModel
-import kotlinx.android.synthetic.main.fragment_mediaitem_list.*
+import kotlinx.android.synthetic.main.fragment_mediaitem_list.list
+import kotlinx.android.synthetic.main.fragment_mediaitem_list.loadingSpinner
 
 /**
  * A fragment representing a list of MediaItems.
