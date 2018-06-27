@@ -38,7 +38,6 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import com.example.android.uamp.media.audiofocus.AudioFocusExoPlayerDecorator
 import com.example.android.uamp.media.extensions.flag
-import com.example.android.uamp.media.extensions.mediaUri
 import com.example.android.uamp.media.library.BrowseTree
 import com.example.android.uamp.media.library.JsonSource
 import com.example.android.uamp.media.library.MusicSource
@@ -47,6 +46,7 @@ import com.google.android.exoplayer2.DefaultLoadControl
 import com.google.android.exoplayer2.DefaultRenderersFactory
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.ExoPlayerFactory
+import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.ext.mediasession.TimelineQueueNavigator
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
@@ -289,7 +289,7 @@ private class UampQueueNavigator(
         mediaSession: MediaSessionCompat,
         private val timelineMetadata: List<MediaMetadataCompat>
 ) : TimelineQueueNavigator(mediaSession) {
-    override fun getMediaDescription(windowIndex: Int): MediaDescriptionCompat =
+    override fun getMediaDescription(player: Player?, windowIndex: Int): MediaDescriptionCompat =
             timelineMetadata[windowIndex].description
 }
 
