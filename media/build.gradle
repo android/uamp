@@ -42,7 +42,7 @@ android {
 }
 
 dependencies {
-    api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    api "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
     api "com.android.support:support-core-ui:$support_lib_version"
     api "com.android.support:support-fragment:$support_lib_version"
