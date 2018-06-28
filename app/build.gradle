@@ -42,7 +42,7 @@ android {
 dependencies {
     implementation project(':media')
 
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
     implementation "com.android.support:appcompat-v7:$support_lib_version"
     implementation "com.android.support:support-v4:$support_lib_version"
