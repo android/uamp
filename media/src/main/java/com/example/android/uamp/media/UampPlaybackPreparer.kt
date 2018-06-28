@@ -40,8 +40,7 @@ import com.google.android.exoplayer2.upstream.DataSource
 class UampPlaybackPreparer(
         private val musicSource: MusicSource,
         private val exoPlayer: ExoPlayer,
-        private val dataSourceFactory: DataSource.Factory,
-        private val onTimelineUpdated: (List<MediaMetadataCompat>) -> Unit
+        private val dataSourceFactory: DataSource.Factory
 ) : MediaSessionConnector.PlaybackPreparer {
 
     /**
@@ -86,7 +85,6 @@ class UampPlaybackPreparer(
                 // user actually wants to hear plays first.
                 val initialWindowIndex = metadataList.indexOf(itemToPlay)
 
-                onTimelineUpdated(metadataList)
                 exoPlayer.prepare(mediaSource)
                 exoPlayer.seekTo(initialWindowIndex, 0)
             }
@@ -110,7 +108,6 @@ class UampPlaybackPreparer(
             val metadataList = musicSource.search(query ?: "", extras ?: Bundle.EMPTY)
             if (metadataList.isNotEmpty()) {
                 val mediaSource = metadataList.toMediaSource(dataSourceFactory)
-                onTimelineUpdated(metadataList)
                 exoPlayer.prepare(mediaSource)
             }
         }

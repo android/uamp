@@ -19,6 +19,7 @@ package com.example.android.uamp.media.extensions
 import android.graphics.Bitmap
 import android.net.Uri
 import android.support.v4.media.MediaBrowserCompat.MediaItem
+import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource
 import com.google.android.exoplayer2.source.ExtractorMediaSource
@@ -103,7 +104,8 @@ inline val MediaMetadataCompat.mediaUri
  * item that is [MediaItem.FLAG_BROWSABLE] or [MediaItem.FLAG_PLAYABLE].
  */
 @MediaItem.Flags
-inline val MediaMetadataCompat.flag get() = this.getLong(METADATA_KEY_UAMP_FLAGS).toInt()
+inline val MediaMetadataCompat.flag
+    get() = this.getLong(METADATA_KEY_UAMP_FLAGS).toInt()
 
 /**
  * Useful extensions for [MediaMetadataCompat.Builder].
@@ -231,9 +233,13 @@ inline var MediaMetadataCompat.Builder.flag: Int
 
 /**
  * Extension method for building an [ExtractorMediaSource] from a [MediaMetadataCompat] object.
+ *
+ * For convenience, place the [MediaDescriptionCompat] into the tag so it can be retrieved later.
  */
 fun MediaMetadataCompat.toMediaSource(dataSourceFactory: DataSource.Factory) =
-        ExtractorMediaSource.Factory(dataSourceFactory).createMediaSource(mediaUri)
+        ExtractorMediaSource.Factory(dataSourceFactory)
+                .setTag(description)
+                .createMediaSource(mediaUri)
 
 /**
  * Extension method for building a [ConcatenatingMediaSource] given a [List]
@@ -243,11 +249,11 @@ fun List<MediaMetadataCompat>.toMediaSource(
         dataSourceFactory: DataSource.Factory
 ): ConcatenatingMediaSource {
 
-    val mediaSource = ConcatenatingMediaSource()
+    val concatenatingMediaSource = ConcatenatingMediaSource()
     forEach {
-        mediaSource.addMediaSource(it.toMediaSource(dataSourceFactory))
+        concatenatingMediaSource.addMediaSource(it.toMediaSource(dataSourceFactory))
     }
-    return mediaSource
+    return concatenatingMediaSource
 }
 
 /**
