@@ -32,13 +32,13 @@ import kotlinx.android.synthetic.main.fragment_mediaitem.view.title
 /**
  * [RecyclerView.Adapter] of [MediaItemData]s used by the [MediaItemFragment].
  */
-class MediaItemAdapter(private val itemClicked: (MediaItemData) -> Unit
+class MediaItemAdapter(private val itemClickedListener: (MediaItemData) -> Unit
 ) : ListAdapter<MediaItemData, MediaViewHolder>(MediaItemData.diffCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MediaViewHolder {
         val view = LayoutInflater.from(parent.context)
                 .inflate(R.layout.fragment_mediaitem, parent, false)
-        return MediaViewHolder(view, itemClicked)
+        return MediaViewHolder(view, itemClickedListener)
     }
 
     override fun onBindViewHolder(holder: MediaViewHolder, position: Int) {
@@ -55,7 +55,7 @@ class MediaItemAdapter(private val itemClicked: (MediaItemData) -> Unit
 }
 
 class MediaViewHolder(view: View,
-                      itemClicked: (MediaItemData) -> Unit
+                      itemClickedListener: (MediaItemData) -> Unit
 ) : RecyclerView.ViewHolder(view) {
 
     val titleView: TextView = view.title
@@ -67,7 +67,7 @@ class MediaViewHolder(view: View,
 
     init {
         view.setOnClickListener {
-            item?.let { itemClicked(it) }
+            item?.let { itemClickedListener(it) }
         }
     }
 }
