@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2017 Google Inc. All rights reserved.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<resources>
+    <dimen name="text_margin">16dp</dimen>
+
+    <dimen name="media_item_height">72dp</dimen>
+    <dimen name="media_item_control_margin">4dp</dimen>
+    <dimen name="media_item_icon_margin_start">12dp</dimen>
+    <dimen name="media_item_text_margin_start">4dp</dimen>
+
+    <dimen name="media_item_art">72dp</dimen>
+
+    <dimen name="media_item_radius">4dp</dimen>
+    <dimen name="media_item_half_radius">2dp</dimen>
+    <dimen name="media_item_negative_half_radius">-2dp</dimen>
+
+    <dimen name="now_playing_album_art_margin">72dp</dimen>
+    <dimen name="now_playing_skip_top_margin">42dp</dimen>
+    <dimen name="now_playing_skip_margin">8dp</dimen>
+    <dimen name="now_playing_play_pause_top_margin">42dp</dimen>
+    <dimen name="now_playing_play_pause_bottom_margin">52dp</dimen>
+
+    <dimen name="now_playing_title_top_margin">32dp</dimen>
+    <dimen name="now_playing_title_bottom_margin">8dp</dimen>
+    <dimen name="now_playing_artist_bottom_margin">32dp</dimen>
+    <dimen name="now_playing_text_padding">16dp</dimen>
+
+    <dimen name="now_playing_title_size">32sp</dimen>
+    <dimen name="now_playing_artist_size">18sp</dimen>
+</resources>
