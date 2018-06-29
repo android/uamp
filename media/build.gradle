@@ -50,8 +50,20 @@ dependencies {
     api "com.google.code.gson:gson:$gson_version"
 
     // ExoPlayer dependencies
-    api "com.google.android.exoplayer:exoplayer:$exoplayer_version"
-    api "com.google.android.exoplayer:extension-mediasession:$exoplayer_version"
+
+    // This allows UAMP to utilize a local version of ExoPlayer, which is particularly
+    // useful for extending the MediaSession extension, as well as for testing and
+    // customization. If the "exoplayerRoot" property is set, all of these modules
+    // will be included in the project.
+    if (project.ext.hasProperty('exoplayerRoot') && project.ext.exoplayerRoot != null) {
+        api project(':exoplayer-library-core')
+        api project(':exoplayer-library-ui')
+        api project(':exoplayer-extension-mediasession')
+    } else {
+        api "com.google.android.exoplayer:exoplayer-core:$exoplayer_version"
+        api "com.google.android.exoplayer:exoplayer-ui:$exoplayer_version"
+        api "com.google.android.exoplayer:extension-mediasession:$exoplayer_version"
+    }
 
     // Glide dependencies
     api "com.github.bumptech.glide:glide:$glide_version"
