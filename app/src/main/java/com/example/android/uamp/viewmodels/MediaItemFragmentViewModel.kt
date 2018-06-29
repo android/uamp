@@ -128,32 +128,6 @@ class MediaItemFragmentViewModel(private val mediaId: String,
         mediaSessionConnection.unsubscribe(mediaId, subscriptionCallback)
     }
 
-    /**
-     * This method takes a [MediaItemData] and does one of the following:
-     * - If the item is *not* the active item, then play it directly.
-     * - If the item *is* the active item, check whether "pause" is a permitted command. If it is,
-     *   then pause playback, otherwise send "play" to resume playback.
-     */
-    fun playMedia(mediaItem: MediaItemData) {
-        val nowPlaying = mediaSessionConnection.nowPlaying.value
-        val transportControls = mediaSessionConnection.transportControls
-
-        if (mediaItem.mediaId == nowPlaying?.id) {
-            mediaSessionConnection.playbackState.value?.let { playbackState ->
-                when {
-                    playbackState.isPlaying -> transportControls.pause()
-                    playbackState.isPlayEnabled -> transportControls.play()
-                    else -> {
-                        Log.w(TAG, "Playable item clicked but neither play nor pause are enabled!" +
-                                " (mediaId=${mediaItem.mediaId})")
-                    }
-                }
-            }
-        } else {
-            transportControls.playFromMediaId(mediaItem.mediaId, null)
-        }
-    }
-
     private fun getResourceForMediaId(mediaId: String): Int {
         val isActive = mediaId == mediaSessionConnection.nowPlaying.value?.id
         val isPlaying = mediaSessionConnection.playbackState.value?.isPlaying ?: false

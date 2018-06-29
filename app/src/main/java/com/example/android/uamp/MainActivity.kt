@@ -21,6 +21,8 @@ import android.arch.lifecycle.ViewModelProviders
 import android.media.AudioManager
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import com.example.android.uamp.media.MusicService
+import com.example.android.uamp.utils.Event
 import com.example.android.uamp.utils.InjectorUtils
 import com.example.android.uamp.viewmodels.MainActivityViewModel
 
@@ -39,21 +41,34 @@ class MainActivity : AppCompatActivity() {
                 .of(this, InjectorUtils.provideMainActivityViewModel(this))
                 .get(MainActivityViewModel::class.java)
 
+        /**
+         * Observe changes to the [MainActivityViewModel.rootMediaId]. When the app starts,
+         * and the UI connects to [MusicService], this will be updated and the app will show
+         * the initial list of media items.
+         */
         viewModel.rootMediaId.observe(this,
                 Observer<String> { rootMediaId ->
                     if (rootMediaId != null) {
-                        navigateToBrowser(rootMediaId)
+                        navigateToMediaItem(rootMediaId)
                     }
                 })
+
+        /**
+         * Observe [MainActivityViewModel.navigateToMediaItem] for [Event]s indicating
+         * the user has requested to browse to a different [MediaItemData].
+         */
+        viewModel.navigateToMediaItem.observe(this, Observer {
+            it?.getContentIfNotHandled()?.let { mediaId ->
+                navigateToMediaItem(mediaId)
+            }
+        })
     }
 
-    private fun navigateToBrowser(mediaId: String) {
+    private fun navigateToMediaItem(mediaId: String) {
         var fragment: MediaItemFragment? = getBrowseFragment(mediaId)
 
         if (fragment == null) {
-            fragment = MediaItemFragment.newInstance(mediaId) { mediaItem ->
-                navigateToBrowser(mediaItem.mediaId)
-            }
+            fragment = MediaItemFragment.newInstance(mediaId)
 
             supportFragmentManager.beginTransaction()
                     .apply {
