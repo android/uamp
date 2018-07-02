@@ -20,6 +20,7 @@ import android.content.Context
 import android.net.Uri
 import android.os.AsyncTask
 import android.support.v4.media.MediaBrowserCompat.MediaItem
+import android.support.v4.media.MediaDescriptionCompat.STATUS_NOT_DOWNLOADED
 import android.support.v4.media.MediaMetadataCompat
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
@@ -34,6 +35,7 @@ import com.example.android.uamp.media.extensions.displayDescription
 import com.example.android.uamp.media.extensions.displayIconUri
 import com.example.android.uamp.media.extensions.displaySubtitle
 import com.example.android.uamp.media.extensions.displayTitle
+import com.example.android.uamp.media.extensions.downloadStatus
 import com.example.android.uamp.media.extensions.duration
 import com.example.android.uamp.media.extensions.flag
 import com.example.android.uamp.media.extensions.genre
@@ -150,6 +152,11 @@ fun MediaMetadataCompat.Builder.from(jsonMusic: JsonMusic): MediaMetadataCompat.
     displaySubtitle = jsonMusic.artist
     displayDescription = jsonMusic.album
     displayIconUri = jsonMusic.image
+
+    // Add downloadStatus to force the creation of an "extras" bundle in the resulting
+    // MediaMetadataCompat object. This is needed to send accurate metadata to the
+    // media session during updates.
+    downloadStatus = STATUS_NOT_DOWNLOADED
 
     // Allow it to be used in the typical builder style.
     return this
