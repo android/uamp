@@ -26,6 +26,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.example.android.uamp.utils.InjectorUtils
+import com.example.android.uamp.viewmodels.MainActivityViewModel
 import com.example.android.uamp.viewmodels.MediaItemFragmentViewModel
 import kotlinx.android.synthetic.main.fragment_mediaitem_list.list
 import kotlinx.android.synthetic.main.fragment_mediaitem_list.loadingSpinner
@@ -35,26 +36,17 @@ import kotlinx.android.synthetic.main.fragment_mediaitem_list.loadingSpinner
  */
 class MediaItemFragment : Fragment() {
     private lateinit var mediaId: String
+    private lateinit var mainActivityViewModel: MainActivityViewModel
     private lateinit var mediaItemFragmentViewModel: MediaItemFragmentViewModel
-    private lateinit var browsableItemClicked: (MediaItemData) -> Unit
 
     private val listAdapter = MediaItemAdapter { clickedItem ->
-        if (clickedItem.browsable) {
-            browsableItemClicked(clickedItem)
-        } else {
-            mediaItemFragmentViewModel.playMedia(clickedItem)
-        }
-
+        mainActivityViewModel.mediaItemClicked(clickedItem)
     }
 
     companion object {
-        fun newInstance(
-                mediaId: String,
-                browsableItemClicked: (MediaItemData) -> Unit
-        ): MediaItemFragment {
+        fun newInstance(mediaId: String): MediaItemFragment {
 
             return MediaItemFragment().apply {
-                this.browsableItemClicked = browsableItemClicked
                 arguments = Bundle().apply {
                     putString(MEDIA_ID_ARG, mediaId)
                 }
@@ -73,6 +65,10 @@ class MediaItemFragment : Fragment() {
         // Always true, but lets lint know that as well.
         val context = activity ?: return
         mediaId = arguments?.getString(MEDIA_ID_ARG) ?: return
+
+        mainActivityViewModel = ViewModelProviders
+                .of(context, InjectorUtils.provideMainActivityViewModel(context))
+                .get(MainActivityViewModel::class.java)
 
         mediaItemFragmentViewModel = ViewModelProviders
                 .of(this, InjectorUtils.provideMediaItemFragmentViewModel(context, mediaId))
