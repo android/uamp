@@ -114,13 +114,17 @@ class MediaItemFragmentViewModel(private val mediaId: String,
         it.nowPlaying.observeForever(mediaMetadataObserver)
     }
 
+    /**
+     * Since we use [LiveData.observeForever] above (in [mediaSessionConnection]), we want
+     * to call [LiveData.removeObserver] here to prevent leaking resources when the [ViewModel]
+     * is not longer in use.
+     *
+     * For more details, see the kdoc on [mediaSessionConnection] above.
+     */
     override fun onCleared() {
         super.onCleared()
 
-        /**
-         * When the [ViewModel] is no longer in use, remove the permanent observers from
-         * the [MediaSessionConnection] [LiveData] sources.
-         */
+        // Remove the permanent observers from the MediaSessionConnection.
         mediaSessionConnection.playbackState.removeObserver(playbackStateObserver)
         mediaSessionConnection.nowPlaying.removeObserver(mediaMetadataObserver)
 
@@ -147,7 +151,7 @@ class MediaItemFragmentViewModel(private val mediaId: String,
         }
 
         return mediaItems.value?.map {
-            val useResId = if (it.mediaId == mediaMetadata.id) newResId else 0
+            val useResId = if (it.mediaId == mediaMetadata.id) newResId else NO_RES
             it.copy(playbackRes = useResId)
         } ?: emptyList()
     }
