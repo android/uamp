@@ -24,6 +24,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import com.bumptech.glide.Glide
+import com.example.android.uamp.MediaItemData.Companion.PLAYBACK_RES_CHANGED
 import kotlinx.android.synthetic.main.fragment_mediaitem.view.albumbArt
 import kotlinx.android.synthetic.main.fragment_mediaitem.view.item_state
 import kotlinx.android.synthetic.main.fragment_mediaitem.view.subtitle
@@ -41,16 +42,42 @@ class MediaItemAdapter(private val itemClickedListener: (MediaItemData) -> Unit
         return MediaViewHolder(view, itemClickedListener)
     }
 
-    override fun onBindViewHolder(holder: MediaViewHolder, position: Int) {
-        val mediaItem = getItem(position)
-        holder.item = mediaItem
-        holder.titleView.text = mediaItem.title
-        holder.subtitleView.text = mediaItem.subtitle
-        holder.playbackState.setImageResource(mediaItem.playbackRes)
+    override fun onBindViewHolder(holder: MediaViewHolder,
+                                  position: Int,
+                                  payloads: MutableList<Any>) {
 
-        Glide.with(holder.albumArt)
-                .load(mediaItem.albumArtUri)
-                .into(holder.albumArt)
+        val mediaItem = getItem(position)
+        var fullRefresh = payloads.isEmpty()
+
+        if (payloads.isNotEmpty()) {
+            payloads.forEach { payload ->
+                when (payload) {
+                    PLAYBACK_RES_CHANGED -> {
+                        holder.playbackState.setImageResource(mediaItem.playbackRes)
+                    }
+                    // If the payload wasn't understood, refresh the full item (to be safe).
+                    else -> fullRefresh = true
+                }
+            }
+        }
+
+        // Normally we only fully refresh the list item if it's being initially bound, but
+        // we might also do it if there was a payload that wasn't understood, just to ensure
+        // there isn't a stale item.
+        if (fullRefresh) {
+            holder.item = mediaItem
+            holder.titleView.text = mediaItem.title
+            holder.subtitleView.text = mediaItem.subtitle
+            holder.playbackState.setImageResource(mediaItem.playbackRes)
+
+            Glide.with(holder.albumArt)
+                    .load(mediaItem.albumArtUri)
+                    .into(holder.albumArt)
+        }
+    }
+
+    override fun onBindViewHolder(holder: MediaViewHolder, position: Int) {
+        onBindViewHolder(holder, position, mutableListOf())
     }
 }
 
