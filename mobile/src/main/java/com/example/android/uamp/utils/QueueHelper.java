@@ -16,9 +16,8 @@
 
 package com.example.android.uamp.utils;
 
-import android.content.Context;
+import android.app.Activity;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
@@ -89,7 +88,7 @@ public class QueueHelper {
             return getRandomQueue(musicProvider);
         }
 
-        Iterable<MediaMetadataCompat> result = null;
+        List<MediaMetadataCompat> result = null;
         if (params.isAlbumFocus) {
             result = musicProvider.searchMusicByAlbum(params.album);
         } else if (params.isGenreFocus) {
@@ -107,8 +106,12 @@ public class QueueHelper {
         // Artist (podcast author). Then, we can instead do an unstructured search.
         if (params.isUnstructured || result == null || !result.iterator().hasNext()) {
             // To keep it simple for this example, we do unstructured searches on the
-            // song title only. A real world application could search on other fields as well.
+            // song title and genre only. A real world application could search
+            // on other fields as well.
             result = musicProvider.searchMusicBySongTitle(query);
+            if (result.isEmpty()) {
+                result = musicProvider.searchMusicByGenre(query);
+            }
         }
 
         return convertToQueue(result, MEDIA_ID_MUSICS_BY_SEARCH, query);
@@ -225,11 +228,11 @@ public class QueueHelper {
      * @param queueItem to compare to currently playing {@link MediaSessionCompat.QueueItem}
      * @return boolean indicating whether queue item matches currently playing queue item
      */
-    public static boolean isQueueItemPlaying(Context context,
+    public static boolean isQueueItemPlaying(Activity context,
                                              MediaSessionCompat.QueueItem queueItem) {
         // Queue item is considered to be playing or paused based on both the controller's
         // current media id and the controller's active queue item id
-        MediaControllerCompat controller = ((FragmentActivity) context).getSupportMediaController();
+        MediaControllerCompat controller = MediaControllerCompat.getMediaController(context);
         if (controller != null && controller.getPlaybackState() != null) {
             long currentPlayingQueueId = controller.getPlaybackState().getActiveQueueItemId();
             String currentPlayingMediaId = controller.getMetadata().getDescription()

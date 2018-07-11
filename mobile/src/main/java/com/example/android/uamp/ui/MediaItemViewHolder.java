@@ -20,7 +20,6 @@ import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v4.media.MediaBrowserCompat;
@@ -47,9 +46,9 @@ public class MediaItemViewHolder {
     private static ColorStateList sColorStatePlaying;
     private static ColorStateList sColorStateNotPlaying;
 
-    ImageView mImageView;
-    TextView mTitleView;
-    TextView mDescriptionView;
+    private ImageView mImageView;
+    private TextView mTitleView;
+    private TextView mDescriptionView;
 
     // Returns a view for use in media item list.
     static View setupListView(Activity activity, View convertView, ViewGroup parent,
@@ -130,7 +129,7 @@ public class MediaItemViewHolder {
         }
     }
 
-    public static int getMediaItemState(Context context, MediaBrowserCompat.MediaItem mediaItem) {
+    public static int getMediaItemState(Activity context, MediaBrowserCompat.MediaItem mediaItem) {
         int state = STATE_NONE;
         // Set state to playable first, then override to playing or paused state if needed
         if (mediaItem.isPlayable()) {
@@ -143,9 +142,8 @@ public class MediaItemViewHolder {
         return state;
     }
 
-    public static int getStateFromController(Context context) {
-        MediaControllerCompat controller = ((FragmentActivity) context)
-                .getSupportMediaController();
+    public static int getStateFromController(Activity context) {
+        MediaControllerCompat controller = MediaControllerCompat.getMediaController(context);
         PlaybackStateCompat pbState = controller.getPlaybackState();
         if (pbState == null ||
                 pbState.getState() == PlaybackStateCompat.STATE_ERROR) {

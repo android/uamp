@@ -149,8 +149,7 @@ public class FullScreenPlayerActivity extends ActionBarCastActivity {
         mSkipNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                MediaControllerCompat.TransportControls controls =
-                    getSupportMediaController().getTransportControls();
+                MediaControllerCompat.TransportControls controls = MediaControllerCompat.getMediaController(FullScreenPlayerActivity.this).getTransportControls();
                 controls.skipToNext();
             }
         });
@@ -158,8 +157,7 @@ public class FullScreenPlayerActivity extends ActionBarCastActivity {
         mSkipPrev.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                MediaControllerCompat.TransportControls controls =
-                    getSupportMediaController().getTransportControls();
+                MediaControllerCompat.TransportControls controls = MediaControllerCompat.getMediaController(FullScreenPlayerActivity.this).getTransportControls();
                 controls.skipToPrevious();
             }
         });
@@ -167,10 +165,9 @@ public class FullScreenPlayerActivity extends ActionBarCastActivity {
         mPlayPause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                PlaybackStateCompat state = getSupportMediaController().getPlaybackState();
+                PlaybackStateCompat state = MediaControllerCompat.getMediaController(FullScreenPlayerActivity.this).getPlaybackState();
                 if (state != null) {
-                    MediaControllerCompat.TransportControls controls =
-                            getSupportMediaController().getTransportControls();
+                    MediaControllerCompat.TransportControls controls = MediaControllerCompat.getMediaController(FullScreenPlayerActivity.this).getTransportControls();
                     switch (state.getState()) {
                         case PlaybackStateCompat.STATE_PLAYING: // fall through
                         case PlaybackStateCompat.STATE_BUFFERING:
@@ -202,7 +199,7 @@ public class FullScreenPlayerActivity extends ActionBarCastActivity {
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                getSupportMediaController().getTransportControls().seekTo(seekBar.getProgress());
+                MediaControllerCompat.getMediaController(FullScreenPlayerActivity.this).getTransportControls().seekTo(seekBar.getProgress());
                 scheduleSeekbarUpdate();
             }
         });
@@ -225,7 +222,7 @@ public class FullScreenPlayerActivity extends ActionBarCastActivity {
             finish();
             return;
         }
-        setSupportMediaController(mediaController);
+        MediaControllerCompat.setMediaController(FullScreenPlayerActivity.this, mediaController);
         mediaController.registerCallback(mCallback);
         PlaybackStateCompat state = mediaController.getPlaybackState();
         updatePlaybackState(state);
@@ -285,8 +282,9 @@ public class FullScreenPlayerActivity extends ActionBarCastActivity {
         if (mMediaBrowser != null) {
             mMediaBrowser.disconnect();
         }
-        if (getSupportMediaController() != null) {
-            getSupportMediaController().unregisterCallback(mCallback);
+        MediaControllerCompat controllerCompat = MediaControllerCompat.getMediaController(FullScreenPlayerActivity.this);
+        if (controllerCompat != null) {
+            controllerCompat.unregisterCallback(mCallback);
         }
     }
 
@@ -351,9 +349,9 @@ public class FullScreenPlayerActivity extends ActionBarCastActivity {
             return;
         }
         mLastPlaybackState = state;
-        if (getSupportMediaController() != null && getSupportMediaController().getExtras() != null) {
-            String castName = getSupportMediaController()
-                    .getExtras().getString(MusicService.EXTRA_CONNECTED_CAST);
+        MediaControllerCompat controllerCompat = MediaControllerCompat.getMediaController(FullScreenPlayerActivity.this);
+        if (controllerCompat != null && controllerCompat.getExtras() != null) {
+            String castName = controllerCompat.getExtras().getString(MusicService.EXTRA_CONNECTED_CAST);
             String line3Text = castName == null ? "" : getResources()
                         .getString(R.string.casting_to_device, castName);
             mLine3.setText(line3Text);
@@ -402,7 +400,7 @@ public class FullScreenPlayerActivity extends ActionBarCastActivity {
             return;
         }
         long currentPosition = mLastPlaybackState.getPosition();
-        if (mLastPlaybackState.getState() != PlaybackStateCompat.STATE_PAUSED) {
+        if (mLastPlaybackState.getState() == PlaybackStateCompat.STATE_PLAYING) {
             // Calculate the elapsed time between the last position update and now and unless
             // paused, we can assume (delta * speed) + current position is approximately the
             // latest position. This ensure that we do not repeatedly call the getPlaybackState()

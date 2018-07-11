@@ -62,12 +62,6 @@ public class CarHelper {
      */
     public static final String MEDIA_CONNECTED = "media_connected";
 
-    /**
-     * Value of the key MEDIA_CONNECTION_STATUS in Intent extras used when the current media app
-     * is disconnected.
-     */
-    public static final String MEDIA_DISCONNECTED = "media_disconnected";
-
 
     public static boolean isValidCarPackage(String packageName) {
         return AUTO_APP_PACKAGE_NAME.equals(packageName);
@@ -92,25 +86,4 @@ public class CarHelper {
         }
     }
 
-    /**
-     * Returns true when running Android Auto or a car dock.
-     *
-     * A preferable way of detecting if your app is running in the context of an Android Auto
-     * compatible car is by registering a BroadcastReceiver for the action
-     * {@link CarHelper#ACTION_MEDIA_STATUS}. See a sample implementation in
-     * {@link MusicService#onCreate()}.
-     *
-     * @param c Context to detect UI Mode.
-     * @return true when device is running in car mode, false otherwise.
-     */
-    public static boolean isCarUiMode(Context c) {
-        UiModeManager uiModeManager = (UiModeManager) c.getSystemService(Context.UI_MODE_SERVICE);
-        if (uiModeManager.getCurrentModeType() == Configuration.UI_MODE_TYPE_CAR) {
-            LogHelper.d(TAG, "Running in Car mode");
-            return true;
-        } else {
-            LogHelper.d(TAG, "Running on a non-Car mode");
-            return false;
-        }
-    }
 }

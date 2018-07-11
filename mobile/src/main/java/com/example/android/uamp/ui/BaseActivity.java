@@ -88,8 +88,9 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
     protected void onStop() {
         super.onStop();
         LogHelper.d(TAG, "Activity onStop");
-        if (getSupportMediaController() != null) {
-            getSupportMediaController().unregisterCallback(mMediaControllerCallback);
+        MediaControllerCompat controllerCompat = MediaControllerCompat.getMediaController(this);
+        if (controllerCompat != null) {
+            controllerCompat.unregisterCallback(mMediaControllerCallback);
         }
         mMediaBrowser.disconnect();
     }
@@ -129,7 +130,7 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
      * @return true if the MediaSession's state requires playback controls to be visible.
      */
     protected boolean shouldShowControls() {
-        MediaControllerCompat mediaController = getSupportMediaController();
+        MediaControllerCompat mediaController = MediaControllerCompat.getMediaController(this);
         if (mediaController == null ||
             mediaController.getMetadata() == null ||
             mediaController.getPlaybackState() == null) {

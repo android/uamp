@@ -23,8 +23,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.support.v17.leanback.app.BackgroundManager;
-import android.support.v17.leanback.app.PlaybackOverlayFragment;
-import android.support.v17.leanback.app.PlaybackOverlaySupportFragment;
+import android.support.v17.leanback.app.PlaybackSupportFragment;
 import android.support.v17.leanback.widget.AbstractDetailsDescriptionPresenter;
 import android.support.v17.leanback.widget.Action;
 import android.support.v17.leanback.widget.ArrayObjectAdapter;
@@ -57,10 +56,10 @@ import java.util.List;
 /*
  * Show details of the currently playing song, along with playback controls and the playing queue.
  */
-public class TvPlaybackFragment extends PlaybackOverlaySupportFragment {
+public class TvPlaybackFragment extends PlaybackSupportFragment {
     private static final String TAG = LogHelper.makeLogTag(TvPlaybackFragment.class);
 
-    private static final int BACKGROUND_TYPE = PlaybackOverlayFragment.BG_DARK;
+    private static final int BACKGROUND_TYPE = PlaybackSupportFragment.BG_DARK;
     private static final int DEFAULT_UPDATE_PERIOD = 1000;
     private static final int UPDATE_PERIOD = 16;
 
@@ -92,7 +91,7 @@ public class TvPlaybackFragment extends PlaybackOverlaySupportFragment {
         mBackgroundManager = BackgroundManager.getInstance(getActivity());
         mBackgroundManager.attach(getActivity().getWindow());
         mHandler = new Handler();
-        mListRowAdapter = new ArrayObjectAdapter(new CardPresenter());
+        mListRowAdapter = new ArrayObjectAdapter(new CardPresenter(getActivity()));
         mPresenterSelector = new ClassPresenterSelector();
         mRowsAdapter = new ArrayObjectAdapter(mPresenterSelector);
 
@@ -117,7 +116,7 @@ public class TvPlaybackFragment extends PlaybackOverlaySupportFragment {
                 if (getActivity() == null) {
                     return;
                 }
-                MediaControllerCompat controller = getActivity().getSupportMediaController();
+                MediaControllerCompat controller = MediaControllerCompat.getMediaController(getActivity());
                 if (controller == null) {
                     return;
                 }
@@ -188,7 +187,7 @@ public class TvPlaybackFragment extends PlaybackOverlaySupportFragment {
 
         if (mListRow == null) {
             int queueSize = 0;
-            MediaControllerCompat controller = getActivity().getSupportMediaController();
+            MediaControllerCompat controller = MediaControllerCompat.getMediaController(getActivity());
             if (controller != null && controller.getQueue() != null) {
                 queueSize = controller.getQueue().size();
             }
@@ -299,7 +298,7 @@ public class TvPlaybackFragment extends PlaybackOverlaySupportFragment {
                 break;
         }
 
-        MediaControllerCompat controller = getActivity().getSupportMediaController();
+        MediaControllerCompat controller = MediaControllerCompat.getMediaController(getActivity());
         updatePlayListRow(controller.getQueue());
         mRowsAdapter.notifyArrayItemRangeChanged(
                 mRowsAdapter.indexOf(mPlaybackControlsRow), 1);
@@ -322,7 +321,7 @@ public class TvPlaybackFragment extends PlaybackOverlaySupportFragment {
             if (clickedItem instanceof MediaSessionCompat.QueueItem) {
                 LogHelper.d(TAG, "item: ", clickedItem.toString());
 
-                MediaControllerCompat controller = getActivity().getSupportMediaController();
+                MediaControllerCompat controller = MediaControllerCompat.getMediaController(getActivity());
                 MediaSessionCompat.QueueItem item = (MediaSessionCompat.QueueItem) clickedItem;
                 if (!QueueHelper.isQueueItemPlaying(getActivity(), item)
                         || controller.getPlaybackState().getState()

@@ -16,9 +16,8 @@
 
 package com.example.android.uamp.utils;
 
-import android.content.Context;
+import android.app.Activity;
 import android.support.annotation.NonNull;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.text.TextUtils;
@@ -60,7 +59,7 @@ public class MediaIDHelper {
         if (categories != null) {
             for (int i=0; i < categories.length; i++) {
                 if (!isValidCategory(categories[i])) {
-                    throw new IllegalArgumentException("Invalid category: " + categories[0]);
+                    throw new IllegalArgumentException("Invalid category: " + categories[i]);
                 }
                 sb.append(categories[i]);
                 if (i < categories.length - 1) {
@@ -146,12 +145,10 @@ public class MediaIDHelper {
      * @param mediaItem to compare to currently playing {@link MediaBrowserCompat.MediaItem}
      * @return boolean indicating whether media item matches currently playing media item
      */
-    public static boolean isMediaItemPlaying(Context context,
-                                             MediaBrowserCompat.MediaItem mediaItem) {
+    public static boolean isMediaItemPlaying(Activity context, MediaBrowserCompat.MediaItem mediaItem) {
         // Media item is considered to be playing or paused based on the controller's current
         // media id
-        MediaControllerCompat controller = ((FragmentActivity) context)
-                .getSupportMediaController();
+        MediaControllerCompat controller = MediaControllerCompat.getMediaController(context);
         if (controller != null && controller.getMetadata() != null) {
             String currentPlayingMediaId = controller.getMetadata().getDescription()
                     .getMediaId();

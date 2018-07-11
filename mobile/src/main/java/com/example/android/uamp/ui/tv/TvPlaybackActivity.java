@@ -65,8 +65,9 @@ public class TvPlaybackActivity extends FragmentActivity {
     protected void onStop() {
         super.onStop();
         LogHelper.d(TAG, "Activity onStop");
-        if (getSupportMediaController() != null) {
-            getSupportMediaController().unregisterCallback(mMediaControllerCallback);
+        MediaControllerCompat controllerCompat = MediaControllerCompat.getMediaController(TvPlaybackActivity.this);
+        if (controllerCompat != null) {
+            controllerCompat.unregisterCallback(mMediaControllerCallback);
         }
         mMediaBrowser.disconnect();
 
@@ -80,7 +81,7 @@ public class TvPlaybackActivity extends FragmentActivity {
                     try {
                         MediaControllerCompat mediaController = new MediaControllerCompat(
                                 TvPlaybackActivity.this, mMediaBrowser.getSessionToken());
-                        setSupportMediaController(mediaController);
+                        MediaControllerCompat.setMediaController(TvPlaybackActivity.this, mediaController);
                         mediaController.registerCallback(mMediaControllerCallback);
 
                         MediaMetadataCompat metadata = mediaController.getMetadata();
@@ -101,8 +102,9 @@ public class TvPlaybackActivity extends FragmentActivity {
                 @Override
                 public void onConnectionSuspended() {
                     LogHelper.d(TAG, "onConnectionSuspended");
-                    getSupportMediaController().unregisterCallback(mMediaControllerCallback);
-                    setSupportMediaController(null);
+                    MediaControllerCompat controllerCompat = MediaControllerCompat.getMediaController(TvPlaybackActivity.this);
+                    controllerCompat.unregisterCallback(mMediaControllerCallback);
+                    MediaControllerCompat.setMediaController(TvPlaybackActivity.this, null);
                 }
             };
 
