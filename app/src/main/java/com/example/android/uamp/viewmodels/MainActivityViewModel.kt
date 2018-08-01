@@ -30,6 +30,7 @@ import com.example.android.uamp.MediaSessionConnection
 import com.example.android.uamp.media.extensions.id
 import com.example.android.uamp.media.extensions.isPlayEnabled
 import com.example.android.uamp.media.extensions.isPlaying
+import com.example.android.uamp.media.extensions.isPrepared
 import com.example.android.uamp.utils.Event
 
 /**
@@ -90,7 +91,8 @@ class MainActivityViewModel(private val mediaSessionConnection: MediaSessionConn
         val nowPlaying = mediaSessionConnection.nowPlaying.value
         val transportControls = mediaSessionConnection.transportControls
 
-        if (mediaItem.mediaId == nowPlaying?.id) {
+        val isPrepared = mediaSessionConnection.playbackState.value?.isPrepared ?: false
+        if (isPrepared && mediaItem.mediaId == nowPlaying?.id) {
             mediaSessionConnection.playbackState.value?.let { playbackState ->
                 when {
                     playbackState.isPlaying -> transportControls.pause()
