@@ -32,6 +32,7 @@ import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaBrowserCompat.MediaItem
 import android.support.v4.media.MediaBrowserServiceCompat
 import android.support.v4.media.MediaDescriptionCompat
+import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
@@ -97,7 +98,8 @@ class MusicService : MediaBrowserServiceCompat() {
         val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
         AudioFocusExoPlayerDecorator(audioAttributes,
                 audioManager,
-                ExoPlayerFactory.newSimpleInstance(DefaultRenderersFactory(this),
+                ExoPlayerFactory.newSimpleInstance(
+                        DefaultRenderersFactory(this),
                         DefaultTrackSelector(),
                         DefaultLoadControl()))
     }
@@ -243,8 +245,19 @@ class MusicService : MediaBrowserServiceCompat() {
      * - Calls [Service.startForeground] and [Service.stopForeground].
      */
     private inner class MediaControllerCallback : MediaControllerCompat.Callback() {
+        override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
+            mediaController.playbackState?.let { updateNotification(it) }
+        }
+
         override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
-            val updatedState = state?.state ?: return
+            state?.let { updateNotification(it) }
+        }
+
+        private fun updateNotification(state: PlaybackStateCompat) {
+            val updatedState = state.state
+            if (mediaController.metadata == null) {
+                return
+            }
 
             // Skip building a notification when state is "none".
             val notification = if (updatedState != PlaybackStateCompat.STATE_NONE) {

@@ -53,9 +53,9 @@ dependencies {
 
     // This allows UAMP to utilize a local version of ExoPlayer, which is particularly
     // useful for extending the MediaSession extension, as well as for testing and
-    // customization. If the "exoplayerRoot" property is set, all of these modules
-    // will be included in the project.
-    if (project.ext.hasProperty('exoplayerRoot') && project.ext.exoplayerRoot != null) {
+    // customization. If the ":exoplayer-library-core" project is included, we assume
+    // the others are included as well.
+    if (findProject(':exoplayer-library-core') != null) {
         api project(':exoplayer-library-core')
         api project(':exoplayer-library-ui')
         api project(':exoplayer-extension-mediasession')
