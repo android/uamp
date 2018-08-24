@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Copyright (C) 2018 The Android Open Source Project
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<!--
+
+Format (v2):
+
+  The format for allowed callers is as follows:
+
+  <signature name="App Name" package="app.package.name">
+     <key release="true">...sha-256 hash...</key>
+     ...
+  </signature>
+
+  Where:
+  - 'name' is a friendly name for the app; this is only used for documentation purposes and is
+    otherwise ignored.
+  - 'package' is the package name of the app to allow.
+
+  There can be multiple keys for each app included. The value of 'release' must be 'true' or
+  'false', but it also only for documentation. The value inside the 'key' tag is the SHA-256
+  hash of the public key of the signing certificate for the app.
+
+Format (v1 : legacy support only/deprecated):
+
+  It is still possible to use the 'signing_certificate's of the previous version of UAMP here. In
+  which case the format is:
+
+  <signing_certificate name="App Name" release="true" package="app.package.name">
+     ...base-64 encoded string...
+  </signing_certificate>
+
+  The values are the same as above, but only 1 certificate is included in each tag, and the
+  value is the base-64 encoded string of the public key of the app's signing certificate.
+
+Adding New Keys:
+
+  If you want to add a new signature to allowed_callers and you don't know its signature,
+  PackageValidator will print the caller's package name and signature to logcat (INFO level).
+
+  Spaces and newlines are ignored.
+-->
+<allowed_callers>
+    <signature name="Android Auto" package="com.google.android.projection.gearhead">
+        <key release="false">19:75:b2:f1:71:77:bc:89:a5:df:f3:1f:9e:64:a6:ca:e2:81:a5:3d:c1:d1:d5:9b:1d:14:7f:e1:c8:2a:fa:00</key>
+        <key release="false">70:81:1a:3e:ac:fd:2e:83:e1:8d:a9:bf:ed:e5:2d:f1:6c:e9:1f:2e:69:a4:4d:21:f1:8a:b6:69:91:13:07:71</key>
+        <key release="true">fd:b0:0c:43:db:de:8b:51:cb:31:2a:a8:1d:3b:5f:a1:77:13:ad:b9:4b:28:f5:98:d7:7f:8e:b8:9d:ac:ee:df</key>
+    </signature>
+
+    <signature name="WearOS" package="com.google.android.wearable.app">
+        <key release="false">69:d0:72:16:9a:2c:6b:2f:5a:cc:59:0c:e4:33:a1:1a:c3:df:55:1a:df:ee:5d:5f:63:c0:83:b7:22:76:2e:19</key>
+        <key release="true">85:cd:59:73:54:1b:e6:f4:77:d8:47:a0:bc:c6:aa:25:27:68:4b:81:9c:d5:96:85:29:66:4c:b0:71:57:b6:fe</key>
+    </signature>
+
+    <signature name="Android Auto Simulator" package="com.google.android.autosimulator">
+        <key release="true">19:75:b2:f1:71:77:bc:89:a5:df:f3:1f:9e:64:a6:ca:e2:81:a5:3d:c1:d1:d5:9b:1d:14:7f:e1:c8:2a:fa:00</key>
+    </signature>
+
+    <signature name="Google" package="com.google.android.googlequicksearchbox">
+        <key release="false">19:75:b2:f1:71:77:bc:89:a5:df:f3:1f:9e:64:a6:ca:e2:81:a5:3d:c1:d1:d5:9b:1d:14:7f:e1:c8:2a:fa:00</key>
+        <key release="true">f0:fd:6c:5b:41:0f:25:cb:25:c3:b5:33:46:c8:97:2f:ae:30:f8:ee:74:11:df:91:04:80:ad:6b:2d:60:db:83</key>
+    </signature>
+</allowed_callers>

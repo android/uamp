@@ -42,6 +42,7 @@ import com.example.android.uamp.media.library.BrowseTree
 import com.example.android.uamp.media.library.JsonSource
 import com.example.android.uamp.media.library.MusicSource
 import com.example.android.uamp.media.library.UAMP_BROWSABLE_ROOT
+import com.example.android.uamp.media.library.UAMP_EMPTY_ROOT
 import com.google.android.exoplayer2.DefaultLoadControl
 import com.google.android.exoplayer2.DefaultRenderersFactory
 import com.google.android.exoplayer2.ExoPlayer
@@ -73,6 +74,7 @@ class MusicService : MediaBrowserServiceCompat() {
     private lateinit var notificationBuilder: NotificationBuilder
     private lateinit var mediaSource: MusicSource
     private lateinit var mediaSessionConnector: MediaSessionConnector
+    private lateinit var packageValidator: PackageValidator
 
     /**
      * This must be `by lazy` because the source won't initially be ready.
@@ -158,6 +160,8 @@ class MusicService : MediaBrowserServiceCompat() {
             it.setPlayer(exoPlayer, playbackPreparer)
             it.setQueueNavigator(UampQueueNavigator(mediaSession))
         }
+
+        packageValidator = PackageValidator(this, R.xml.allowed_media_browser_callers)
     }
 
     override fun onTaskRemoved(rootIntent: Intent) {
@@ -175,13 +179,26 @@ class MusicService : MediaBrowserServiceCompat() {
     /**
      * Returns the "root" media ID that the client should request to get the list of
      * [MediaItem]s to browse/play.
-     *
-     * TODO: Allow different roots based on which app is attempting to connect.
      */
     override fun onGetRoot(clientPackageName: String,
                            clientUid: Int,
                            rootHints: Bundle?): MediaBrowserServiceCompat.BrowserRoot? {
-        return BrowserRoot(UAMP_BROWSABLE_ROOT, null)
+
+        if (packageValidator.isCallerAllowed(clientPackageName, clientUid)) {
+            // The caller is allowed to browse, so return the root.
+            return BrowserRoot(UAMP_BROWSABLE_ROOT, null)
+        } else {
+            /**
+             * Unknown caller. There are two main ways to handle this:
+             * 1) Return a root without any content, which still allows the connecting client
+             * to issue commands.
+             * 2) Return `null`, which will cause the system to disconnect the app.
+             *
+             * UAMP takes the first approach for a variety of reasons, but both are valid
+             * options.
+             */
+            return BrowserRoot(UAMP_EMPTY_ROOT, null)
+        }
     }
 
     /**
