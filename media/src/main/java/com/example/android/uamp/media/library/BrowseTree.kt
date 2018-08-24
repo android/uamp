@@ -104,3 +104,5 @@ class BrowseTree(musicSource: MusicSource) {
 }
 
 const val UAMP_BROWSABLE_ROOT = "/"
+const val UAMP_EMPTY_ROOT = "@empty@"
+
