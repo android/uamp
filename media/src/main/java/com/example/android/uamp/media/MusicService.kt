@@ -184,7 +184,7 @@ class MusicService : MediaBrowserServiceCompat() {
                            clientUid: Int,
                            rootHints: Bundle?): MediaBrowserServiceCompat.BrowserRoot? {
 
-        if (packageValidator.isCallerAllowed(clientPackageName, clientUid)) {
+        if (packageValidator.isKnownCaller(clientPackageName, clientUid)) {
             // The caller is allowed to browse, so return the root.
             return BrowserRoot(UAMP_BROWSABLE_ROOT, null)
         } else {
