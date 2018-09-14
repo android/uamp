@@ -15,6 +15,7 @@
  */
 package com.example.android.uamp.ui;
 
+import android.app.Activity;
 import android.app.ActivityOptions;
 import android.app.FragmentManager;
 import android.content.Intent;
@@ -23,6 +24,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
+import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -314,6 +316,20 @@ public abstract class ActionBarCastActivity extends AppCompatActivity {
         if (isRoot) {
             mDrawerToggle.syncState();
         }
+    }
+
+    /**
+     * @see MediaControllerCompat#getMediaController(Activity)
+     */
+    public MediaControllerCompat getSupportMediaController() {
+        return MediaControllerCompat.getMediaController(this);
+    }
+
+    /**
+     * @see MediaControllerCompat#setMediaController(Activity, MediaControllerCompat)
+     */
+    public void setSupportMediaController(MediaControllerCompat mediaController) {
+        MediaControllerCompat.setMediaController(this, mediaController);
     }
 
     /**
