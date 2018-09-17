@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-apply plugin: 'com.android.application'
+apply plugin: 'com.android.feature'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
 
 android {
     compileSdkVersion 27
+    baseFeature true
     defaultConfig {
         minSdkVersion 19
         targetSdkVersion 27
         versionCode 1
         versionName "1.0"
-        applicationId "com.example.android.uamp.next"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
         compileOptions {
             sourceCompatibility JavaVersion.VERSION_1_8
@@ -42,5 +45,20 @@ android {
 }
 
 dependencies {
-    implementation project(':base')
+    application project(':app')
+    implementation project(':media')
+
+    api "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+
+    api "com.android.support:appcompat-v7:$support_lib_version"
+    api "com.android.support:support-v4:$support_lib_version"
+    api "com.android.support:recyclerview-v7:$support_lib_version"
+
+    api "com.android.support.constraint:constraint-layout:$constraint_layout_version"
+    api "android.arch.lifecycle:extensions:$arch_lifecycle_version"
+
+    // Test dependencies
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 }
