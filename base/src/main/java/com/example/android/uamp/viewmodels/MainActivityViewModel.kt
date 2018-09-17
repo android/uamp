@@ -24,14 +24,13 @@ import android.arch.lifecycle.ViewModel
 import android.arch.lifecycle.ViewModelProvider
 import android.support.v4.media.MediaBrowserCompat
 import android.util.Log
-import com.example.android.uamp.MainActivity
 import com.example.android.uamp.MediaItemData
 import com.example.android.uamp.MediaSessionConnection
+import com.example.android.uamp.utils.Event
 import com.example.android.uamp.media.extensions.id
 import com.example.android.uamp.media.extensions.isPlayEnabled
 import com.example.android.uamp.media.extensions.isPlaying
 import com.example.android.uamp.media.extensions.isPrepared
-import com.example.android.uamp.utils.Event
 
 /**
  * Small [ViewModel] that watches a [MediaSessionConnection] to become connected
