@@ -135,8 +135,7 @@ class MediaSessionConnection(context: Context, serviceComponent: ComponentName) 
 
         fun getInstance(context: Context, serviceComponent: ComponentName) =
                 instance ?: synchronized(this) {
-                    instance
-                            ?: MediaSessionConnection(context, serviceComponent)
+                    instance ?: MediaSessionConnection(context, serviceComponent)
                             .also { instance = it }
                 }
     }
