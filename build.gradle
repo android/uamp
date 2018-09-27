@@ -19,7 +19,7 @@
 buildscript {
     ext.arch_lifecycle_version = '1.1.1'
     ext.constraint_layout_version = '1.1.2'
-    ext.exoplayer_version = '2.8.4'
+    ext.exoplayer_version = '2.9.0'
     ext.glide_version = '4.7.1'
     ext.gms_strict_version_matcher_version = '1.0.3'
     ext.gradle_version = '3.1.4'
@@ -33,7 +33,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "com.android.tools.build:gradle:$gradle_version"
+        classpath "com.android.tools.build:gradle:3.2.0"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "com.google.android.gms:strict-version-matcher-plugin:$gms_strict_version_matcher_version"
 
