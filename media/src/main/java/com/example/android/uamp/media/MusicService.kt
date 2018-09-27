@@ -27,7 +27,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.support.v4.app.NotificationManagerCompat
-import android.support.v4.media.AudioAttributesCompat
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaBrowserCompat.MediaItem
 import android.support.v4.media.MediaBrowserServiceCompat
@@ -36,22 +35,20 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import com.example.android.uamp.media.audiofocus.AudioFocusExoPlayerDecorator
 import com.example.android.uamp.media.extensions.flag
 import com.example.android.uamp.media.library.BrowseTree
 import com.example.android.uamp.media.library.JsonSource
 import com.example.android.uamp.media.library.MusicSource
 import com.example.android.uamp.media.library.UAMP_BROWSABLE_ROOT
 import com.example.android.uamp.media.library.UAMP_EMPTY_ROOT
-import com.google.android.exoplayer2.DefaultLoadControl
-import com.google.android.exoplayer2.DefaultRenderersFactory
+import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.ExoPlayerFactory
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.Timeline
+import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.ext.mediasession.TimelineQueueNavigator
-import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
 
@@ -90,20 +87,16 @@ class MusicService : MediaBrowserServiceCompat() {
     private val remoteJsonSource: Uri =
             Uri.parse("https://storage.googleapis.com/uamp/catalog.json")
 
-    private val audioAttributes = AudioAttributesCompat.Builder()
-            .setContentType(AudioAttributesCompat.CONTENT_TYPE_MUSIC)
-            .setUsage(AudioAttributesCompat.USAGE_MEDIA)
+    private val audioAttributes = AudioAttributes.Builder()
+            .setContentType(C.CONTENT_TYPE_MUSIC)
+            .setUsage(C.USAGE_MEDIA)
             .build()
 
     // Wrap a SimpleExoPlayer with a decorator to handle audio focus for us.
     private val exoPlayer: ExoPlayer by lazy {
-        val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        AudioFocusExoPlayerDecorator(audioAttributes,
-                audioManager,
-                ExoPlayerFactory.newSimpleInstance(
-                        DefaultRenderersFactory(this),
-                        DefaultTrackSelector(),
-                        DefaultLoadControl()))
+        ExoPlayerFactory.newSimpleInstance(this).apply {
+            setAudioAttributes(audioAttributes, true)
+        }
     }
 
     override fun onCreate() {
@@ -197,9 +190,9 @@ class MusicService : MediaBrowserServiceCompat() {
                            clientUid: Int,
                            rootHints: Bundle?): MediaBrowserServiceCompat.BrowserRoot? {
 
-        if (packageValidator.isKnownCaller(clientPackageName, clientUid)) {
+        return if (packageValidator.isKnownCaller(clientPackageName, clientUid)) {
             // The caller is allowed to browse, so return the root.
-            return BrowserRoot(UAMP_BROWSABLE_ROOT, null)
+            BrowserRoot(UAMP_BROWSABLE_ROOT, null)
         } else {
             /**
              * Unknown caller. There are two main ways to handle this:
@@ -210,7 +203,7 @@ class MusicService : MediaBrowserServiceCompat() {
              * UAMP takes the first approach for a variety of reasons, but both are valid
              * options.
              */
-            return BrowserRoot(UAMP_EMPTY_ROOT, null)
+            BrowserRoot(UAMP_EMPTY_ROOT, null)
         }
     }
 
