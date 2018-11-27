@@ -60,12 +60,19 @@ class JsonSource(context: Context, source: Uri) : AbstractMusicSource() {
     private var catalog: List<MediaMetadataCompat> = emptyList()
 
     init {
-        state = STATE_INITIALIZING
+        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val activeNetwork: NetworkInfo? = cm.activeNetworkInfo
+        val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
+        if (isConnected) {
+            state = STATE_INITIALIZING
 
-        UpdateCatalogTask(Glide.with(context)) { mediaItems ->
-            catalog = mediaItems
-            state = STATE_INITIALIZED
-        }.execute(source)
+            UpdateCatalogTask(Glide.with(context)) { mediaItems ->
+                catalog = mediaItems
+                state = STATE_INITIALIZED
+            }.execute(source)
+        } else {
+            Toast.makeText(context, "Please turn on your Internet connection to Enjoy music", Toast.LENGTH_SHORT).show();
+        }
     }
 
     override fun iterator(): Iterator<MediaMetadataCompat> = catalog.iterator()
