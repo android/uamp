@@ -19,7 +19,7 @@ package com.example.android.uamp.media.library
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
-import android.support.annotation.IntDef
+import androidx.annotation.IntDef
 import android.support.v4.media.MediaMetadataCompat
 import android.util.Log
 import com.example.android.uamp.media.MusicService

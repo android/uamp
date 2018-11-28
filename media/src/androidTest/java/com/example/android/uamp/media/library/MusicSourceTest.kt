@@ -18,7 +18,7 @@ package com.example.android.uamp.media.library
 
 import android.os.Bundle
 import android.provider.MediaStore
-import android.support.test.runner.AndroidJUnit4
+import androidx.test.runner.AndroidJUnit4
 import android.support.v4.media.MediaMetadataCompat
 import com.example.android.uamp.media.extensions.album
 import com.example.android.uamp.media.extensions.artist

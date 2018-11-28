@@ -20,13 +20,14 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-android-extensions'
 
 android {
-    compileSdkVersion 27
+    compileSdkVersion rootProject.compileSdkVersion
     defaultConfig {
         applicationId "com.example.android.uamp.next"
-        minSdkVersion 19
-        targetSdkVersion 27
         versionCode 1
         versionName "1.0"
+
+        minSdkVersion rootProject.minSdkVersion
+        targetSdkVersion rootProject.targetSdkVersion
 
         compileOptions {
             sourceCompatibility JavaVersion.VERSION_1_8
@@ -49,12 +50,12 @@ dependencies {
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
-    implementation "com.android.support:appcompat-v7:$support_lib_version"
-    implementation "com.android.support:support-v4:$support_lib_version"
-    implementation "com.android.support:recyclerview-v7:$support_lib_version"
+    implementation "androidx.appcompat:appcompat:$androidx_app_compat_version"
+    implementation "androidx.legacy:legacy-support-v4:$androidx_version"
+    implementation "androidx.recyclerview:recyclerview:$androidx_version"
 
-    implementation "com.android.support.constraint:constraint-layout:$constraint_layout_version"
-    implementation "android.arch.lifecycle:extensions:$arch_lifecycle_version"
+    implementation "androidx.constraintlayout:constraintlayout:$constraint_layout_version"
+    implementation "androidx.lifecycle:lifecycle-extensions:$arch_lifecycle_version"
 
     // Glide dependencies
     implementation "com.github.bumptech.glide:glide:$glide_version"
