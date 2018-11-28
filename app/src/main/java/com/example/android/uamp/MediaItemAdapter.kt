@@ -16,8 +16,8 @@
 
 package com.example.android.uamp
 
-import android.support.v7.recyclerview.extensions.ListAdapter
-import android.support.v7.widget.RecyclerView
+import androidx.recyclerview.widget.ListAdapter
+import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -83,7 +83,7 @@ class MediaItemAdapter(private val itemClickedListener: (MediaItemData) -> Unit
 
 class MediaViewHolder(view: View,
                       itemClickedListener: (MediaItemData) -> Unit
-) : RecyclerView.ViewHolder(view) {
+) : androidx.recyclerview.widget.RecyclerView.ViewHolder(view) {
 
     val titleView: TextView = view.title
     val subtitleView: TextView = view.subtitle

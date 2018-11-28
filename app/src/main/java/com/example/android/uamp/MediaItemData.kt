@@ -18,7 +18,7 @@ package com.example.android.uamp
 
 import android.net.Uri
 import android.support.v4.media.MediaBrowserCompat
-import android.support.v7.util.DiffUtil
+import androidx.recyclerview.widget.DiffUtil
 import android.support.v4.media.MediaBrowserCompat.MediaItem
 import com.example.android.uamp.viewmodels.MediaItemFragmentViewModel
 
@@ -66,23 +66,17 @@ data class MediaItemData(
          * - If something else changed, then refresh the full item for simplicity.
          */
         val diffCallback = object : DiffUtil.ItemCallback<MediaItemData>() {
-            override fun areItemsTheSame(oldItem: MediaItemData?,
-                                         newItem: MediaItemData?): Boolean =
-                    oldItem?.let { it.mediaId == newItem?.mediaId } ?: false
+            override fun areItemsTheSame(oldItem: MediaItemData,
+                                         newItem: MediaItemData): Boolean =
+                    oldItem.mediaId == newItem.mediaId
 
-            override fun areContentsTheSame(oldItem: MediaItemData?, newItem: MediaItemData?) =
-                    oldItem?.let {
-                        it.mediaId == newItem?.mediaId && it.playbackRes == newItem.playbackRes
-                    } ?: false
+            override fun areContentsTheSame(oldItem: MediaItemData, newItem: MediaItemData) =
+                    oldItem.mediaId == newItem.mediaId && oldItem.playbackRes == newItem.playbackRes
 
-            override fun getChangePayload(oldItem: MediaItemData?, newItem: MediaItemData?) =
-                if (oldItem == null || newItem == null) {
-                    null
-                } else {
+            override fun getChangePayload(oldItem: MediaItemData, newItem: MediaItemData) =
                     if (oldItem.playbackRes != newItem.playbackRes) {
                         PLAYBACK_RES_CHANGED
                     } else null
-                }
         }
     }
 }

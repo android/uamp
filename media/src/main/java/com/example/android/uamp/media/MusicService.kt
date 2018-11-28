@@ -26,10 +26,10 @@ import android.media.AudioManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.support.v4.app.NotificationManagerCompat
+import androidx.core.app.NotificationManagerCompat
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaBrowserCompat.MediaItem
-import android.support.v4.media.MediaBrowserServiceCompat
+import androidx.media.MediaBrowserServiceCompat
 import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
@@ -63,7 +63,7 @@ import com.google.android.exoplayer2.util.Util
  * For more information on implementing a MediaBrowserService,
  * visit [https://developer.android.com/guide/topics/media-apps/audio-app/building-a-mediabrowserservice.html](https://developer.android.com/guide/topics/media-apps/audio-app/building-a-mediabrowserservice.html).
  */
-class MusicService : MediaBrowserServiceCompat() {
+class MusicService : androidx.media.MediaBrowserServiceCompat() {
     private lateinit var mediaSession: MediaSessionCompat
     private lateinit var mediaController: MediaControllerCompat
     private lateinit var becomingNoisyReceiver: BecomingNoisyReceiver
@@ -188,7 +188,7 @@ class MusicService : MediaBrowserServiceCompat() {
      */
     override fun onGetRoot(clientPackageName: String,
                            clientUid: Int,
-                           rootHints: Bundle?): MediaBrowserServiceCompat.BrowserRoot? {
+                           rootHints: Bundle?): BrowserRoot? {
 
         return if (packageValidator.isKnownCaller(clientPackageName, clientUid)) {
             // The caller is allowed to browse, so return the root.
@@ -214,7 +214,7 @@ class MusicService : MediaBrowserServiceCompat() {
      */
     override fun onLoadChildren(
             parentMediaId: String,
-            result: MediaBrowserServiceCompat.Result<List<MediaItem>>) {
+            result: androidx.media.MediaBrowserServiceCompat.Result<List<MediaItem>>) {
 
         // If the media source is ready, the results will be set synchronously here.
         val resultsSent = mediaSource.whenReady { successfullyInitialized ->

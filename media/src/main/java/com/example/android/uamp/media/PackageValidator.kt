@@ -24,9 +24,10 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageInfo.REQUESTED_PERMISSION_GRANTED
 import android.content.pm.PackageManager
 import android.content.res.XmlResourceParser
+import android.os.Build
 import android.os.Process
-import android.support.annotation.XmlRes
-import android.support.v4.media.MediaBrowserServiceCompat
+import androidx.annotation.XmlRes
+import androidx.media.MediaBrowserServiceCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.util.Base64
 import android.util.Log
