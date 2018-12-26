@@ -16,11 +16,11 @@
 
 package com.example.android.uamp
 
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
 import android.media.AudioManager
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import com.example.android.uamp.media.MusicService
 import com.example.android.uamp.utils.Event
 import com.example.android.uamp.utils.InjectorUtils

@@ -87,7 +87,7 @@ class MusicService : androidx.media.MediaBrowserServiceCompat() {
     private val remoteJsonSource: Uri =
             Uri.parse("https://storage.googleapis.com/uamp/catalog.json")
 
-    private val audioAttributes = AudioAttributes.Builder()
+    private val uAmpAudioAttributes = AudioAttributes.Builder()
             .setContentType(C.CONTENT_TYPE_MUSIC)
             .setUsage(C.USAGE_MEDIA)
             .build()
@@ -95,7 +95,7 @@ class MusicService : androidx.media.MediaBrowserServiceCompat() {
     // Wrap a SimpleExoPlayer with a decorator to handle audio focus for us.
     private val exoPlayer: ExoPlayer by lazy {
         ExoPlayerFactory.newSimpleInstance(this).apply {
-            setAudioAttributes(audioAttributes, true)
+            setAudioAttributes(uAmpAudioAttributes, true)
         }
     }
 
