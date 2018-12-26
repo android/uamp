@@ -16,20 +16,20 @@
 
 package com.example.android.uamp
 
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
 import android.os.Bundle
-import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.android.uamp.utils.InjectorUtils
 import com.example.android.uamp.viewmodels.MainActivityViewModel
 import com.example.android.uamp.viewmodels.MediaItemFragmentViewModel
 import kotlinx.android.synthetic.main.fragment_mediaitem_list.list
 import kotlinx.android.synthetic.main.fragment_mediaitem_list.loadingSpinner
+import kotlinx.android.synthetic.main.fragment_mediaitem_list.networkError
 
 /**
  * A fragment representing a list of MediaItems.
@@ -76,13 +76,14 @@ class MediaItemFragment : androidx.fragment.app.Fragment() {
         mediaItemFragmentViewModel.mediaItems.observe(this,
                 Observer<List<MediaItemData>> { list ->
                     val isEmptyList = list?.isEmpty() ?: true
-                    loadingSpinner.visibility = if (isEmptyList) View.VISIBLE else View.GONE
+                    loadingSpinner.visibility = View.GONE
+                    networkError.visibility = if (isEmptyList) View.VISIBLE else View.GONE
                     listAdapter.submitList(list)
                 })
 
         // Set the adapter
-        if (list is androidx.recyclerview.widget.RecyclerView) {
-            list.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(list.context)
+        if (list is RecyclerView) {
+            list.layoutManager = LinearLayoutManager(list.context)
             list.adapter = listAdapter
         }
     }

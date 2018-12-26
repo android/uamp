@@ -28,9 +28,9 @@
         android:layout_width="@dimen/media_item_art"
         android:layout_height="@dimen/media_item_art"
         android:scaleType="centerCrop"
-        android:src="@drawable/ic_album_black_24dp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_album_black_24dp"
         tools:ignore="ContentDescription" />
 
     <ImageView
@@ -59,8 +59,8 @@
         android:id="@+id/title"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="@dimen/text_margin"
         android:layout_marginStart="@dimen/text_margin"
+        android:layout_marginEnd="@dimen/text_margin"
         android:ellipsize="end"
         android:maxLines="1"
         android:textAppearance="@style/TextAppearance.Uamp.Title"
