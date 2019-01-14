@@ -43,6 +43,8 @@ android {
 
 dependencies {
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_coroutines"
+    api "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlin_coroutines"
 
     api "androidx.legacy:legacy-support-core-ui:$androidx_version"
     api "androidx.media:media:$androidx_version"

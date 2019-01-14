@@ -18,7 +18,6 @@ package com.example.android.uamp.media.library
 
 import android.content.Context
 import android.net.Uri
-import android.os.AsyncTask
 import android.support.v4.media.MediaBrowserCompat.MediaItem
 import android.support.v4.media.MediaDescriptionCompat.STATUS_NOT_DOWNLOADED
 import android.support.v4.media.MediaMetadataCompat
@@ -45,6 +44,12 @@ import com.example.android.uamp.media.extensions.title
 import com.example.android.uamp.media.extensions.trackCount
 import com.example.android.uamp.media.extensions.trackNumber
 import com.google.gson.Gson
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -57,39 +62,42 @@ import java.util.concurrent.TimeUnit
  * The definition of the JSON is specified in the docs of [JsonMusic] in this file,
  * which is the object representation of it.
  */
+@ExperimentalCoroutinesApi
 class JsonSource(context: Context, source: Uri) : AbstractMusicSource() {
+
+    private val jsonSourceScope = MainScope()
     private var catalog: List<MediaMetadataCompat> = emptyList()
+    private val glide: RequestManager
 
     init {
         state = STATE_INITIALIZING
+        glide = Glide.with(context)
 
-        UpdateCatalogTask(Glide.with(context)) { mediaItems ->
-            catalog = mediaItems
+        // Launch a coroutine to fetch the catalog and update the state.
+        jsonSourceScope.launch {
+            /** Even though we're in a "launch" block, we can't just block yet. First, we need
+             * to shift to another thread to do the background work.
+             * [withContext] performs that shift for us.
+             */
+            catalog = updateCatalog(source)
             state = STATE_INITIALIZED
-        }.execute(source)
+        }
     }
 
     override fun iterator(): Iterator<MediaMetadataCompat> = catalog.iterator()
-}
 
-/**
- * Task to connect to remote URIs and download/process JSON files that correspond to
- * [MediaMetadataCompat] objects.
- */
-private class UpdateCatalogTask(val glide: RequestManager,
-                                val listener: (List<MediaMetadataCompat>) -> Unit) :
-        AsyncTask<Uri, Void, List<MediaMetadataCompat>>() {
-
-    override fun doInBackground(vararg params: Uri): List<MediaMetadataCompat> {
-        val mediaItems = ArrayList<MediaMetadataCompat>()
-
-        params.forEach { catalogUri ->
+    /**
+     * Function to connect to a remote URI and download/process the JSON file that corresponds to
+     * [MediaMetadataCompat] objects.
+     */
+    private suspend fun updateCatalog(catalogUri: Uri): List<MediaMetadataCompat> {
+        return withContext(Dispatchers.IO) {
             val musicCat = tryDownloadJson(catalogUri)
 
             // Get the base URI to fix up relative references later.
             val baseUri = catalogUri.toString().removeSuffix(catalogUri.lastPathSegment)
 
-            mediaItems += musicCat.music.map { song ->
+            musicCat.music.map { song ->
                 // The JSON may have paths that are relative to the source of the JSON
                 // itself. We need to fix them up here to turn them into absolute paths.
                 if (!song.source.startsWith(catalogUri.scheme)) {
@@ -114,14 +122,8 @@ private class UpdateCatalogTask(val glide: RequestManager,
                         .build()
             }.toList()
         }
-
-        return mediaItems
     }
 
-    override fun onPostExecute(mediaItems: List<MediaMetadataCompat>) {
-        super.onPostExecute(mediaItems)
-        listener(mediaItems)
-    }
 
     /**
      * Attempts to download a catalog from a given Uri.
@@ -230,5 +232,5 @@ class JsonMusic {
 private const val NOTIFICATION_LARGE_ICON_SIZE = 144 // px
 
 private val glideOptions = RequestOptions()
-        .fallback(R.drawable.default_art)
-        .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+    .fallback(R.drawable.default_art)
+    .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
