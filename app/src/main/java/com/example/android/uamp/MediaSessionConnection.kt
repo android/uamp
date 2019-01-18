@@ -25,6 +25,8 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.support.v4.media.session.PlaybackStateCompat.REPEAT_MODE_INVALID
+import androidx.lifecycle.LiveData
 import com.example.android.uamp.utils.InjectorUtils
 
 /**
@@ -56,6 +58,14 @@ class MediaSessionConnection(context: Context, serviceComponent: ComponentName) 
     val nowPlaying = MutableLiveData<MediaMetadataCompat>()
             .apply { postValue(NOTHING_PLAYING) }
 
+    /**
+     * Expose the current repeat mode as [LiveData].
+     */
+    val repeatMode get() = _repeateMode
+    private val _repeateMode = MutableLiveData<Int>()
+        .apply { postValue(REPEAT_MODE_INVALID) }
+
+    val controller: MediaControllerCompat get() = mediaController
     val transportControls: MediaControllerCompat.TransportControls
         get() = mediaController.transportControls
 
@@ -125,6 +135,14 @@ class MediaSessionConnection(context: Context, serviceComponent: ComponentName) 
          */
         override fun onSessionDestroyed() {
             mediaBrowserConnectionCallback.onConnectionSuspended()
+        }
+
+        /**
+         * Update the repeat mode when it changes in the session, either because we, or
+         * another controller, changed it.
+         */
+        override fun onRepeatModeChanged(repeatMode: Int) {
+            _repeateMode.postValue(repeatMode)
         }
     }
 

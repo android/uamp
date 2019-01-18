@@ -23,6 +23,9 @@ import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.session.PlaybackStateCompat.REPEAT_MODE_ALL
+import android.support.v4.media.session.PlaybackStateCompat.REPEAT_MODE_INVALID
+import android.support.v4.media.session.PlaybackStateCompat.REPEAT_MODE_NONE
 import android.util.Log
 import com.example.android.uamp.MainActivity
 import com.example.android.uamp.MediaItemData
@@ -47,6 +50,16 @@ class MainActivityViewModel(private val mediaSessionConnection: MediaSessionConn
                 } else {
                     null
                 }
+            }
+
+    /**
+     * This shows how you could simplify the modes reported by the [MediaSessionConnection]
+     * to something that's easier to show on the UI. Since we're only handling repeat all
+     * and repeat none, this can also be thought of as repeat all? true/false.
+     */
+    val repeatMode: LiveData<Boolean> =
+            Transformations.map(mediaSessionConnection.repeatMode) { repeatMode ->
+                repeatMode == REPEAT_MODE_ALL
             }
 
     /**
@@ -106,6 +119,22 @@ class MainActivityViewModel(private val mediaSessionConnection: MediaSessionConn
         } else {
             transportControls.playFromMediaId(mediaItem.mediaId, null)
         }
+    }
+
+    /**
+     * Toggles the repeat mode between [REPEAT_MODE_NONE] and [REPEAT_MODE_ALL].
+     */
+    fun toggleRepeatMode() {
+        val transportControls = mediaSessionConnection.transportControls
+        val newRepeatMode = when (mediaSessionConnection.controller.repeatMode) {
+            // Session isn't ready.
+            REPEAT_MODE_INVALID -> return
+            // Toggle -- if it's set to repeat all, change to repeat none.
+            // If it's not set to repeat all, then switch to repeat all.
+            REPEAT_MODE_ALL -> REPEAT_MODE_NONE
+            else -> REPEAT_MODE_ALL
+        }
+        mediaSessionConnection.transportControls.setRepeatMode(newRepeatMode)
     }
 
     class Factory(private val mediaSessionConnection: MediaSessionConnection
