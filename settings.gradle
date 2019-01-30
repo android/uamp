@@ -39,4 +39,4 @@ if (extraSettings.exists()) {
     apply from: extraSettings
 }
 
-include ':app', ':media'
+include ':app', ':common'
