@@ -20,6 +20,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -34,7 +35,7 @@ import kotlinx.android.synthetic.main.fragment_mediaitem_list.networkError
 /**
  * A fragment representing a list of MediaItems.
  */
-class MediaItemFragment : androidx.fragment.app.Fragment() {
+class MediaItemFragment : Fragment() {
     private lateinit var mediaId: String
     private lateinit var mainActivityViewModel: MainActivityViewModel
     private lateinit var mediaItemFragmentViewModel: MediaItemFragmentViewModel
