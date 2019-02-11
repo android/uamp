@@ -83,7 +83,7 @@ class MediaItemAdapter(private val itemClickedListener: (MediaItemData) -> Unit
 
 class MediaViewHolder(view: View,
                       itemClickedListener: (MediaItemData) -> Unit
-) : androidx.recyclerview.widget.RecyclerView.ViewHolder(view) {
+) : RecyclerView.ViewHolder(view) {
 
     val titleView: TextView = view.title
     val subtitleView: TextView = view.subtitle
