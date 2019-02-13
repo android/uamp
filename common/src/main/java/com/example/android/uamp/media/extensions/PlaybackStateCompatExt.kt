@@ -17,6 +17,7 @@
 package com.example.android.uamp.media.extensions
 
 import android.support.v4.media.session.PlaybackStateCompat
+import android.os.SystemClock
 
 /**
  * Useful extension methods for [PlaybackStateCompat].
@@ -58,5 +59,17 @@ inline val PlaybackStateCompat.stateName
         PlaybackStateCompat.STATE_BUFFERING -> "STATE_BUFFERING"
         PlaybackStateCompat.STATE_ERROR -> "STATE_ERROR"
         else -> "UNKNOWN_STATE"
+    }
+
+/**
+ * Calculates the current playback position based on last update time along with playback
+ * state and speed.
+ */
+inline val PlaybackStateCompat.currentPlayBackPosition: Long
+    get() = if (state == PlaybackStateCompat.STATE_PLAYING) {
+        val timeDelta = SystemClock.elapsedRealtime() - lastPositionUpdateTime
+        (position + (timeDelta * playbackSpeed)).toLong()
+    } else {
+        position
     }
 
