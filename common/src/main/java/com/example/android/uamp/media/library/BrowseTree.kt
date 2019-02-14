@@ -87,7 +87,7 @@ class BrowseTree(musicSource: MusicSource) {
             title = mediaItem.album
             artist = mediaItem.artist
             albumArt = mediaItem.albumArt
-            albumArtUri = mediaItem.albumArtUri?.toString()
+            albumArtUri = mediaItem.albumArtUri.toString()
             flag = MediaItem.FLAG_BROWSABLE
         }.build()
 

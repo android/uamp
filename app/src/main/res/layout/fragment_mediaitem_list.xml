@@ -27,7 +27,7 @@
         style="@style/MediaItemList"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="com.example.android.uamp.MediaItemFragment"
+        tools:context="com.example.android.uamp.fragments.MediaItemFragment"
         tools:listitem="@layout/fragment_mediaitem" />
 
     <ProgressBar

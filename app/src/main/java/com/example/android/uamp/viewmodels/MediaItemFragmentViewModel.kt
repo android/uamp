@@ -27,15 +27,13 @@ import android.support.v4.media.MediaBrowserCompat.MediaItem
 import android.support.v4.media.MediaBrowserCompat.SubscriptionCallback
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.util.Log
 import com.example.android.uamp.EMPTY_PLAYBACK_STATE
 import com.example.android.uamp.MediaItemData
-import com.example.android.uamp.MediaItemFragment
+import com.example.android.uamp.fragments.MediaItemFragment
 import com.example.android.uamp.MediaSessionConnection
 import com.example.android.uamp.NOTHING_PLAYING
 import com.example.android.uamp.R
 import com.example.android.uamp.media.extensions.id
-import com.example.android.uamp.media.extensions.isPlayEnabled
 import com.example.android.uamp.media.extensions.isPlaying
 
 /**
