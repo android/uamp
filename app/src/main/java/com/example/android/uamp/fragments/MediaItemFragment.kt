@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.android.uamp
+package com.example.android.uamp.fragments
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -25,6 +25,9 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.android.uamp.MediaItemAdapter
+import com.example.android.uamp.MediaItemData
+import com.example.android.uamp.R
 import com.example.android.uamp.utils.InjectorUtils
 import com.example.android.uamp.viewmodels.MainActivityViewModel
 import com.example.android.uamp.viewmodels.MediaItemFragmentViewModel
@@ -90,4 +93,4 @@ class MediaItemFragment : Fragment() {
     }
 }
 
-private const val MEDIA_ID_ARG = "com.example.android.uamp.MediaItemFragment.MEDIA_ID"
+private const val MEDIA_ID_ARG = "com.example.android.uamp.fragments.MediaItemFragment.MEDIA_ID"

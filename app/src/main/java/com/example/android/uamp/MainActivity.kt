@@ -21,6 +21,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import com.example.android.uamp.fragments.MediaItemFragment
 import com.example.android.uamp.media.MusicService
 import com.example.android.uamp.utils.Event
 import com.example.android.uamp.utils.InjectorUtils
@@ -40,6 +41,20 @@ class MainActivity : AppCompatActivity() {
         viewModel = ViewModelProviders
                 .of(this, InjectorUtils.provideMainActivityViewModel(this))
                 .get(MainActivityViewModel::class.java)
+
+        /**
+         * Observe [MainActivityViewModel.navigateToFragment] for [Event]s that request a
+         * fragment swap.
+         */
+        viewModel.navigateToFragment.observe(this, Observer {
+            it?.getContentIfNotHandled()?.let { fragmentRequest ->
+                val transaction = supportFragmentManager.beginTransaction()
+                transaction.replace(
+                        R.id.fragmentContainer, fragmentRequest.fragment, fragmentRequest.tag)
+                if (fragmentRequest.backStack) transaction.addToBackStack(null)
+                transaction.commit()
+            }
+        })
 
         /**
          * Observe changes to the [MainActivityViewModel.rootMediaId]. When the app starts,
@@ -66,21 +81,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun navigateToMediaItem(mediaId: String) {
         var fragment: MediaItemFragment? = getBrowseFragment(mediaId)
-
         if (fragment == null) {
             fragment = MediaItemFragment.newInstance(mediaId)
-
-            supportFragmentManager.beginTransaction()
-                    .apply {
-                        replace(R.id.browseFragment, fragment, mediaId)
-
-                        // If this is not the top level media (root), we add it to the fragment
-                        // back stack, so that actionbar toggle and Back will work appropriately:
-                        if (!isRootId(mediaId)) {
-                            addToBackStack(null)
-                        }
-                    }
-                    .commit()
+            // If this is not the top level media (root), we add it to the fragment
+            // back stack, so that actionbar toggle and Back will work appropriately:
+            viewModel.showFragment(fragment, !isRootId(mediaId), mediaId)
         }
     }
 

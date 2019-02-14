@@ -33,6 +33,10 @@ android {
             sourceCompatibility JavaVersion.VERSION_1_8
             targetCompatibility JavaVersion.VERSION_1_8
         }
+
+        vectorDrawables {
+            useSupportLibrary true
+        }
     }
     dataBinding {
         enabled = true

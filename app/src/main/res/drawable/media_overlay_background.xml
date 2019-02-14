@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2017 Google Inc. All rights reserved.
+  ~ Copyright 2019 Google Inc. All rights reserved.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -14,10 +14,12 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<FrameLayout
+<shape
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="com.example.android.uamp.MainActivity"
-    android:id="@+id/fragmentContainer" />
+    android:shape="rectangle">
+    <gradient
+        android:startColor="#CCFFFFFF"
+        android:centerColor="#AAFFFFFF"
+        android:endColor="#00FFFFFF"
+        android:angle="90" />
+</shape>
