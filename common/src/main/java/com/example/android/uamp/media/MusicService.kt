@@ -51,6 +51,7 @@ import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.ext.mediasession.TimelineQueueNavigator
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 /**
  * This class is the entry point for browsing and playback commands from the APP's UI
@@ -99,6 +100,7 @@ class MusicService : MediaBrowserServiceCompat() {
         }
     }
 
+    @ExperimentalCoroutinesApi
     override fun onCreate() {
         super.onCreate()
 
