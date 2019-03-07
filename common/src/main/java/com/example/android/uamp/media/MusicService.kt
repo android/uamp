@@ -26,15 +26,15 @@ import android.media.AudioManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import androidx.core.app.NotificationManagerCompat
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaBrowserCompat.MediaItem
-import androidx.media.MediaBrowserServiceCompat
 import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.media.MediaBrowserServiceCompat
 import com.example.android.uamp.media.extensions.flag
 import com.example.android.uamp.media.library.BrowseTree
 import com.example.android.uamp.media.library.JsonSource
@@ -51,7 +51,11 @@ import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.ext.mediasession.TimelineQueueNavigator
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 /**
  * This class is the entry point for browsing and playback commands from the APP's UI
@@ -73,6 +77,9 @@ class MusicService : MediaBrowserServiceCompat() {
     private lateinit var mediaSource: MusicSource
     private lateinit var mediaSessionConnector: MediaSessionConnector
     private lateinit var packageValidator: PackageValidator
+
+    private val serviceJob = SupervisorJob()
+    private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
 
     /**
      * This must be `by lazy` because the source won't initially be ready.
@@ -138,7 +145,12 @@ class MusicService : MediaBrowserServiceCompat() {
         becomingNoisyReceiver =
                 BecomingNoisyReceiver(context = this, sessionToken = mediaSession.sessionToken)
 
+        // The media library is built from a remote JSON file. We'll create the source here,
+        // and then use a suspend function to perform the download off the main thread.
         mediaSource = JsonSource(context = this, source = remoteJsonSource)
+        serviceScope.launch {
+            mediaSource.load()
+        }
 
         // ExoPlayer will manage the MediaSession for us.
         mediaSessionConnector = MediaSessionConnector(mediaSession).also {
@@ -182,6 +194,9 @@ class MusicService : MediaBrowserServiceCompat() {
             isActive = false
             release()
         }
+
+        // Cancel coroutines when the service is going away.
+        serviceJob.cancel()
     }
 
     /**

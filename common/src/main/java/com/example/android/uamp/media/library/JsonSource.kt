@@ -44,11 +44,7 @@ import com.example.android.uamp.media.extensions.title
 import com.example.android.uamp.media.extensions.trackCount
 import com.example.android.uamp.media.extensions.trackNumber
 import com.google.gson.Gson
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.IOException
@@ -62,29 +58,22 @@ import java.util.concurrent.TimeUnit
  * The definition of the JSON is specified in the docs of [JsonMusic] in this file,
  * which is the object representation of it.
  */
-@ExperimentalCoroutinesApi
-class JsonSource(context: Context, source: Uri) : AbstractMusicSource() {
+class JsonSource(context: Context, private val source: Uri) : AbstractMusicSource() {
 
-    private val jsonSourceScope = MainScope()
     private var catalog: List<MediaMetadataCompat> = emptyList()
     private val glide: RequestManager
 
     init {
         state = STATE_INITIALIZING
         glide = Glide.with(context)
-
-        // Launch a coroutine to fetch the catalog and update the state.
-        jsonSourceScope.launch {
-            /** Even though we're in a "launch" block, we can't just block yet. First, we need
-             * to shift to another thread to do the background work.
-             * [withContext] performs that shift for us.
-             */
-            catalog = updateCatalog(source)
-            state = STATE_INITIALIZED
-        }
     }
 
     override fun iterator(): Iterator<MediaMetadataCompat> = catalog.iterator()
+
+    override suspend fun load() {
+        catalog = updateCatalog(source)
+        state = STATE_INITIALIZED
+    }
 
     /**
      * Function to connect to a remote URI and download/process the JSON file that corresponds to
@@ -95,31 +84,33 @@ class JsonSource(context: Context, source: Uri) : AbstractMusicSource() {
             val musicCat = tryDownloadJson(catalogUri)
 
             // Get the base URI to fix up relative references later.
-            val baseUri = catalogUri.toString().removeSuffix(catalogUri.lastPathSegment)
+            val baseUri = catalogUri.toString().removeSuffix(catalogUri.lastPathSegment ?: "")
 
             musicCat.music.map { song ->
                 // The JSON may have paths that are relative to the source of the JSON
                 // itself. We need to fix them up here to turn them into absolute paths.
-                if (!song.source.startsWith(catalogUri.scheme)) {
-                    song.source = baseUri + song.source
-                }
-                if (!song.image.startsWith(catalogUri.scheme)) {
-                    song.image = baseUri + song.image
+                catalogUri.scheme?.let { scheme ->
+                    if (!song.source.startsWith(scheme)) {
+                        song.source = baseUri + song.source
+                    }
+                    if (!song.image.startsWith(scheme)) {
+                        song.image = baseUri + song.image
+                    }
                 }
 
                 // Block on downloading artwork.
                 val art = glide.applyDefaultRequestOptions(glideOptions)
-                        .asBitmap()
-                        .load(song.image)
-                        .submit(NOTIFICATION_LARGE_ICON_SIZE, NOTIFICATION_LARGE_ICON_SIZE)
-                        .get()
+                    .asBitmap()
+                    .load(song.image)
+                    .submit(NOTIFICATION_LARGE_ICON_SIZE, NOTIFICATION_LARGE_ICON_SIZE)
+                    .get()
 
                 MediaMetadataCompat.Builder()
-                        .from(song)
-                        .apply {
-                            albumArt = art
-                        }
-                        .build()
+                    .from(song)
+                    .apply {
+                        albumArt = art
+                    }
+                    .build()
             }.toList()
         }
     }
@@ -215,6 +206,7 @@ class JsonCatalog {
  * that if the JSON was at "https://www.example.com/json/music.json" then the image would be found
  * at "https://www.example.com/json/ode_to_joy.jpg".
  */
+@Suppress("unused")
 class JsonMusic {
     var id: String = ""
     var title: String = ""
