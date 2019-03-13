@@ -48,8 +48,12 @@ class MediaItemFragmentViewModel(private val mediaId: String,
      * they don't inadvertently modify it.
      */
     private val _mediaItems = MutableLiveData<List<MediaItemData>>()
-            .apply { postValue(emptyList()) }
     val mediaItems: LiveData<List<MediaItemData>> = _mediaItems
+
+    /**
+     * Pass the status of the [MediaSessionConnection.networkFailure] through.
+     */
+    val networkError = Transformations.map(mediaSessionConnection.networkFailure) { it }
 
     private val subscriptionCallback = object : SubscriptionCallback() {
         override fun onChildrenLoaded(parentId: String, children: List<MediaItem>) {

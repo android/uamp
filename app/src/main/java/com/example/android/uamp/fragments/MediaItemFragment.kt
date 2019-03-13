@@ -58,8 +58,10 @@ class MediaItemFragment : Fragment() {
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         return inflater.inflate(R.layout.fragment_mediaitem_list, container, false)
     }
 
@@ -71,19 +73,22 @@ class MediaItemFragment : Fragment() {
         mediaId = arguments?.getString(MEDIA_ID_ARG) ?: return
 
         mainActivityViewModel = ViewModelProviders
-                .of(context, InjectorUtils.provideMainActivityViewModel(context))
-                .get(MainActivityViewModel::class.java)
+            .of(context, InjectorUtils.provideMainActivityViewModel(context))
+            .get(MainActivityViewModel::class.java)
 
         mediaItemFragmentViewModel = ViewModelProviders
-                .of(this, InjectorUtils.provideMediaItemFragmentViewModel(context, mediaId))
-                .get(MediaItemFragmentViewModel::class.java)
+            .of(this, InjectorUtils.provideMediaItemFragmentViewModel(context, mediaId))
+            .get(MediaItemFragmentViewModel::class.java)
         mediaItemFragmentViewModel.mediaItems.observe(this,
-                Observer<List<MediaItemData>> { list ->
-                    val isEmptyList = list?.isEmpty() ?: true
-                    loadingSpinner.visibility = View.GONE
-                    networkError.visibility = if (isEmptyList) View.VISIBLE else View.GONE
-                    listAdapter.submitList(list)
-                })
+            Observer<List<MediaItemData>> { list ->
+                loadingSpinner.visibility =
+                    if (list?.isNotEmpty() == true) View.GONE else View.VISIBLE
+                listAdapter.submitList(list)
+            })
+        mediaItemFragmentViewModel.networkError.observe(this,
+            Observer<Boolean> { error ->
+                networkError.visibility = if (error) View.VISIBLE else View.GONE
+            })
 
         // Set the adapter
         if (list is RecyclerView) {

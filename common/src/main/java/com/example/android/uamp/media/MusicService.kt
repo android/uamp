@@ -241,7 +241,8 @@ class MusicService : MediaBrowserServiceCompat() {
                 }
                 result.sendResult(children)
             } else {
-                result.sendError(null)
+                mediaSession.sendSessionEvent(NETWORK_FAILURE, null)
+                result.sendResult(null)
             }
         }
 
@@ -394,5 +395,10 @@ private class BecomingNoisyReceiver(private val context: Context,
         }
     }
 }
+
+/*
+ * (Media) Session events
+ */
+const val NETWORK_FAILURE = "com.example.android.uamp.media.session.NETWORK_FAILURE"
 
 private const val UAMP_USER_AGENT = "uamp.next"
