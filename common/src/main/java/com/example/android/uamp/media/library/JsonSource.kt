@@ -71,17 +71,26 @@ class JsonSource(context: Context, private val source: Uri) : AbstractMusicSourc
     override fun iterator(): Iterator<MediaMetadataCompat> = catalog.iterator()
 
     override suspend fun load() {
-        catalog = updateCatalog(source)
-        state = STATE_INITIALIZED
+        updateCatalog(source)?.let { updatedCatalog ->
+            catalog = updatedCatalog
+            state = STATE_INITIALIZED
+        } ?: run {
+            catalog = emptyList()
+            state = STATE_ERROR
+        }
     }
 
     /**
      * Function to connect to a remote URI and download/process the JSON file that corresponds to
      * [MediaMetadataCompat] objects.
      */
-    private suspend fun updateCatalog(catalogUri: Uri): List<MediaMetadataCompat> {
+    private suspend fun updateCatalog(catalogUri: Uri): List<MediaMetadataCompat>? {
         return withContext(Dispatchers.IO) {
-            val musicCat = tryDownloadJson(catalogUri)
+            val musicCat = try {
+                downloadJson(catalogUri)
+            } catch (ioException: IOException) {
+                return@withContext null
+            }
 
             // Get the base URI to fix up relative references later.
             val baseUri = catalogUri.toString().removeSuffix(catalogUri.lastPathSegment ?: "")
@@ -122,14 +131,17 @@ class JsonSource(context: Context, private val source: Uri) : AbstractMusicSourc
      * @param catalogUri URI to attempt to download the catalog form.
      * @return The catalog downloaded, or an empty catalog if an error occurred.
      */
-    private fun tryDownloadJson(catalogUri: Uri) =
-        try {
-            val catalogConn = URL(catalogUri.toString())
-            val reader = BufferedReader(InputStreamReader(catalogConn.openStream()))
-            Gson().fromJson<JsonCatalog>(reader, JsonCatalog::class.java)
-        } catch (ioEx: IOException) {
-            JsonCatalog()
+    @Throws(IOException::class)
+    private fun downloadJson(catalogUri: Uri): JsonCatalog {
+        val end = System.currentTimeMillis() + 5000
+        while (System.currentTimeMillis() < end) {
+            // blah
         }
+
+        val catalogConn = URL(catalogUri.toString())
+        val reader = BufferedReader(InputStreamReader(catalogConn.openStream()))
+        return Gson().fromJson<JsonCatalog>(reader, JsonCatalog::class.java)
+    }
 }
 
 /**
