@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2017 Google Inc. All rights reserved.
+  ~ Copyright 2019 Google LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
   ~ You may obtain a copy of the License at
   ~
-  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~     https://www.apache.org/licenses/LICENSE-2.0
   ~
   ~ Unless required by applicable law or agreed to in writing, software
   ~ distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,15 +15,13 @@
   ~ limitations under the License.
   -->
 <resources>
-    <string name="app_name">UAMP</string>
 
-    <string name="skip_back_10s">Skip back 10s</string>
-    <string name="skip_forward_10s">Skip forward 10s</string>
-    <string name="play">Play</string>
-    <string name="pause">Pause</string>
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
 
-    <string name="menu_music_queue">Queue</string>
-    <string name="album_art_alt">Album art</string>
-    <string name="duration_unknown">--:--</string>
-    <string name="duration_format">%d:%02d</string>
 </resources>
