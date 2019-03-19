@@ -133,11 +133,6 @@ class JsonSource(context: Context, private val source: Uri) : AbstractMusicSourc
      */
     @Throws(IOException::class)
     private fun downloadJson(catalogUri: Uri): JsonCatalog {
-        val end = System.currentTimeMillis() + 5000
-        while (System.currentTimeMillis() < end) {
-            // blah
-        }
-
         val catalogConn = URL(catalogUri.toString())
         val reader = BufferedReader(InputStreamReader(catalogConn.openStream()))
         return Gson().fromJson<JsonCatalog>(reader, JsonCatalog::class.java)
