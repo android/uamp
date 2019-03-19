@@ -38,6 +38,7 @@ import androidx.media.MediaBrowserServiceCompat
 import com.example.android.uamp.media.extensions.flag
 import com.example.android.uamp.media.library.BrowseTree
 import com.example.android.uamp.media.library.JsonSource
+import com.example.android.uamp.media.library.MEDIA_SEARCH_SUPPORTED
 import com.example.android.uamp.media.library.MusicSource
 import com.example.android.uamp.media.library.UAMP_BROWSABLE_ROOT
 import com.example.android.uamp.media.library.UAMP_EMPTY_ROOT
@@ -203,13 +204,25 @@ class MusicService : MediaBrowserServiceCompat() {
      * Returns the "root" media ID that the client should request to get the list of
      * [MediaItem]s to browse/play.
      */
-    override fun onGetRoot(clientPackageName: String,
-                           clientUid: Int,
-                           rootHints: Bundle?): BrowserRoot? {
+    override fun onGetRoot(
+            clientPackageName: String,
+            clientUid: Int,
+            rootHints: Bundle?
+    ): BrowserRoot? {
 
-        return if (packageValidator.isKnownCaller(clientPackageName, clientUid)) {
+        /*
+         * By default, all known clients are permitted to search, but only tell unknown callers
+         * about search if permitted by the [BrowseTree].
+         */
+        val isKnownCaller = packageValidator.isKnownCaller(clientPackageName, clientUid)
+        val rootExtras = Bundle().apply {
+            putBoolean(MEDIA_SEARCH_SUPPORTED,
+                    isKnownCaller || browseTree.searchableByUnknownCaller)
+        }
+
+        return if (isKnownCaller) {
             // The caller is allowed to browse, so return the root.
-            BrowserRoot(UAMP_BROWSABLE_ROOT, null)
+            BrowserRoot(UAMP_BROWSABLE_ROOT, rootExtras)
         } else {
             /**
              * Unknown caller. There are two main ways to handle this:
@@ -220,7 +233,7 @@ class MusicService : MediaBrowserServiceCompat() {
              * UAMP takes the first approach for a variety of reasons, but both are valid
              * options.
              */
-            BrowserRoot(UAMP_EMPTY_ROOT, null)
+            BrowserRoot(UAMP_EMPTY_ROOT, rootExtras)
         }
     }
 
@@ -231,7 +244,8 @@ class MusicService : MediaBrowserServiceCompat() {
      */
     override fun onLoadChildren(
             parentMediaId: String,
-            result: androidx.media.MediaBrowserServiceCompat.Result<List<MediaItem>>) {
+            result: Result<List<MediaItem>>
+    ) {
 
         // If the media source is ready, the results will be set synchronously here.
         val resultsSent = mediaSource.whenReady { successfullyInitialized ->
@@ -252,6 +266,30 @@ class MusicService : MediaBrowserServiceCompat() {
         //
         // See [MediaItemFragmentViewModel.subscriptionCallback] for how this is passed to the
         // UI/displayed in the [RecyclerView].
+        if (!resultsSent) {
+            result.detach()
+        }
+    }
+
+    /**
+     * Returns a list of [MediaItem]s that match the given search query
+     */
+    override fun onSearch(
+            query: String,
+            extras: Bundle?,
+            result: Result<List<MediaItem>>
+    ) {
+
+        val resultsSent = mediaSource.whenReady { successfullyInitialized ->
+            if (successfullyInitialized) {
+                val resultsList = mediaSource.search(query, extras ?: Bundle.EMPTY)
+                        .map { mediaMetadata ->
+                            MediaItem(mediaMetadata.description, mediaMetadata.flag)
+                        }
+                result.sendResult(resultsList)
+            }
+        }
+
         if (!resultsSent) {
             result.detach()
         }

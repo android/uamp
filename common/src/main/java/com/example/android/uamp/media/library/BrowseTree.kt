@@ -54,6 +54,12 @@ class BrowseTree(musicSource: MusicSource) {
     private val mediaIdToChildren = mutableMapOf<String, MutableList<MediaMetadataCompat>>()
 
     /**
+     * Whether to allow clients which are unknown (non-whitelisted) to use search on this
+     * [BrowseTree].
+     */
+    val searchableByUnknownCaller = true
+
+    /**
      * In this example, there's a single root node (identified by the constant
      * [UAMP_BROWSABLE_ROOT]). The root's children are each album included in the
      * [MusicSource], and the children of each album are the songs on that album.
@@ -106,3 +112,4 @@ class BrowseTree(musicSource: MusicSource) {
 const val UAMP_BROWSABLE_ROOT = "/"
 const val UAMP_EMPTY_ROOT = "@empty@"
 
+const val MEDIA_SEARCH_SUPPORTED = "android.media.browse.SEARCH_SUPPORTED"
