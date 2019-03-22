@@ -22,7 +22,7 @@ android {
     defaultConfig {
         applicationId "com.example.android.uamp.next"
 
-        minSdkVersion 21
+        minSdkVersion 24
         targetSdkVersion 28
         versionCode 1
         versionName "1.0"
@@ -44,6 +44,8 @@ dependencies {
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
+    implementation "androidx.preference:preference:$androidx_preference_version"
+    implementation "androidx.car:car:$androidx_car_version"
     implementation "androidx.appcompat:appcompat:$androidx_app_compat_version"
 
     testImplementation "junit:junit:$junit_version"
