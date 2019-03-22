@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2019 Google LLC
+  ~ Copyright 2019 Google Inc. All rights reserved.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
   ~ You may obtain a copy of the License at
   ~
-  ~     https://www.apache.org/licenses/LICENSE-2.0
+  ~     http://www.apache.org/licenses/LICENSE-2.0
   ~
   ~ Unless required by applicable law or agreed to in writing, software
   ~ distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,10 +15,6 @@
   ~ limitations under the License.
   -->
 <resources>
-    <string name="app_name">UAMP</string>
-    <string name="settings_label">UAMP Settings</string>
-    <string name="password_hint">Password</string>
-    <string name="email_hint">Email</string>
-    <string name="login_button_label">Login</string>
-    <string name="missing_fields_error">Please fill in missing fields</string>
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
 </resources>
