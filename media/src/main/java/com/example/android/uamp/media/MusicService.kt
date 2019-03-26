@@ -278,12 +278,10 @@ class MusicService : androidx.media.MediaBrowserServiceCompat() {
 
         private fun updateNotification(state: PlaybackStateCompat) {
             val updatedState = state.state
-            if (mediaController.metadata == null) {
-                return
-            }
 
-            // Skip building a notification when state is "none".
-            val notification = if (updatedState != PlaybackStateCompat.STATE_NONE) {
+            // Skip building a notification when state is "none" and metadata is null.
+            val notification = if (mediaController.metadata != null
+                    && updatedState != PlaybackStateCompat.STATE_NONE) {
                 notificationBuilder.buildNotification(mediaSession.sessionToken)
             } else {
                 null
@@ -299,12 +297,14 @@ class MusicService : androidx.media.MediaBrowserServiceCompat() {
                      * notes that "calling this method does *not* put the service in the started
                      * state itself, even though the name sounds like it."
                      */
-                    if (!isForegroundService) {
-                        startService(Intent(applicationContext, this@MusicService.javaClass))
-                        startForeground(NOW_PLAYING_NOTIFICATION, notification)
-                        isForegroundService = true
-                    } else if (notification != null) {
-                        notificationManager.notify(NOW_PLAYING_NOTIFICATION, notification)
+                    if (notification != null) {
+                        if (!isForegroundService) {
+                            startService(Intent(applicationContext, this@MusicService.javaClass))
+                            startForeground(NOW_PLAYING_NOTIFICATION, notification)
+                            isForegroundService = true
+                        } else {
+                            notificationManager.notify(NOW_PLAYING_NOTIFICATION, notification)
+                        }
                     }
                 }
                 else -> {
