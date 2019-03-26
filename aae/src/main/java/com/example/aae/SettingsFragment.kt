@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.android.uamp
+package com.example.aae
 
 import android.os.Bundle
 import androidx.preference.Preference
