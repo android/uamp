@@ -16,6 +16,7 @@
 
 package com.example.aae
 
+import android.app.Application
 import android.os.Bundle
 import android.text.TextUtils
 import android.util.Log
@@ -23,6 +24,12 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProviders
 
 /**
  * This class mocks the sign in flow for integration with MediaCenter in Android Auto Embedded.
@@ -33,30 +40,61 @@ import androidx.appcompat.app.AppCompatActivity
 class LoginActivity : AppCompatActivity() {
     private lateinit var inputEmail: EditText
     private lateinit var inputPassword: EditText
-    private lateinit var signinBtn: Button
+    private lateinit var signInButton: Button
+
+    private lateinit var viewModel: LoginActivityViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
-        inputEmail = findViewById<EditText>(R.id.email)
-        inputPassword = findViewById<EditText>(R.id.password)
-        signinBtn = findViewById<Button>(R.id.sign_in_button)
+        inputEmail = findViewById(R.id.email)
+        inputPassword = findViewById(R.id.password)
+        signInButton = findViewById(R.id.sign_in_button)
 
-        signinBtn.setOnClickListener {
-            var email = inputEmail.text.toString()
-            var password = inputPassword.text.toString()
+        viewModel = ViewModelProviders
+            .of(this)
+            .get(LoginActivityViewModel::class.java)
 
-            if (TextUtils.isEmpty(email) or TextUtils.isEmpty(password)) {
-                Toast.makeText(applicationContext,
-                        getString(R.string.missing_fields_error), Toast.LENGTH_SHORT).show()
-            } else {
+        viewModel.loggedIn.observe(this, Observer { loggedIn ->
+            if (loggedIn == true) {
                 Log.d(TAG, "Sign in successful")
-                //TODO: Update the PlaybackState in the service to PlaybackStateCompat.STATE_NONE
                 finish()
             }
+        })
+
+        signInButton.setOnClickListener {
+            val email = inputEmail.text.toString()
+            val password = inputPassword.text.toString()
+
+            viewModel.login(email, password)
         }
     }
 }
+
+/**
+ * Basic ViewModel for [LoginActivity].
+ */
+class LoginActivityViewModel(application: Application) : AndroidViewModel(application) {
+    private val applicationContext = application.applicationContext
+
+    private val _loggedIn = MutableLiveData<Boolean>()
+    val loggedIn: LiveData<Boolean> = _loggedIn
+
+    fun login(email: String, password: String) {
+        if (TextUtils.isEmpty(email) or TextUtils.isEmpty(password)) {
+            Toast.makeText(
+                applicationContext,
+                applicationContext.getString(R.string.missing_fields_error),
+                Toast.LENGTH_SHORT
+            ).show()
+        } else {
+            // TODO: Update the PlaybackState in the service to PlaybackStateCompat.STATE_NONE
+            _loggedIn.postValue(true)
+        }
+
+    }
+}
+
 
 private const val TAG = "LoginActivity"

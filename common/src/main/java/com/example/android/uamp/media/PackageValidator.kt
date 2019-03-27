@@ -24,13 +24,12 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageInfo.REQUESTED_PERMISSION_GRANTED
 import android.content.pm.PackageManager
 import android.content.res.XmlResourceParser
-import android.os.Build
 import android.os.Process
-import androidx.annotation.XmlRes
-import androidx.media.MediaBrowserServiceCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.util.Base64
 import android.util.Log
+import androidx.annotation.XmlRes
+import androidx.media.MediaBrowserServiceCompat
 import org.xmlpull.v1.XmlPullParserException
 import java.io.IOException
 import java.security.MessageDigest
@@ -96,7 +95,7 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
 
         // Build the caller info for the rest of the checks here.
         val callerPackageInfo = buildCallerInfo(callingPackage)
-                ?: throw IllegalStateException("Caller wasn't found in the system?")
+            ?: throw IllegalStateException("Caller wasn't found in the system?")
 
         // Verify that things aren't ... broken. (This test should always pass.)
         if (callerPackageInfo.uid != callingUid) {
@@ -153,11 +152,12 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
     private fun logUnknownCaller(callerPackageInfo: CallerPackageInfo) {
         if (BuildConfig.DEBUG && callerPackageInfo.signature != null) {
             val formattedLog =
-                    context.getString(
-                            R.string.allowed_caller_log,
-                            callerPackageInfo.name,
-                            callerPackageInfo.packageName,
-                            callerPackageInfo.signature)
+                context.getString(
+                    R.string.allowed_caller_log,
+                    callerPackageInfo.name,
+                    callerPackageInfo.packageName,
+                    callerPackageInfo.signature
+                )
             Log.i(TAG, formattedLog)
         }
     }
@@ -195,8 +195,10 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
      */
     @SuppressLint("PackageManagerGetSignatures")
     private fun getPackageInfo(callingPackage: String): PackageInfo? =
-            packageManager.getPackageInfo(callingPackage,
-                    PackageManager.GET_SIGNATURES or PackageManager.GET_PERMISSIONS)
+        packageManager.getPackageInfo(
+            callingPackage,
+            PackageManager.GET_SIGNATURES or PackageManager.GET_PERMISSIONS
+        )
 
     /**
      * Gets the signature of a given package's [PackageInfo].
@@ -207,16 +209,15 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
      * If the app is not found, or if the app does not have exactly one signature, this method
      * returns `null` as the signature.
      */
-    private fun getSignature(packageInfo: PackageInfo): String? {
-        // Security best practices dictate that an app should be signed with exactly one (1)
-        // signature. Because of this, if there are multiple signatures, reject it.
+    private fun getSignature(packageInfo: PackageInfo): String? =
         if (packageInfo.signatures == null || packageInfo.signatures.size != 1) {
-            return null
+            // Security best practices dictate that an app should be signed with exactly one (1)
+            // signature. Because of this, if there are multiple signatures, reject it.
+            null
         } else {
             val certificate = packageInfo.signatures[0].toByteArray()
-            return getSignatureSha256(certificate)
+            getSignatureSha256(certificate)
         }
-    }
 
     private fun buildCertificateWhitelist(parser: XmlResourceParser): Map<String, KnownCallerInfo> {
 
@@ -291,9 +292,9 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
      * Finds the Android platform signing key signature. This key is never null.
      */
     private fun getSystemSignature(): String =
-            getPackageInfo(ANDROID_PLATFORM)?.let { platformInfo ->
-                getSignature(platformInfo)
-            } ?: throw IllegalStateException("Platform signature not found")
+        getPackageInfo(ANDROID_PLATFORM)?.let { platformInfo ->
+            getSignature(platformInfo)
+        } ?: throw IllegalStateException("Platform signature not found")
 
     /**
      * Creates a SHA-256 signature given a Base64 encoded certificate.
@@ -323,14 +324,14 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
     }
 
     private data class KnownCallerInfo(
-            internal val name: String,
-            internal val packageName: String,
-            internal val signatures: MutableSet<KnownSignature>
+        internal val name: String,
+        internal val packageName: String,
+        internal val signatures: MutableSet<KnownSignature>
     )
 
     private data class KnownSignature(
-            internal val signature: String,
-            internal val release: Boolean
+        internal val signature: String,
+        internal val release: Boolean
     )
 
     /**
@@ -338,11 +339,11 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
      * to see if it's a known caller.
      */
     private data class CallerPackageInfo(
-            internal val name: String,
-            internal val packageName: String,
-            internal val uid: Int,
-            internal val signature: String?,
-            internal val permissions: Set<String>
+        internal val name: String,
+        internal val packageName: String,
+        internal val uid: Int,
+        internal val signature: String?,
+        internal val permissions: Set<String>
     )
 }
 

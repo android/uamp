@@ -30,6 +30,11 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
+    }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -47,6 +52,7 @@ dependencies {
     implementation "androidx.preference:preference:$androidx_preference_version"
     implementation "androidx.car:car:$androidx_car_version"
     implementation "androidx.appcompat:appcompat:$androidx_app_compat_version"
+    implementation "androidx.lifecycle:lifecycle-extensions:$arch_lifecycle_version"
 
     testImplementation "junit:junit:$junit_version"
 
