@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.android.uamp
+package com.example.android.uamp.common
 
 import android.content.ComponentName
 import android.content.Context
@@ -26,15 +26,14 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.lifecycle.MutableLiveData
 import androidx.media.MediaBrowserServiceCompat
-import com.example.android.uamp.MediaSessionConnection.MediaBrowserConnectionCallback
+import com.example.android.uamp.common.MediaSessionConnection.MediaBrowserConnectionCallback
 import com.example.android.uamp.media.NETWORK_FAILURE
-import com.example.android.uamp.utils.InjectorUtils
 
 /**
  * Class that manages a connection to a [MediaBrowserServiceCompat] instance.
  *
  * Typically it's best to construct/inject dependencies either using DI or, as UAMP does,
- * using [InjectorUtils]. There are a few difficulties for that here:
+ * using [InjectorUtils] in the app module. There are a few difficulties for that here:
  * - [MediaBrowserCompat] is a final class, so mocking it directly is difficult.
  * - A [MediaBrowserConnectionCallback] is a parameter into the construction of
  *   a [MediaBrowserCompat], and provides callbacks to this class.

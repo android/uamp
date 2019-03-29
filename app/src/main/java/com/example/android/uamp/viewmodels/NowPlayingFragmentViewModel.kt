@@ -29,10 +29,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.android.uamp.EMPTY_PLAYBACK_STATE
-import com.example.android.uamp.MediaSessionConnection
-import com.example.android.uamp.NOTHING_PLAYING
 import com.example.android.uamp.R
+import com.example.android.uamp.common.EMPTY_PLAYBACK_STATE
+import com.example.android.uamp.common.MediaSessionConnection
+import com.example.android.uamp.common.NOTHING_PLAYING
 import com.example.android.uamp.fragments.NowPlayingFragment
 import com.example.android.uamp.media.extensions.albumArtUri
 import com.example.android.uamp.media.extensions.currentPlayBackPosition
@@ -47,8 +47,9 @@ import com.example.android.uamp.media.extensions.title
  * It extends AndroidViewModel and uses the [Application]'s context to be able to reference string
  * resources.
  */
-class NowPlayingFragmentViewModel(private val app: Application,
-                                  mediaSessionConnection: MediaSessionConnection
+class NowPlayingFragmentViewModel(
+    private val app: Application,
+    mediaSessionConnection: MediaSessionConnection
 ) : AndroidViewModel(app) {
 
     /**
@@ -56,11 +57,12 @@ class NowPlayingFragmentViewModel(private val app: Application,
      * media item currently being played.
      */
     data class NowPlayingMetadata(
-            val id: String,
-            val albumArtUri: Uri,
-            val title: String?,
-            val subtitle: String?,
-            val duration: String) {
+        val id: String,
+        val albumArtUri: Uri,
+        val title: String?,
+        val subtitle: String?,
+        val duration: String
+    ) {
 
         companion object {
             /**
@@ -79,9 +81,11 @@ class NowPlayingFragmentViewModel(private val app: Application,
     private var playbackState: PlaybackStateCompat = EMPTY_PLAYBACK_STATE
     val mediaMetadata = MutableLiveData<NowPlayingMetadata>()
     val mediaPosition = MutableLiveData<Long>().apply {
-        postValue(0L) }
+        postValue(0L)
+    }
     val mediaButtonRes = MutableLiveData<Int>().apply {
-        postValue(com.example.android.uamp.R.drawable.ic_album_black_24dp) }
+        postValue(com.example.android.uamp.R.drawable.ic_album_black_24dp)
+    }
 
     private var updatePosition = true
     private val handler = Handler(Looper.getMainLooper())
@@ -158,29 +162,35 @@ class NowPlayingFragmentViewModel(private val app: Application,
         updatePosition = false
     }
 
-    private fun updateState(playbackState: PlaybackStateCompat,
-                            mediaMetadata: MediaMetadataCompat) {
+    private fun updateState(
+        playbackState: PlaybackStateCompat,
+        mediaMetadata: MediaMetadataCompat
+    ) {
 
         // Only update media item once we have duration available
         if (mediaMetadata.duration != 0L) {
             val nowPlayingMetadata = NowPlayingMetadata(
-                    mediaMetadata.id,
-                    mediaMetadata.albumArtUri,
-                    mediaMetadata.title?.trim(),
-                    mediaMetadata.displaySubtitle?.trim(),
-                    NowPlayingMetadata.timestampToMSS(app, mediaMetadata.duration))
+                mediaMetadata.id,
+                mediaMetadata.albumArtUri,
+                mediaMetadata.title?.trim(),
+                mediaMetadata.displaySubtitle?.trim(),
+                NowPlayingMetadata.timestampToMSS(app, mediaMetadata.duration)
+            )
             this.mediaMetadata.postValue(nowPlayingMetadata)
         }
 
         // Update the media button resource ID
-        mediaButtonRes.postValue(when (playbackState.isPlaying) {
-            true -> R.drawable.ic_pause_black_24dp
-            else -> R.drawable.ic_play_arrow_black_24dp
-        })
+        mediaButtonRes.postValue(
+            when (playbackState.isPlaying) {
+                true -> R.drawable.ic_pause_black_24dp
+                else -> R.drawable.ic_play_arrow_black_24dp
+            }
+        )
     }
 
-    class Factory(private val app: Application,
-                  private val mediaSessionConnection: MediaSessionConnection
+    class Factory(
+        private val app: Application,
+        private val mediaSessionConnection: MediaSessionConnection
     ) : ViewModelProvider.NewInstanceFactory() {
 
         @Suppress("unchecked_cast")
