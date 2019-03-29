@@ -16,18 +16,18 @@
 
 package com.example.android.uamp.viewmodels
 
+import android.support.v4.media.MediaBrowserCompat
+import android.util.Log
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import android.support.v4.media.MediaBrowserCompat
-import android.util.Log
-import androidx.fragment.app.Fragment
 import com.example.android.uamp.MainActivity
 import com.example.android.uamp.MediaItemData
-import com.example.android.uamp.MediaSessionConnection
+import com.example.android.uamp.common.MediaSessionConnection
 import com.example.android.uamp.fragments.NowPlayingFragment
 import com.example.android.uamp.media.extensions.id
 import com.example.android.uamp.media.extensions.isPlayEnabled
@@ -39,17 +39,18 @@ import com.example.android.uamp.utils.Event
  * Small [ViewModel] that watches a [MediaSessionConnection] to become connected
  * and provides the root/initial media ID of the underlying [MediaBrowserCompat].
  */
-class MainActivityViewModel(private val mediaSessionConnection: MediaSessionConnection
+class MainActivityViewModel(
+    private val mediaSessionConnection: MediaSessionConnection
 ) : ViewModel() {
 
     val rootMediaId: LiveData<String> =
-            Transformations.map(mediaSessionConnection.isConnected) { isConnected ->
-                if (isConnected) {
-                    mediaSessionConnection.rootMediaId
-                } else {
-                    null
-                }
+        Transformations.map(mediaSessionConnection.isConnected) { isConnected ->
+            if (isConnected) {
+                mediaSessionConnection.rootMediaId
+            } else {
+                null
             }
+        }
 
     /**
      * [navigateToMediaItem] acts as an "event", rather than state. [Observer]s
@@ -123,8 +124,10 @@ class MainActivityViewModel(private val mediaSessionConnection: MediaSessionConn
                         if (pauseAllowed) transportControls.pause() else Unit
                     playbackState.isPlayEnabled -> transportControls.play()
                     else -> {
-                        Log.w(TAG, "Playable item clicked but neither play nor pause are enabled!" +
-                                " (mediaId=${mediaItem.mediaId})")
+                        Log.w(
+                            TAG, "Playable item clicked but neither play nor pause are enabled!" +
+                                    " (mediaId=${mediaItem.mediaId})"
+                        )
                     }
                 }
             }
@@ -144,8 +147,10 @@ class MainActivityViewModel(private val mediaSessionConnection: MediaSessionConn
                     playbackState.isPlaying -> transportControls.pause()
                     playbackState.isPlayEnabled -> transportControls.play()
                     else -> {
-                        Log.w(TAG, "Playable item clicked but neither play nor pause are enabled!" +
-                                " (mediaId=$mediaId)")
+                        Log.w(
+                            TAG, "Playable item clicked but neither play nor pause are enabled!" +
+                                    " (mediaId=$mediaId)"
+                        )
                     }
                 }
             }
@@ -154,7 +159,8 @@ class MainActivityViewModel(private val mediaSessionConnection: MediaSessionConn
         }
     }
 
-    class Factory(private val mediaSessionConnection: MediaSessionConnection
+    class Factory(
+        private val mediaSessionConnection: MediaSessionConnection
     ) : ViewModelProvider.NewInstanceFactory() {
 
         @Suppress("unchecked_cast")
@@ -169,9 +175,9 @@ class MainActivityViewModel(private val mediaSessionConnection: MediaSessionConn
  * and its corresponding ViewModel.
  */
 data class FragmentNavigationRequest(
-        val fragment: Fragment,
-        val backStack: Boolean = false,
-        val tag: String? = null
+    val fragment: Fragment,
+    val backStack: Boolean = false,
+    val tag: String? = null
 )
 
 private const val TAG = "MainActivitytVM"

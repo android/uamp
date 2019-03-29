@@ -16,31 +16,32 @@
 
 package com.example.android.uamp.viewmodels
 
+import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.MediaBrowserCompat.MediaItem
+import android.support.v4.media.MediaBrowserCompat.SubscriptionCallback
+import android.support.v4.media.MediaMetadataCompat
+import android.support.v4.media.session.PlaybackStateCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import android.support.v4.media.MediaBrowserCompat
-import android.support.v4.media.MediaBrowserCompat.MediaItem
-import android.support.v4.media.MediaBrowserCompat.SubscriptionCallback
-import android.support.v4.media.MediaMetadataCompat
-import android.support.v4.media.session.PlaybackStateCompat
-import com.example.android.uamp.EMPTY_PLAYBACK_STATE
 import com.example.android.uamp.MediaItemData
-import com.example.android.uamp.fragments.MediaItemFragment
-import com.example.android.uamp.MediaSessionConnection
-import com.example.android.uamp.NOTHING_PLAYING
 import com.example.android.uamp.R
+import com.example.android.uamp.common.EMPTY_PLAYBACK_STATE
+import com.example.android.uamp.common.MediaSessionConnection
+import com.example.android.uamp.common.NOTHING_PLAYING
+import com.example.android.uamp.fragments.MediaItemFragment
 import com.example.android.uamp.media.extensions.id
 import com.example.android.uamp.media.extensions.isPlaying
 
 /**
  * [ViewModel] for [MediaItemFragment].
  */
-class MediaItemFragmentViewModel(private val mediaId: String,
-                                 mediaSessionConnection: MediaSessionConnection
+class MediaItemFragmentViewModel(
+    private val mediaId: String,
+    mediaSessionConnection: MediaSessionConnection
 ) : ViewModel() {
 
     /**
@@ -58,12 +59,14 @@ class MediaItemFragmentViewModel(private val mediaId: String,
     private val subscriptionCallback = object : SubscriptionCallback() {
         override fun onChildrenLoaded(parentId: String, children: List<MediaItem>) {
             val itemsList = children.map { child ->
-                MediaItemData(child.mediaId!!,
-                        child.description.title.toString(),
-                        child.description.subtitle.toString(),
-                        child.description.iconUri!!,
-                        child.isBrowsable,
-                        getResourceForMediaId(child.mediaId!!))
+                MediaItemData(
+                    child.mediaId!!,
+                    child.description.title.toString(),
+                    child.description.subtitle.toString(),
+                    child.description.iconUri!!,
+                    child.isBrowsable,
+                    getResourceForMediaId(child.mediaId!!)
+                )
             }
             _mediaItems.postValue(itemsList)
         }
@@ -144,8 +147,10 @@ class MediaItemFragmentViewModel(private val mediaId: String,
         }
     }
 
-    private fun updateState(playbackState: PlaybackStateCompat,
-                            mediaMetadata: MediaMetadataCompat): List<MediaItemData> {
+    private fun updateState(
+        playbackState: PlaybackStateCompat,
+        mediaMetadata: MediaMetadataCompat
+    ): List<MediaItemData> {
 
         val newResId = when (playbackState.isPlaying) {
             true -> R.drawable.ic_pause_black_24dp
@@ -158,8 +163,9 @@ class MediaItemFragmentViewModel(private val mediaId: String,
         } ?: emptyList()
     }
 
-    class Factory(private val mediaId: String,
-                  private val mediaSessionConnection: MediaSessionConnection
+    class Factory(
+        private val mediaId: String,
+        private val mediaSessionConnection: MediaSessionConnection
     ) : ViewModelProvider.NewInstanceFactory() {
 
         @Suppress("unchecked_cast")
