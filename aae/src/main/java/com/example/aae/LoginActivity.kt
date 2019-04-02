@@ -17,6 +17,7 @@
 package com.example.aae
 
 import android.app.Application
+import android.content.ComponentName
 import android.os.Bundle
 import android.text.TextUtils
 import android.util.Log
@@ -28,8 +29,9 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProviders
+import com.example.android.uamp.common.MediaSessionConnection
+import com.example.android.uamp.media.MusicService
 
 /**
  * This class mocks the sign in flow for integration with MediaCenter in Android Auto Embedded.
@@ -77,6 +79,10 @@ class LoginActivity : AppCompatActivity() {
  */
 class LoginActivityViewModel(application: Application) : AndroidViewModel(application) {
     private val applicationContext = application.applicationContext
+    private val mediaSessionConnection = MediaSessionConnection(
+        applicationContext,
+        ComponentName(applicationContext, MusicService::class.java)
+    )
 
     private val _loggedIn = MutableLiveData<Boolean>()
     val loggedIn: LiveData<Boolean> = _loggedIn
@@ -89,8 +95,7 @@ class LoginActivityViewModel(application: Application) : AndroidViewModel(applic
                 Toast.LENGTH_SHORT
             ).show()
         } else {
-            // TODO: Update the PlaybackState in the service to PlaybackStateCompat.STATE_NONE
-            _loggedIn.postValue(true)
+            // TODO: Sign the user in.
         }
 
     }
