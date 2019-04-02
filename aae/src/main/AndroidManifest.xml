@@ -29,7 +29,7 @@
         android:name="android.hardware.type.automotive"
         android:required="true" />
 
-    <uses-sdk tools:overrideLibrary="androidx.car"/>
+    <uses-sdk tools:overrideLibrary="androidx.car" />
 
     <application
         android:allowBackup="true"
@@ -38,18 +38,23 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
-        tools:ignore="GoogleAppIndexingWarning" >
+        tools:ignore="GoogleAppIndexingWarning">
 
-        <activity android:name=".LoginActivity"
-                  android:exported="true">
+        <activity
+            android:name=".LoginActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.ACTION_LOGIN" />
+            </intent-filter>
         </activity>
 
         <!-- Car compatible theme must use minSDK24 -->
-        <activity android:name=".SettingsActivity"
-                  android:theme="@style/Theme.Car.NoActionBar"
-                  android:label="@string/settings_label">
+        <activity
+            android:name=".SettingsActivity"
+            android:label="@string/settings_label"
+            android:theme="@style/Theme.Car.NoActionBar">
             <intent-filter>
-                <action android:name="android.intent.action.APPLICATION_PREFERENCES"/>
+                <action android:name="android.intent.action.APPLICATION_PREFERENCES" />
             </intent-filter>
         </activity>
     </application>

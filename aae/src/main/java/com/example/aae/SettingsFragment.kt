@@ -16,27 +16,56 @@
 
 package com.example.aae
 
+import android.app.Application
+import android.content.ComponentName
 import android.os.Bundle
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModelProviders
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import com.example.android.uamp.common.MediaSessionConnection
+import com.example.android.uamp.media.MusicService
 
 /**
  * Preference fragment hosted by [SettingsActivity]. Handles events to various preference changes.
  */
 class SettingsFragment : PreferenceFragmentCompat() {
+    private lateinit var viewModel: SettingsFragmentViewModel
+
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.preferences, rootKey)
+
+        viewModel = ViewModelProviders
+            .of(this)
+            .get(SettingsFragmentViewModel::class.java)
     }
 
     override fun onPreferenceTreeClick(preference: Preference?): Boolean {
         return when (preference?.key) {
             "logout" -> {
                 //TODO: Update the PlaybackState in the service to PlaybackStateCompat.STATE_ERROR
+                viewModel.logout()
                 requireActivity().finish()
                 true
-            } else -> {
+            }
+            else -> {
                 super.onPreferenceTreeClick(preference)
             }
         }
+    }
+}
+
+/**
+ * Basic ViewModel for [SettingsFragment].
+ */
+class SettingsFragmentViewModel(application: Application) : AndroidViewModel(application) {
+    private val applicationContext = application.applicationContext
+    private val mediaSessionConnection = MediaSessionConnection(
+        applicationContext,
+        ComponentName(applicationContext, MusicService::class.java)
+    )
+
+    fun logout() {
+        // TODO: Sign the user out.
     }
 }
