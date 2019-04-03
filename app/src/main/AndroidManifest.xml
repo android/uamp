@@ -15,8 +15,9 @@
   ~ limitations under the License.
   -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          xmlns:dist="http://schemas.android.com/apk/distribution"
-          package="com.example.android.uamp">
+    xmlns:dist="http://schemas.android.com/apk/distribution"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.example.android.uamp">
 
     <application
         android:allowBackup="true"
@@ -24,11 +25,16 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme"
-        android:targetSandboxVersion="2">
+        android:targetSandboxVersion="2"
+        android:theme="@style/AppTheme">
 
         <!-- Enable instant app support -->
         <dist:module dist:instant="true" />
+
+        <!-- Declare that UAMP supports Android Auto. -->
+        <meta-data
+            android:name="com.google.android.gms.car.application"
+            android:resource="@xml/automotive_app_desc" />
 
         <activity android:name=".MainActivity">
             <intent-filter>
@@ -39,25 +45,45 @@
             <!-- App links for http -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
+
                 <data
-                    android:scheme="http"
                     android:host="example.android.com"
-                    android:pathPattern="/uamp" />
+                    android:pathPattern="/uamp"
+                    android:scheme="http" />
             </intent-filter>
 
             <!-- App links for https -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
+
                 <data
-                    android:scheme="https"
                     android:host="example.android.com"
-                    android:pathPattern="/uamp" />
+                    android:pathPattern="/uamp"
+                    android:scheme="https" />
             </intent-filter>
         </activity>
+
+        <!--
+        Declare the common MediaBrowserService for use in the mobile app, including
+        with the Android Auto app.
+        -->
+        <service
+            android:name=".media.MusicService"
+            android:enabled="true"
+            android:exported="true"
+            tools:ignore="ExportedService">
+
+            <intent-filter>
+                <action android:name="android.media.browse.MediaBrowserService" />
+            </intent-filter>
+        </service>
+
     </application>
 
 </manifest>
