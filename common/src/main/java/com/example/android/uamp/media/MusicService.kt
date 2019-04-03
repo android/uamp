@@ -69,7 +69,7 @@ import kotlinx.coroutines.launch
  * For more information on implementing a MediaBrowserService,
  * visit [https://developer.android.com/guide/topics/media-apps/audio-app/building-a-mediabrowserservice.html](https://developer.android.com/guide/topics/media-apps/audio-app/building-a-mediabrowserservice.html).
  */
-class MusicService : MediaBrowserServiceCompat() {
+open class MusicService : MediaBrowserServiceCompat() {
     private lateinit var mediaSession: MediaSessionCompat
     private lateinit var mediaController: MediaControllerCompat
     private lateinit var becomingNoisyReceiver: BecomingNoisyReceiver
