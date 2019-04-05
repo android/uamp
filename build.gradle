@@ -24,7 +24,7 @@ buildscript {
         targetSdkVersion = 28
 
         // Dependency versions.
-        androidx_app_compat_version = '1.0.2'
+        androidx_app_compat_version = '1.1.0-alpha04'
         androidx_car_version = '1.0.0-alpha7'
         androidx_media_version = '1.0.1'
         androidx_preference_version = '1.0.0'
@@ -49,7 +49,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.3.2'
+        classpath 'com.android.tools.build:gradle:3.4.0-rc03'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "com.google.android.gms:strict-version-matcher-plugin:$gms_strict_version_matcher_version"
 
