@@ -57,5 +57,20 @@
                 <action android:name="android.intent.action.APPLICATION_PREFERENCES" />
             </intent-filter>
         </activity>
+
+        <!--
+        Declare the MediaBrowserService which supports Android Auto Embedded specific
+        extensions.
+        -->
+        <service
+            android:name=".AaeMusicService"
+            android:enabled="true"
+            android:exported="true"
+            tools:ignore="ExportedService">
+
+            <intent-filter>
+                <action android:name="android.media.browse.MediaBrowserService" />
+            </intent-filter>
+        </service>
     </application>
 </manifest>
