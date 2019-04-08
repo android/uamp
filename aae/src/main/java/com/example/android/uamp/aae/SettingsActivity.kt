@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.aae
+package com.example.android.uamp.aae
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
