@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.aae
+package com.example.android.uamp.aae
 
 import android.util.Log
 import com.example.android.uamp.media.MusicService

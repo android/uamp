@@ -17,7 +17,7 @@
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.example.aae">
+    package="com.example.android.uamp.aae">
 
     <!--
     Since this module contains code exclusive to Android Auto Embedded, require the feature here.
