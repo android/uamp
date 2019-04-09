@@ -34,6 +34,7 @@ import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import androidx.media.MediaBrowserServiceCompat
 import com.example.android.uamp.media.extensions.flag
 import com.example.android.uamp.media.library.BrowseTree
@@ -364,12 +365,15 @@ open class MusicService : MediaBrowserServiceCompat() {
                      * state itself, even though the name sounds like it."
                      */
                     if (notification != null) {
+                        notificationManager.notify(NOW_PLAYING_NOTIFICATION, notification)
+
                         if (!isForegroundService) {
-                            startService(Intent(applicationContext, this@MusicService.javaClass))
+                            ContextCompat.startForegroundService(
+                                applicationContext,
+                                Intent(applicationContext, this@MusicService.javaClass)
+                            )
                             startForeground(NOW_PLAYING_NOTIFICATION, notification)
                             isForegroundService = true
-                        } else {
-                            notificationManager.notify(NOW_PLAYING_NOTIFICATION, notification)
                         }
                     }
                 }
