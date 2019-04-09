@@ -16,6 +16,7 @@
 
 package com.example.android.uamp.aae
 
+import android.app.Activity
 import android.app.Application
 import android.content.ComponentName
 import android.os.Bundle
@@ -81,7 +82,7 @@ class LoginActivityViewModel(application: Application) : AndroidViewModel(applic
     private val applicationContext = application.applicationContext
     private val mediaSessionConnection = MediaSessionConnection(
         applicationContext,
-        ComponentName(applicationContext, MusicService::class.java)
+        ComponentName(applicationContext, AaeMusicService::class.java)
     )
 
     private val _loggedIn = MutableLiveData<Boolean>()
@@ -95,7 +96,13 @@ class LoginActivityViewModel(application: Application) : AndroidViewModel(applic
                 Toast.LENGTH_SHORT
             ).show()
         } else {
-            // TODO: Sign the user in.
+            val loginParams = Bundle().apply {
+                putString(LOGIN_EMAIL, email)
+                putString(LOGIN_PASSWORD, password)
+            }
+            mediaSessionConnection.sendCommand(LOGIN, loginParams) { resultCode, _ ->
+                _loggedIn.postValue(resultCode == Activity.RESULT_OK)
+            }
         }
 
     }

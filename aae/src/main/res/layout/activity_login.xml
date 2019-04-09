@@ -14,14 +14,13 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     android:gravity="center"
     android:orientation="vertical"
-    android:padding="@dimen/activity_horizontal_margin"
-    android:fitsSystemWindows="true">
+    android:padding="@dimen/activity_horizontal_margin">
 
     <EditText
         android:id="@+id/email"
@@ -30,7 +29,7 @@
         android:hint="@string/email_hint"
         android:inputType="textEmailAddress"
         android:maxLines="1"
-        android:singleLine="true"/>
+        android:singleLine="true" />
 
     <EditText
         android:id="@+id/password"

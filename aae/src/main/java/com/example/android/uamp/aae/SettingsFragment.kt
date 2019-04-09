@@ -62,10 +62,11 @@ class SettingsFragmentViewModel(application: Application) : AndroidViewModel(app
     private val applicationContext = application.applicationContext
     private val mediaSessionConnection = MediaSessionConnection(
         applicationContext,
-        ComponentName(applicationContext, MusicService::class.java)
+        ComponentName(applicationContext, AaeMusicService::class.java)
     )
 
     fun logout() {
-        // TODO: Sign the user out.
+        // Logout is fire and forget.
+        mediaSessionConnection.sendCommand(LOGOUT, null)
     }
 }
