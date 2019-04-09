@@ -21,4 +21,7 @@
     <string name="email_hint">Email</string>
     <string name="login_button_label">Login</string>
     <string name="missing_fields_error">Please fill in missing fields</string>
+
+    <string name="error_login_button">Login</string>
+    <string name="error_require_login">Authentication required</string>
 </resources>

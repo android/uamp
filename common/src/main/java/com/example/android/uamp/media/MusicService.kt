@@ -70,17 +70,18 @@ import kotlinx.coroutines.launch
  * visit [https://developer.android.com/guide/topics/media-apps/audio-app/building-a-mediabrowserservice.html](https://developer.android.com/guide/topics/media-apps/audio-app/building-a-mediabrowserservice.html).
  */
 open class MusicService : MediaBrowserServiceCompat() {
-    private lateinit var mediaSession: MediaSessionCompat
-    private lateinit var mediaController: MediaControllerCompat
     private lateinit var becomingNoisyReceiver: BecomingNoisyReceiver
     private lateinit var notificationManager: NotificationManagerCompat
     private lateinit var notificationBuilder: NotificationBuilder
     private lateinit var mediaSource: MusicSource
-    private lateinit var mediaSessionConnector: MediaSessionConnector
     private lateinit var packageValidator: PackageValidator
 
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
+
+    protected lateinit var mediaSession: MediaSessionCompat
+    protected lateinit var mediaController: MediaControllerCompat
+    protected lateinit var mediaSessionConnector: MediaSessionConnector
 
     /**
      * This must be `by lazy` because the source won't initially be ready.
