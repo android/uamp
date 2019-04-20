@@ -25,7 +25,7 @@ buildscript {
 
         // Dependency versions.
         androidx_app_compat_version = '1.1.0-alpha04'
-        androidx_car_version = '1.0.0-alpha7'
+        androidx_car_version = '1.0.0-alpha5'
         androidx_core_ktx_version = '1.0.1'
         androidx_media_version = '1.0.1'
         androidx_preference_version = '1.0.0'
