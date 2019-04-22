@@ -84,6 +84,8 @@ open class MusicService : MediaBrowserServiceCompat() {
     protected lateinit var mediaController: MediaControllerCompat
     protected lateinit var mediaSessionConnector: MediaSessionConnector
 
+    private var isSearchSupported : Boolean = false
+
     /**
      * This must be `by lazy` because the source won't initially be ready.
      * See [MusicService.onLoadChildren] to see where it's accessed (and first
@@ -209,6 +211,12 @@ open class MusicService : MediaBrowserServiceCompat() {
         serviceJob.cancel()
     }
 
+    open fun getRootExtras() : Bundle {
+        return Bundle().apply {
+            putBoolean(MEDIA_SEARCH_SUPPORTED, isSearchSupported)
+        }
+    }
+
     /**
      * Returns the "root" media ID that the client should request to get the list of
      * [MediaItem]s to browse/play.
@@ -224,12 +232,8 @@ open class MusicService : MediaBrowserServiceCompat() {
          * about search if permitted by the [BrowseTree].
          */
         val isKnownCaller = packageValidator.isKnownCaller(clientPackageName, clientUid)
-        val rootExtras = Bundle().apply {
-            putBoolean(
-                MEDIA_SEARCH_SUPPORTED,
-                isKnownCaller || browseTree.searchableByUnknownCaller
-            )
-        }
+        isSearchSupported = isKnownCaller || browseTree.searchableByUnknownCaller
+        val rootExtras = getRootExtras()
 
         return if (isKnownCaller) {
             // The caller is allowed to browse, so return the root.
