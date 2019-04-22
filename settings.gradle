@@ -39,4 +39,4 @@ if (extraSettings.exists()) {
     apply from: extraSettings
 }
 
-include ':app', ':common', ':aae'
+include ':app', ':common', ':automotive'
