@@ -84,8 +84,6 @@ open class MusicService : MediaBrowserServiceCompat() {
     protected lateinit var mediaController: MediaControllerCompat
     protected lateinit var mediaSessionConnector: MediaSessionConnector
 
-    private var isSearchSupported : Boolean = false
-
     /**
      * This must be `by lazy` because the source won't initially be ready.
      * See [MusicService.onLoadChildren] to see where it's accessed (and first
@@ -232,8 +230,15 @@ open class MusicService : MediaBrowserServiceCompat() {
          * about search if permitted by the [BrowseTree].
          */
         val isKnownCaller = packageValidator.isKnownCaller(clientPackageName, clientUid)
-        isSearchSupported = isKnownCaller || browseTree.searchableByUnknownCaller
-        val rootExtras = getRootExtras()
+        val rootExtras = Bundle().apply {
+            putBoolean(
+                MEDIA_SEARCH_SUPPORTED,
+                isKnownCaller || browseTree.searchableByUnknownCaller
+            )
+            putBoolean(CONTENT_STYLE_SUPPORTED, true)
+            putInt(CONTENT_STYLE_BROWSABLE_HINT, CONTENT_STYLE_GRID)
+            putInt(CONTENT_STYLE_PLAYABLE_HINT, CONTENT_STYLE_GRID)
+        }
 
         return if (isKnownCaller) {
             // The caller is allowed to browse, so return the root.
@@ -457,5 +462,11 @@ private class BecomingNoisyReceiver(
  * (Media) Session events
  */
 const val NETWORK_FAILURE = "com.example.android.uamp.media.session.NETWORK_FAILURE"
+
+/** Content styling constants */
+private const val CONTENT_STYLE_BROWSABLE_HINT = "android.media.browse.CONTENT_STYLE_BROWSABLE_HINT"
+private const val CONTENT_STYLE_PLAYABLE_HINT = "android.media.browse.CONTENT_STYLE_PLAYABLE_HINT"
+private const val CONTENT_STYLE_SUPPORTED = "android.media.browse.CONTENT_STYLE_SUPPORTED"
+private const val CONTENT_STYLE_GRID = 2
 
 private const val UAMP_USER_AGENT = "uamp.next"
