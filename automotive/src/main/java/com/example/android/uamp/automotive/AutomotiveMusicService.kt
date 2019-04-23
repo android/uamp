@@ -68,19 +68,6 @@ class AutomotiveMusicService : MusicService() {
         }
     }
 
-    /**
-     * Defines the content styling in Automotive's MediaCenter
-     */
-    override fun getRootExtras() : Bundle {
-        return Bundle().apply {
-            putBoolean(MEDIA_SEARCH_SUPPORTED, true)
-            putBoolean(CONTENT_STYLE_SUPPORTED, true)
-            putInt(CONTENT_STYLE_BROWSABLE_HINT, CONTENT_STYLE_GRID)
-            putInt(CONTENT_STYLE_PLAYABLE_HINT, CONTENT_STYLE_GRID)
-        }
-    }
-
-
     private fun onLogin(email: String, password: String): Boolean {
         Log.i(TAG, "User logged in: $email")
         getSharedPreferences(AutomotiveMusicService::class.java.name, Context.MODE_PRIVATE).edit {
@@ -186,11 +173,5 @@ private const val ERROR_RESOLUTION_ACTION_LABEL =
     "android.media.extras.ERROR_RESOLUTION_ACTION_LABEL"
 private const val ERROR_RESOLUTION_ACTION_INTENT =
     "android.media.extras.ERROR_RESOLUTION_ACTION_INTENT"
-
-/** Automotive content styling constants */
-private const val CONTENT_STYLE_BROWSABLE_HINT = "android.media.browse.CONTENT_STYLE_BROWSABLE_HINT"
-private const val CONTENT_STYLE_PLAYABLE_HINT = "android.media.browse.CONTENT_STYLE_PLAYABLE_HINT"
-private const val CONTENT_STYLE_SUPPORTED = "android.media.browse.CONTENT_STYLE_SUPPORTED"
-private const val CONTENT_STYLE_GRID = 2
 
 private const val USER_TOKEN = "com.example.android.uamp.automotive.PREFS.USER_TOKEN"
