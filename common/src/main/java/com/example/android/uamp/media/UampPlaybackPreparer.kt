@@ -29,6 +29,7 @@ import com.example.android.uamp.media.extensions.toMediaSource
 import com.example.android.uamp.media.extensions.trackNumber
 import com.example.android.uamp.media.library.AbstractMusicSource
 import com.example.android.uamp.media.library.MusicSource
+import com.google.android.exoplayer2.ControlDispatcher
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
@@ -115,14 +116,13 @@ class UampPlaybackPreparer(
 
     override fun onPrepareFromUri(uri: Uri?, extras: Bundle?) = Unit
 
-    override fun getCommands(): Array<String>? = null
-
     override fun onCommand(
-            player: Player?,
-            command: String?,
-            extras: Bundle?,
-            cb: ResultReceiver?
-    ) = Unit
+        player: Player?,
+        controlDispatcher: ControlDispatcher?,
+        command: String?,
+        extras: Bundle?,
+        cb: ResultReceiver?
+    ) = false
 
     /**
      * Builds a playlist based on a [MediaMetadataCompat].

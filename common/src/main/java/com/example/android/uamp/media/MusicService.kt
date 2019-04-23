@@ -161,7 +161,7 @@ open class MusicService : MediaBrowserServiceCompat() {
         }
 
         // ExoPlayer will manage the MediaSession for us.
-        mediaSessionConnector = MediaSessionConnector(mediaSession).also {
+        mediaSessionConnector = MediaSessionConnector(mediaSession).also { connector ->
             // Produces DataSource instances through which media data is loaded.
             val dataSourceFactory = DefaultDataSourceFactory(
                 this, Util.getUserAgent(this, UAMP_USER_AGENT), null
@@ -174,8 +174,9 @@ open class MusicService : MediaBrowserServiceCompat() {
                 dataSourceFactory
             )
 
-            it.setPlayer(exoPlayer, playbackPreparer)
-            it.setQueueNavigator(UampQueueNavigator(mediaSession))
+            connector.setPlayer(exoPlayer)
+            connector.setPlaybackPreparer(playbackPreparer)
+            connector.setQueueNavigator(UampQueueNavigator(mediaSession))
         }
 
         packageValidator = PackageValidator(this, R.xml.allowed_media_browser_callers)
@@ -207,12 +208,6 @@ open class MusicService : MediaBrowserServiceCompat() {
 
         // Cancel coroutines when the service is going away.
         serviceJob.cancel()
-    }
-
-    open fun getRootExtras() : Bundle {
-        return Bundle().apply {
-            putBoolean(MEDIA_SEARCH_SUPPORTED, isSearchSupported)
-        }
     }
 
     /**
