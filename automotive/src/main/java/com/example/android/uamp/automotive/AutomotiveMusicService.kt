@@ -23,13 +23,14 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.os.ResultReceiver
-import android.support.v4.media.session.MediaSessionCompat.Callback
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import androidx.core.content.edit
 import com.example.android.uamp.media.MusicService
-import com.example.android.uamp.media.library.MEDIA_SEARCH_SUPPORTED
+import com.google.android.exoplayer2.ControlDispatcher
+import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
+import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector.CommandReceiver
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 /** UAMP specific command for logging into the service. */
@@ -41,7 +42,7 @@ const val LOGOUT = "com.example.android.uamp.automotive.COMMAND.LOGOUT"
 const val LOGIN_EMAIL = "com.example.android.uamp.automotive.ARGS.LOGIN_EMAIL"
 const val LOGIN_PASSWORD = "com.example.android.uamp.automotive.ARGS.LOGIN_PASSWORD"
 
-typealias CommandHandler = (parameters: Bundle) -> Int
+typealias CommandHandler = (parameters: Bundle, callback: ResultReceiver?) -> Boolean
 
 /**
  * Android Automotive specific extensions for [MusicService].
@@ -54,16 +55,16 @@ typealias CommandHandler = (parameters: Bundle) -> Int
  * comment out the calls to [requireLogin].
  */
 class AutomotiveMusicService : MusicService() {
-    private var isAuthenticated = false
 
     @ExperimentalCoroutinesApi
     override fun onCreate() {
         super.onCreate()
 
-        mediaSession.setCallback(commandCallback)
-        isAuthenticated = verifyLogin()
+        // Register to handle login/logout commands.
+        mediaSessionConnector.registerCustomCommandReceiver(AutomotiveCommandReceiver())
 
-        if (!isAuthenticated) {
+        // Require the user to be logged in for demonstration purposes.
+        if (!isAuthenticated()) {
             requireLogin()
         }
     }
@@ -89,7 +90,7 @@ class AutomotiveMusicService : MusicService() {
      * In a real system, credentials should probably be handled by the
      * [AccountManager] APIs.
      */
-    private fun verifyLogin() =
+    private fun isAuthenticated() =
         getSharedPreferences(AutomotiveMusicService::class.java.name, Context.MODE_PRIVATE)
             .contains(USER_TOKEN)
 
@@ -106,65 +107,73 @@ class AutomotiveMusicService : MusicService() {
             putString(ERROR_RESOLUTION_ACTION_LABEL, getString(R.string.error_login_button))
             putParcelable(ERROR_RESOLUTION_ACTION_INTENT, loginActivityPendingIntent)
         }
-
-        // Sets the playback state to an error state
-        // to notify subscribers that authentication is required
-        val playbackState = PlaybackStateCompat.Builder()
-            .setState(PlaybackStateCompat.STATE_ERROR, 0, 0f)
-            .setErrorMessage(
-                PlaybackStateCompat.ERROR_CODE_AUTHENTICATION_EXPIRED,
-                getString(R.string.error_require_login)
-            )
-            .setExtras(extras)
-            .build()
-        mediaSession.setPlaybackState(playbackState)
+        mediaSessionConnector.setCustomErrorMessage(
+            getString(R.string.error_require_login),
+            PlaybackStateCompat.ERROR_CODE_AUTHENTICATION_EXPIRED,
+            extras
+        )
     }
 
     /**
-     * Command handling routine. This should eventually be taken care of by the ExoPlayer
-     * [MediaSessionConnector].
+     * This is the entry point for custom commands received by ExoPlayer's
+     * [MediaSessionConnector.customCommandReceivers].
+     *
+     * The extension will call each [CommandReceiver] in turn. If the [CommandReceiver] can
+     * handle the command, it returns `true` to indicate the command's been handled and
+     * processing should stop. If the [CommandReceiver] cannot/doesn't want to handle the
+     * command, it should return `false`.
+     *
+     * We simplify this a bit by having our own [CommandHandler] that works with a single
+     * command (either "log in" or "log out"). Each of these returns true at the end of its
+     * processing.
+     *
+     * If the command received isn't either of our commands, we just return `false`.
+     *
+     * Suppress the warning because the original name, `cb` is not as clear as to its purpose.
      */
-    private val commandCallback = object : Callback() {
-        override fun onCommand(command: String?, extras: Bundle?, resultReceiver: ResultReceiver?) {
-            val parameters = extras ?: Bundle.EMPTY
-            val returnCode = when (command) {
-                LOGIN -> loginCommand(parameters)
-                LOGOUT -> logoutCommand(parameters)
-                else -> {
-                    super.onCommand(command, extras, resultReceiver)
-                    null
-                }
+    private inner class AutomotiveCommandReceiver : CommandReceiver {
+        @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
+        override fun onCommand(
+            player: Player?,
+            controlDispatcher: ControlDispatcher?,
+            command: String?,
+            extras: Bundle?,
+            callback: ResultReceiver?
+        ): Boolean =
+            when (command) {
+                LOGIN -> loginCommand(extras ?: Bundle.EMPTY, callback)
+                LOGOUT -> logoutCommand(extras ?: Bundle.EMPTY, callback)
+                else -> false
             }
-
-            // Send back a return code.
-            returnCode?.let { resultReceiver?.send(returnCode, Bundle.EMPTY) }
-        }
     }
 
-    private val loginCommand: CommandHandler = { extras ->
+    private val loginCommand: CommandHandler = { extras, callback ->
         val email = extras.getString(LOGIN_EMAIL) ?: ""
         val password = extras.getString(LOGIN_PASSWORD) ?: ""
 
-        isAuthenticated = onLogin(email, password)
-        if (isAuthenticated) {
-            // Send updated state now that the user has logged in.
+        if (onLogin(email, password)) {
+            // Updated state (including clearing the error) now that the user has logged in.
+            mediaSessionConnector.setCustomErrorMessage(null)
             mediaSessionConnector.invalidateMediaSessionPlaybackState()
 
-            Activity.RESULT_OK
+            callback?.send(Activity.RESULT_OK, Bundle.EMPTY)
         } else {
             // Login is required - note this.
             requireLogin()
 
-            Activity.RESULT_CANCELED
+            callback?.send(Activity.RESULT_CANCELED, Bundle.EMPTY)
         }
+        true
     }
 
-    private val logoutCommand: CommandHandler = { _ ->
-        isAuthenticated = onLogout()
+    private val logoutCommand: CommandHandler = { _, callback ->
+        // Log the user out.
+        onLogout()
 
         // Login is required - note this.
         requireLogin()
-        Activity.RESULT_OK
+        callback?.send(Activity.RESULT_OK, Bundle.EMPTY)
+        true
     }
 }
 
