@@ -55,6 +55,9 @@ class LoginActivity : AppCompatActivity() {
         inputPassword = findViewById(R.id.password)
         signInButton = findViewById(R.id.sign_in_button)
 
+        supportActionBar?.setHomeButtonEnabled(true)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
         viewModel = ViewModelProviders
             .of(this)
             .get(LoginActivityViewModel::class.java)
@@ -72,6 +75,16 @@ class LoginActivity : AppCompatActivity() {
 
             viewModel.login(email, password)
         }
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        finish()
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        onBackPressed()
+        return true
     }
 }
 

@@ -17,15 +17,14 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
-    android:gravity="center"
     android:orientation="vertical"
-    android:padding="@dimen/activity_horizontal_margin">
+    android:gravity="center">
 
     <EditText
         android:id="@+id/email"
         android:layout_width="400dp"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:hint="@string/email_hint"
         android:inputType="textEmailAddress"
         android:maxLines="1"
@@ -35,6 +34,7 @@
         android:id="@+id/password"
         android:layout_width="400dp"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:focusableInTouchMode="true"
         android:hint="@string/password_hint"
         android:imeActionLabel="@+id/login"
@@ -43,14 +43,13 @@
         android:maxLines="1"
         android:singleLine="true" />
 
-    <!-- Link to Login Screen -->
-
     <Button
         android:id="@+id/sign_in_button"
         style="?android:textAppearanceSmall"
         android:layout_width="400dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
+        android:layout_gravity="center"
         android:background="@color/colorAccent"
         android:text="@string/login_button_label"
         android:textColor="@android:color/black"
