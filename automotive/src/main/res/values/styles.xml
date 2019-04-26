@@ -17,11 +17,21 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="AppTheme" parent="Theme.Car.Dark.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+
+        <item name="android:background">@color/darkBackground</item>
+    </style>
+
+    <style name="AppTheme.Drawer" parent="Theme.Car.Dark.NoActionBar.Drawer">
+        <item name="carToolbarStyle">@style/AppToolbar</item>
+    </style>
+
+    <style name="AppToolbar" parent="Widget.Car.CarToolbar">
+        <item name="android:background">@color/colorPrimary</item>
     </style>
 
 </resources>
