@@ -25,7 +25,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import com.bumptech.glide.Glide
 import com.example.android.uamp.MediaItemData.Companion.PLAYBACK_RES_CHANGED
-import kotlinx.android.synthetic.main.fragment_mediaitem.view.albumbArt
+import kotlinx.android.synthetic.main.fragment_mediaitem.view.albumArt
 import kotlinx.android.synthetic.main.fragment_mediaitem.view.item_state
 import kotlinx.android.synthetic.main.fragment_mediaitem.view.subtitle
 import kotlinx.android.synthetic.main.fragment_mediaitem.view.title
@@ -87,7 +87,7 @@ class MediaViewHolder(view: View,
 
     val titleView: TextView = view.title
     val subtitleView: TextView = view.subtitle
-    val albumArt: ImageView = view.albumbArt
+    val albumArt: ImageView = view.albumArt
     val playbackState: ImageView = view.item_state
 
     var item: MediaItemData? = null
