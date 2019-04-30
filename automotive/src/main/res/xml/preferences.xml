@@ -18,11 +18,13 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <PreferenceCategory
-        android:title="Account">
+        android:title="Account"
+        android:layout="@layout/preference_category">
 
         <Preference
             android:key="logout"
-            android:title="Log Out"/>
+            android:title="Log Out"
+            android:layout="@layout/preference"/>
 
     </PreferenceCategory>
 

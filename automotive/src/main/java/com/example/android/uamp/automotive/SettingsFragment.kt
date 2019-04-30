@@ -42,7 +42,6 @@ class SettingsFragment : PreferenceFragmentCompat() {
     override fun onPreferenceTreeClick(preference: Preference?): Boolean {
         return when (preference?.key) {
             "logout" -> {
-                //TODO: Update the PlaybackState in the service to PlaybackStateCompat.STATE_ERROR
                 viewModel.logout()
                 requireActivity().finish()
                 true

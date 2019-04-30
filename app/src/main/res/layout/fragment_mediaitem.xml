@@ -24,7 +24,7 @@
     android:background="@drawable/media_item_background">
 
     <ImageView
-        android:id="@+id/albumbArt"
+        android:id="@+id/albumArt"
         android:layout_width="@dimen/media_item_art"
         android:layout_height="@dimen/media_item_art"
         android:scaleType="centerCrop"
@@ -39,20 +39,20 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:scaleType="center"
-        app:layout_constraintBottom_toBottomOf="@+id/albumbArt"
-        app:layout_constraintLeft_toLeftOf="@+id/albumbArt"
-        app:layout_constraintRight_toRightOf="@+id/albumbArt"
-        app:layout_constraintTop_toTopOf="@+id/albumbArt"
+        app:layout_constraintBottom_toBottomOf="@+id/albumArt"
+        app:layout_constraintLeft_toLeftOf="@+id/albumArt"
+        app:layout_constraintRight_toRightOf="@+id/albumArt"
+        app:layout_constraintTop_toTopOf="@+id/albumArt"
         tools:ignore="ContentDescription" />
 
     <ImageView
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:src="@drawable/media_item_mask"
-        app:layout_constraintBottom_toBottomOf="@+id/albumbArt"
-        app:layout_constraintLeft_toLeftOf="@+id/albumbArt"
-        app:layout_constraintRight_toRightOf="@+id/albumbArt"
-        app:layout_constraintTop_toTopOf="@+id/albumbArt"
+        app:layout_constraintBottom_toBottomOf="@+id/albumArt"
+        app:layout_constraintLeft_toLeftOf="@+id/albumArt"
+        app:layout_constraintRight_toRightOf="@+id/albumArt"
+        app:layout_constraintTop_toTopOf="@+id/albumArt"
         tools:ignore="ContentDescription" />
 
     <TextView
@@ -65,7 +65,7 @@
         android:maxLines="1"
         android:textAppearance="@style/TextAppearance.Uamp.Title"
         app:layout_constraintBottom_toTopOf="@+id/center_guideline"
-        app:layout_constraintLeft_toRightOf="@+id/albumbArt"
+        app:layout_constraintLeft_toRightOf="@+id/albumArt"
         app:layout_constraintRight_toRightOf="parent"
         tools:text="Song Title" />
 

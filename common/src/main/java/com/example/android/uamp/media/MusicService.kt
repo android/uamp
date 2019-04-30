@@ -90,7 +90,7 @@ open class MusicService : MediaBrowserServiceCompat() {
      * constructed).
      */
     private val browseTree: BrowseTree by lazy {
-        BrowseTree(mediaSource)
+        BrowseTree(applicationContext, mediaSource)
     }
 
     private var isForegroundService = false
@@ -232,7 +232,7 @@ open class MusicService : MediaBrowserServiceCompat() {
             )
             putBoolean(CONTENT_STYLE_SUPPORTED, true)
             putInt(CONTENT_STYLE_BROWSABLE_HINT, CONTENT_STYLE_GRID)
-            putInt(CONTENT_STYLE_PLAYABLE_HINT, CONTENT_STYLE_GRID)
+            putInt(CONTENT_STYLE_PLAYABLE_HINT, CONTENT_STYLE_LIST)
         }
 
         return if (isKnownCaller) {
@@ -462,6 +462,7 @@ const val NETWORK_FAILURE = "com.example.android.uamp.media.session.NETWORK_FAIL
 private const val CONTENT_STYLE_BROWSABLE_HINT = "android.media.browse.CONTENT_STYLE_BROWSABLE_HINT"
 private const val CONTENT_STYLE_PLAYABLE_HINT = "android.media.browse.CONTENT_STYLE_PLAYABLE_HINT"
 private const val CONTENT_STYLE_SUPPORTED = "android.media.browse.CONTENT_STYLE_SUPPORTED"
+private const val CONTENT_STYLE_LIST = 1
 private const val CONTENT_STYLE_GRID = 2
 
 private const val UAMP_USER_AGENT = "uamp.next"

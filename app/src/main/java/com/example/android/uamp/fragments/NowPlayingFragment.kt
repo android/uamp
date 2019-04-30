@@ -89,7 +89,7 @@ class NowPlayingFragment : Fragment() {
      * Internal function used to update all UI elements except for the current item playback
      */
     private fun updateUI(view: View, metadata: NowPlayingFragmentViewModel.NowPlayingMetadata) {
-        val albumArtView = view.findViewById<ImageView>(R.id.albumbArt)
+        val albumArtView = view.findViewById<ImageView>(R.id.albumArt)
         if (metadata.albumArtUri == Uri.EMPTY) {
             albumArtView.setImageResource(R.drawable.ic_album_black_24dp)
         } else {
