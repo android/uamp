@@ -4,7 +4,7 @@
 # End users may safely ignore this file. It has no relevance to other systems.
 ---
 status:       PUBLISHED
-technologies: [Android, Android Auto, Android Wear]
+technologies: [Android, Android Auto, Android Automotive OS, Android Wear]
 categories:   [Getting Started, Media, UI]
 languages:    [Kotlin]
 solutions:    [Mobile]
@@ -18,9 +18,9 @@ icon: screenshots/icon-web.png
 apiRefs:
     - android:android.support.v4.media.session.MediaSessionCompat
     - android:android.support.v4.media.session.MediaControllerCompat
-    - android:android.support.v4.media.session.MediaBrowserServiceCompat
+    - androidx.media.MediaBrowserServiceCompat
     - android:android.support.v4.media.MediaBrowserCompat
-    - android:android.support.v4.media.app.NotificationCompat.MediaStyle
+    - androidx.media.app.NotificationCompat.MediaStyle
     - android:com.google.android.exoplayer2.SimpleExoPlayer
     - android:com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 
