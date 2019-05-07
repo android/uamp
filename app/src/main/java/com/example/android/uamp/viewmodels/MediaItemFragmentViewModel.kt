@@ -81,7 +81,9 @@ class MediaItemFragmentViewModel(
     private val playbackStateObserver = Observer<PlaybackStateCompat> {
         val playbackState = it ?: EMPTY_PLAYBACK_STATE
         val metadata = mediaSessionConnection.nowPlaying.value ?: NOTHING_PLAYING
-        _mediaItems.postValue(updateState(playbackState, metadata))
+        if (metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID) != null) {
+            _mediaItems.postValue(updateState(playbackState, metadata))
+        }
     }
 
     /**
@@ -93,7 +95,9 @@ class MediaItemFragmentViewModel(
     private val mediaMetadataObserver = Observer<MediaMetadataCompat> {
         val playbackState = mediaSessionConnection.playbackState.value ?: EMPTY_PLAYBACK_STATE
         val metadata = it ?: NOTHING_PLAYING
-        _mediaItems.postValue(updateState(playbackState, metadata))
+        if (metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID) != null) {
+            _mediaItems.postValue(updateState(playbackState, metadata))
+        }
     }
 
     /**

@@ -24,7 +24,7 @@
     android:background="@drawable/media_item_background">
 
     <ImageView
-        android:id="@+id/albumbArt"
+        android:id="@+id/albumArt"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="centerCrop"
