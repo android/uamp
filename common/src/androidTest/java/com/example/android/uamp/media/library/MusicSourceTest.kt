@@ -151,6 +151,12 @@ class MusicSourceTest {
 
 class TestMusicSource(private val music: List<MediaMetadataCompat>
 ) : AbstractMusicSource(), Iterable<MediaMetadataCompat> by music {
+    override suspend fun load() {
+        TODO(
+            "not implemented"
+        ) //To change body of created functions use File | Settings | File Templates.
+    }
+
     fun prepare() {
         state = STATE_INITIALIZED
     }
