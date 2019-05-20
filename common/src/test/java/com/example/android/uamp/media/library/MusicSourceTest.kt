@@ -18,17 +18,16 @@ package com.example.android.uamp.media.library
 
 import android.os.Bundle
 import android.provider.MediaStore
-import androidx.test.runner.AndroidJUnit4
 import android.support.v4.media.MediaMetadataCompat
 import com.example.android.uamp.media.extensions.album
 import com.example.android.uamp.media.extensions.artist
 import com.example.android.uamp.media.extensions.genre
 import com.example.android.uamp.media.extensions.id
 import com.example.android.uamp.media.extensions.title
-import junit.framework.Assert
-import org.junit.Before
+import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 /**
  * A small set of Android integration tests for (primarily) [AbstractMusicSource].
@@ -36,7 +35,7 @@ import org.junit.runner.RunWith
  * The tests all use an extension of [AbstractMusicSource] which is defined at the
  * bottom of this file: [TestMusicSource].
  */
-@RunWith(AndroidJUnit4::class)
+@RunWith(RobolectricTestRunner::class)
 class MusicSourceTest {
 
     private val musicList = listOf<MediaMetadataCompat>(
@@ -151,11 +150,7 @@ class MusicSourceTest {
 
 class TestMusicSource(private val music: List<MediaMetadataCompat>
 ) : AbstractMusicSource(), Iterable<MediaMetadataCompat> by music {
-    override suspend fun load() {
-        TODO(
-            "not implemented"
-        ) //To change body of created functions use File | Settings | File Templates.
-    }
+    override suspend fun load() = Unit
 
     fun prepare() {
         state = STATE_INITIALIZED

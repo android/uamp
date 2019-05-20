@@ -29,6 +29,7 @@ android {
         minSdkVersion rootProject.minSdkVersion
         targetSdkVersion rootProject.targetSdkVersion
 
+        testOptions.unitTests.includeAndroidResources = true
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
 
@@ -74,5 +75,6 @@ dependencies {
     kapt "com.github.bumptech.glide:compiler:$glide_version"
 
     // Testing
-    androidTestImplementation "androidx.test:runner:$test_runner_version"
+    testImplementation "junit:junit:$junit_version"
+    testImplementation "org.robolectric:robolectric:$robolectric_version"
 }
