@@ -137,9 +137,7 @@ class BrowseTree(context: Context, musicSource: MusicSource) {
 
         // Insert the album's root with an empty list for its children, and return the list.
         return mutableListOf<MediaMetadataCompat>().also {
-            albumMetadata.id?.let { albumMetadataId ->
-                mediaIdToChildren[albumMetadataId] = it
-            }
+            mediaIdToChildren[albumMetadata.id] = it
         }
     }
 }

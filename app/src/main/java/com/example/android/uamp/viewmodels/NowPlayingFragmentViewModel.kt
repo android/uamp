@@ -169,15 +169,13 @@ class NowPlayingFragmentViewModel(
 
         // Only update media item once we have duration available
         if (mediaMetadata.duration != 0L) {
-            val nowPlayingMetadata = mediaMetadata.id?.let {
-                NowPlayingMetadata(
-                    it,
-                    mediaMetadata.albumArtUri,
-                    mediaMetadata.title?.trim(),
-                    mediaMetadata.displaySubtitle?.trim(),
-                    NowPlayingMetadata.timestampToMSS(app, mediaMetadata.duration)
-                )
-            }
+            val nowPlayingMetadata = NowPlayingMetadata(
+                mediaMetadata.id,
+                mediaMetadata.albumArtUri,
+                mediaMetadata.title?.trim(),
+                mediaMetadata.displaySubtitle?.trim(),
+                NowPlayingMetadata.timestampToMSS(app, mediaMetadata.duration)
+            )
             this.mediaMetadata.postValue(nowPlayingMetadata)
         }
 
