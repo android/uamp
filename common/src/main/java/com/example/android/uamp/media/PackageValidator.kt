@@ -132,6 +132,12 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
              * with apps such as Wear OS.
              */
             callerPackageInfo.permissions.contains(BIND_NOTIFICATION_LISTENER_SERVICE) -> true
+            /**
+             * Whitelist the com.example.* package name for MCT.
+             * https://github.com/googlesamples/android-media-controller.
+             * com.example.* apps cannot be distributed on Google Play.
+             */
+            callingPackage.startsWith("com.example.") -> true
             // If none of the pervious checks succeeded, then the caller is unrecognized.
             else -> false
         }
