@@ -77,7 +77,7 @@ class BrowseTree(context: Context, musicSource: MusicSource) {
         val recommendedMetadata = MediaMetadataCompat.Builder().apply {
             id = UAMP_RECOMMENDED_ROOT
             title = context.getString(R.string.recommended_title)
-            albumArtUri = imageUriRoot +
+            albumArtUri = RESOURCE_ROOT_URI +
                     context.resources.getResourceEntryName(R.drawable.ic_recommended)
             flag = MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
         }.build()
@@ -85,7 +85,8 @@ class BrowseTree(context: Context, musicSource: MusicSource) {
         val albumsMetadata = MediaMetadataCompat.Builder().apply {
             id = UAMP_ALBUMS_ROOT
             title = context.getString(R.string.albums_title)
-            albumArtUri = imageUriRoot + context.resources.getResourceEntryName(R.drawable.ic_album)
+            albumArtUri = RESOURCE_ROOT_URI +
+              context.resources.getResourceEntryName(R.drawable.ic_album)
             flag = MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
         }.build()
 
@@ -149,4 +150,4 @@ const val UAMP_ALBUMS_ROOT = "__ALBUMS__"
 
 const val MEDIA_SEARCH_SUPPORTED = "android.media.browse.SEARCH_SUPPORTED"
 
-const val imageUriRoot = "android.resource://com.example.android.uamp.next/drawable/"
+const val RESOURCE_ROOT_URI = "android.resource://com.example.android.uamp.next/drawable/"
