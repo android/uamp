@@ -58,6 +58,8 @@ dependencies {
     implementation "androidx.appcompat:appcompat:$androidx_app_compat_version"
     implementation "androidx.lifecycle:lifecycle-extensions:$arch_lifecycle_version"
 
+    implementation "com.google.android.gms:play-services-auth:$play_services_auth_version"
+
     testImplementation "junit:junit:$junit_version"
 
     androidTestImplementation "androidx.test:runner:$androidx_test_runner_version"
