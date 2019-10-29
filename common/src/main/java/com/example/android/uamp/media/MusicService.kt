@@ -340,14 +340,22 @@ open class MusicService : MediaBrowserServiceCompat() {
      */
     private inner class MediaControllerCallback : MediaControllerCompat.Callback() {
         override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
-            mediaController.playbackState?.let { updateNotification(it) }
+            mediaController.playbackState?.let { state ->
+                serviceScope.launch {
+                    updateNotification(state)
+                }
+            }
         }
 
         override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
-            state?.let { updateNotification(it) }
+            state?.let { state ->
+                serviceScope.launch {
+                    updateNotification(state)
+                }
+            }
         }
 
-        private fun updateNotification(state: PlaybackStateCompat) {
+        private suspend fun updateNotification(state: PlaybackStateCompat) {
             val updatedState = state.state
 
             // Skip building a notification when state is "none" and metadata is null.
