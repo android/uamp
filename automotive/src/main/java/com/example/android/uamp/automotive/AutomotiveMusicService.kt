@@ -101,7 +101,7 @@ class AutomotiveMusicService : MusicService() {
      * that Android Automotive OS requires.
      */
     private fun requireLogin() {
-        val loginIntent = Intent(this, LoginActivity::class.java)
+        val loginIntent = Intent(this, SignInActivity::class.java)
         val loginActivityPendingIntent = PendingIntent.getActivity(this, 0, loginIntent, 0)
         val extras = Bundle().apply {
             putString(ERROR_RESOLUTION_ACTION_LABEL, getString(R.string.error_login_button))

@@ -17,4 +17,45 @@
 <resources>
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
+
+    <dimen name="display_text_size">64sp</dimen>
+    <dimen name="primary_text_size">32sp</dimen>
+    <dimen name="secondary_text_size">26sp</dimen>
+
+    <dimen name="button_min_width">158dp</dimen>
+    <dimen name="button_height">56dp</dimen>
+    <dimen name="button_padding">56dp</dimen>
+
+    <dimen name="sign_in_toolbar_padding">24dp</dimen>
+    <dimen name="sign_in_toolbar_nav_button_size">48dp</dimen>
+    <dimen name="sign_in_toolbar_height">96dp</dimen>
+
+    <dimen name="sign_in_input_box_radius">4dp</dimen>
+    <dimen name="sign_in_input_box_stroke_width">2dp</dimen>
+
+    <dimen name="sign_in_button_corner_radius">28dp</dimen>
+
+    <dimen name="sign_in_app_icon_top_margin">48dp</dimen>
+    <dimen name="sign_in_app_icon_max_height">96dp</dimen>
+
+    <dimen name="sign_in_primary_message_top_margin">32dp</dimen>
+    <dimen name="sign_in_secondary_message_top_margin">24dp</dimen>
+
+    <dimen name="sign_in_text_max_width">642dp</dimen>
+    <dimen name="sign_in_button_max_width">420dp</dimen>
+    <dimen name="sign_in_input_top_margin">48dp</dimen>
+
+    <dimen name="sign_in_button1_top_margin">48dp</dimen>
+    <dimen name="sign_in_button2_top_margin">32dp</dimen>
+    <dimen name="sign_in_button1_top_margin_no_input">64dp</dimen>
+    <dimen name="sign_in_button2_top_margin_no_input">48dp</dimen>
+
+    <dimen name="sign_in_pin_container_margin">16dp</dimen>
+    <dimen name="sign_in_pin_container_padding">8dp</dimen>
+    <dimen name="sign_in_pin_container_corner_radius">4dp</dimen>
+
+    <dimen name="sign_in_footer_top_margin">96dp</dimen>
+    <dimen name="sign_in_footer_bottom_margin">32dp</dimen>
+    <dimen name="sign_in_horizontal_start_guideline">0.1</dimen>
+    <dimen name="sign_in_horizontal_end_guideline">0.9</dimen>
 </resources>
