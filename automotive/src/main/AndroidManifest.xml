@@ -41,10 +41,10 @@
         tools:ignore="GoogleAppIndexingWarning">
 
         <activity
-            android:name=".LoginActivity"
+            android:name=".SignInActivity"
             android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.ACTION_LOGIN" />
+                <action android:name="android.intent.action.ACTION_SIGN_IN" />
             </intent-filter>
         </activity>
 

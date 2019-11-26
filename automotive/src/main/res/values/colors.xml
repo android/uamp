@@ -19,4 +19,13 @@
     <color name="colorPrimaryDark">#710144</color>
     <color name="colorAccent">#14A5A1</color>
     <color name="darkBackground">#202020</color>
+
+    <color name="grey_100">#fff1f3f4</color>
+    <color name="grey_300">#ffdadce0</color>
+
+    <color name="google_sign_in_button_background_color">#ffffffff</color>
+
+    <!-- Workaround for issue where unfocused state for textInputLayout outline box does not reflect
+     set color. Resolved in 1.1.0-alpha2 . -->
+    <color name="mtrl_textinput_default_box_stroke_color">@color/grey_300</color>
 </resources>
