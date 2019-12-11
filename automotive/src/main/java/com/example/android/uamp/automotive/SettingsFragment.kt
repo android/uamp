@@ -23,7 +23,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModelProviders
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
-import com.example.android.uamp.common.MediaSessionConnection
+import com.example.android.uamp.common.MusicServiceConnection
 
 /**
  * Preference fragment hosted by [SettingsActivity]. Handles events to various preference changes.
@@ -58,13 +58,13 @@ class SettingsFragment : PreferenceFragmentCompat() {
  */
 class SettingsFragmentViewModel(application: Application) : AndroidViewModel(application) {
     private val applicationContext = application.applicationContext
-    private val mediaSessionConnection = MediaSessionConnection(
+    private val musicServiceConnection = MusicServiceConnection(
         applicationContext,
         ComponentName(applicationContext, AutomotiveMusicService::class.java)
     )
 
     fun logout() {
         // Logout is fire and forget.
-        mediaSessionConnection.sendCommand(LOGOUT, null)
+        musicServiceConnection.sendCommand(LOGOUT, null)
     }
 }
