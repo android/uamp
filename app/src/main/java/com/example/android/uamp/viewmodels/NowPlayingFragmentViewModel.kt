@@ -31,7 +31,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.android.uamp.R
 import com.example.android.uamp.common.EMPTY_PLAYBACK_STATE
-import com.example.android.uamp.common.MediaSessionConnection
+import com.example.android.uamp.common.MusicServiceConnection
 import com.example.android.uamp.common.NOTHING_PLAYING
 import com.example.android.uamp.fragments.NowPlayingFragment
 import com.example.android.uamp.media.extensions.albumArtUri
@@ -48,8 +48,8 @@ import com.example.android.uamp.media.extensions.title
  * resources.
  */
 class NowPlayingFragmentViewModel(
-    private val app: Application,
-    mediaSessionConnection: MediaSessionConnection
+        private val app: Application,
+        musicServiceConnection: MusicServiceConnection
 ) : AndroidViewModel(app) {
 
     /**
@@ -97,7 +97,7 @@ class NowPlayingFragmentViewModel(
      */
     private val playbackStateObserver = Observer<PlaybackStateCompat> {
         playbackState = it ?: EMPTY_PLAYBACK_STATE
-        val metadata = mediaSessionConnection.nowPlaying.value ?: NOTHING_PLAYING
+        val metadata = musicServiceConnection.nowPlaying.value ?: NOTHING_PLAYING
         updateState(playbackState, metadata)
     }
 
@@ -112,20 +112,20 @@ class NowPlayingFragmentViewModel(
     }
 
     /**
-     * Because there's a complex dance between this [ViewModel] and the [MediaSessionConnection]
+     * Because there's a complex dance between this [ViewModel] and the [MusicServiceConnection]
      * (which is wrapping a [MediaBrowserCompat] object), the usual guidance of using
      * [Transformations] doesn't quite work.
      *
      * Specifically there's three things that are watched that will cause the single piece of
      * [LiveData] exposed from this class to be updated.
      *
-     * [MediaSessionConnection.playbackState] changes state based on the playback state of
+     * [MusicServiceConnection.playbackState] changes state based on the playback state of
      * the player, which can change the [MediaItemData.playbackRes]s in the list.
      *
-     * [MediaSessionConnection.nowPlaying] changes based on the item that's being played,
+     * [MusicServiceConnection.nowPlaying] changes based on the item that's being played,
      * which can also change the [MediaItemData.playbackRes]s in the list.
      */
-    private val mediaSessionConnection = mediaSessionConnection.also {
+    private val musicServiceConnection = musicServiceConnection.also {
         it.playbackState.observeForever(playbackStateObserver)
         it.nowPlaying.observeForever(mediaMetadataObserver)
         checkPlaybackPosition()
@@ -145,18 +145,18 @@ class NowPlayingFragmentViewModel(
     }, POSITION_UPDATE_INTERVAL_MILLIS)
 
     /**
-     * Since we use [LiveData.observeForever] above (in [mediaSessionConnection]), we want
+     * Since we use [LiveData.observeForever] above (in [musicServiceConnection]), we want
      * to call [LiveData.removeObserver] here to prevent leaking resources when the [ViewModel]
      * is not longer in use.
      *
-     * For more details, see the kdoc on [mediaSessionConnection] above.
+     * For more details, see the kdoc on [musicServiceConnection] above.
      */
     override fun onCleared() {
         super.onCleared()
 
-        // Remove the permanent observers from the MediaSessionConnection.
-        mediaSessionConnection.playbackState.removeObserver(playbackStateObserver)
-        mediaSessionConnection.nowPlaying.removeObserver(mediaMetadataObserver)
+        // Remove the permanent observers from the MusicServiceConnection.
+        musicServiceConnection.playbackState.removeObserver(playbackStateObserver)
+        musicServiceConnection.nowPlaying.removeObserver(mediaMetadataObserver)
 
         // Stop updating the position
         updatePosition = false
@@ -190,12 +190,12 @@ class NowPlayingFragmentViewModel(
 
     class Factory(
         private val app: Application,
-        private val mediaSessionConnection: MediaSessionConnection
+        private val musicServiceConnection: MusicServiceConnection
     ) : ViewModelProvider.NewInstanceFactory() {
 
         @Suppress("unchecked_cast")
         override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-            return NowPlayingFragmentViewModel(app, mediaSessionConnection) as T
+            return NowPlayingFragmentViewModel(app, musicServiceConnection) as T
         }
     }
 }

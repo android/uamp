@@ -30,7 +30,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.android.uamp.MediaItemData
 import com.example.android.uamp.R
 import com.example.android.uamp.common.EMPTY_PLAYBACK_STATE
-import com.example.android.uamp.common.MediaSessionConnection
+import com.example.android.uamp.common.MusicServiceConnection
 import com.example.android.uamp.common.NOTHING_PLAYING
 import com.example.android.uamp.fragments.MediaItemFragment
 import com.example.android.uamp.media.extensions.id
@@ -40,8 +40,8 @@ import com.example.android.uamp.media.extensions.isPlaying
  * [ViewModel] for [MediaItemFragment].
  */
 class MediaItemFragmentViewModel(
-    private val mediaId: String,
-    mediaSessionConnection: MediaSessionConnection
+        private val mediaId: String,
+        musicServiceConnection: MusicServiceConnection
 ) : ViewModel() {
 
     /**
@@ -52,9 +52,9 @@ class MediaItemFragmentViewModel(
     val mediaItems: LiveData<List<MediaItemData>> = _mediaItems
 
     /**
-     * Pass the status of the [MediaSessionConnection.networkFailure] through.
+     * Pass the status of the [MusicServiceConnection.networkFailure] through.
      */
-    val networkError = Transformations.map(mediaSessionConnection.networkFailure) { it }
+    val networkError = Transformations.map(musicServiceConnection.networkFailure) { it }
 
     private val subscriptionCallback = object : SubscriptionCallback() {
         override fun onChildrenLoaded(parentId: String, children: List<MediaItem>) {
@@ -80,7 +80,7 @@ class MediaItemFragmentViewModel(
      */
     private val playbackStateObserver = Observer<PlaybackStateCompat> {
         val playbackState = it ?: EMPTY_PLAYBACK_STATE
-        val metadata = mediaSessionConnection.nowPlaying.value ?: NOTHING_PLAYING
+        val metadata = musicServiceConnection.nowPlaying.value ?: NOTHING_PLAYING
         if (metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID) != null) {
             _mediaItems.postValue(updateState(playbackState, metadata))
         }
@@ -93,7 +93,7 @@ class MediaItemFragmentViewModel(
      * changed. (i.e.: play/pause button or blank)
      */
     private val mediaMetadataObserver = Observer<MediaMetadataCompat> {
-        val playbackState = mediaSessionConnection.playbackState.value ?: EMPTY_PLAYBACK_STATE
+        val playbackState = musicServiceConnection.playbackState.value ?: EMPTY_PLAYBACK_STATE
         val metadata = it ?: NOTHING_PLAYING
         if (metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID) != null) {
             _mediaItems.postValue(updateState(playbackState, metadata))
@@ -101,7 +101,7 @@ class MediaItemFragmentViewModel(
     }
 
     /**
-     * Because there's a complex dance between this [ViewModel] and the [MediaSessionConnection]
+     * Because there's a complex dance between this [ViewModel] and the [MusicServiceConnection]
      * (which is wrapping a [MediaBrowserCompat] object), the usual guidance of using
      * [Transformations] doesn't quite work.
      *
@@ -111,13 +111,13 @@ class MediaItemFragmentViewModel(
      * [subscriptionCallback] (defined above) is called if/when the children of this
      * ViewModel's [mediaId] changes.
      *
-     * [MediaSessionConnection.playbackState] changes state based on the playback state of
+     * [MusicServiceConnection.playbackState] changes state based on the playback state of
      * the player, which can change the [MediaItemData.playbackRes]s in the list.
      *
-     * [MediaSessionConnection.nowPlaying] changes based on the item that's being played,
+     * [MusicServiceConnection.nowPlaying] changes based on the item that's being played,
      * which can also change the [MediaItemData.playbackRes]s in the list.
      */
-    private val mediaSessionConnection = mediaSessionConnection.also {
+    private val musicServiceConnection = musicServiceConnection.also {
         it.subscribe(mediaId, subscriptionCallback)
 
         it.playbackState.observeForever(playbackStateObserver)
@@ -125,26 +125,26 @@ class MediaItemFragmentViewModel(
     }
 
     /**
-     * Since we use [LiveData.observeForever] above (in [mediaSessionConnection]), we want
+     * Since we use [LiveData.observeForever] above (in [musicServiceConnection]), we want
      * to call [LiveData.removeObserver] here to prevent leaking resources when the [ViewModel]
      * is not longer in use.
      *
-     * For more details, see the kdoc on [mediaSessionConnection] above.
+     * For more details, see the kdoc on [musicServiceConnection] above.
      */
     override fun onCleared() {
         super.onCleared()
 
-        // Remove the permanent observers from the MediaSessionConnection.
-        mediaSessionConnection.playbackState.removeObserver(playbackStateObserver)
-        mediaSessionConnection.nowPlaying.removeObserver(mediaMetadataObserver)
+        // Remove the permanent observers from the MusicServiceConnection.
+        musicServiceConnection.playbackState.removeObserver(playbackStateObserver)
+        musicServiceConnection.nowPlaying.removeObserver(mediaMetadataObserver)
 
         // And then, finally, unsubscribe the media ID that was being watched.
-        mediaSessionConnection.unsubscribe(mediaId, subscriptionCallback)
+        musicServiceConnection.unsubscribe(mediaId, subscriptionCallback)
     }
 
     private fun getResourceForMediaId(mediaId: String): Int {
-        val isActive = mediaId == mediaSessionConnection.nowPlaying.value?.id
-        val isPlaying = mediaSessionConnection.playbackState.value?.isPlaying ?: false
+        val isActive = mediaId == musicServiceConnection.nowPlaying.value?.id
+        val isPlaying = musicServiceConnection.playbackState.value?.isPlaying ?: false
         return when {
             !isActive -> NO_RES
             isPlaying -> R.drawable.ic_pause_black_24dp
@@ -170,12 +170,12 @@ class MediaItemFragmentViewModel(
 
     class Factory(
         private val mediaId: String,
-        private val mediaSessionConnection: MediaSessionConnection
+        private val musicServiceConnection: MusicServiceConnection
     ) : ViewModelProvider.NewInstanceFactory() {
 
         @Suppress("unchecked_cast")
         override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-            return MediaItemFragmentViewModel(mediaId, mediaSessionConnection) as T
+            return MediaItemFragmentViewModel(mediaId, musicServiceConnection) as T
         }
     }
 }
