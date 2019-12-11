@@ -27,7 +27,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.android.uamp.MainActivity
 import com.example.android.uamp.MediaItemData
-import com.example.android.uamp.common.MediaSessionConnection
+import com.example.android.uamp.common.MusicServiceConnection
 import com.example.android.uamp.fragments.NowPlayingFragment
 import com.example.android.uamp.media.extensions.id
 import com.example.android.uamp.media.extensions.isPlayEnabled
@@ -36,17 +36,17 @@ import com.example.android.uamp.media.extensions.isPrepared
 import com.example.android.uamp.utils.Event
 
 /**
- * Small [ViewModel] that watches a [MediaSessionConnection] to become connected
+ * Small [ViewModel] that watches a [MusicServiceConnection] to become connected
  * and provides the root/initial media ID of the underlying [MediaBrowserCompat].
  */
 class MainActivityViewModel(
-    private val mediaSessionConnection: MediaSessionConnection
+    private val musicServiceConnection: MusicServiceConnection
 ) : ViewModel() {
 
     val rootMediaId: LiveData<String> =
-        Transformations.map(mediaSessionConnection.isConnected) { isConnected ->
+        Transformations.map(musicServiceConnection.isConnected) { isConnected ->
             if (isConnected) {
-                mediaSessionConnection.rootMediaId
+                musicServiceConnection.rootMediaId
             } else {
                 null
             }
@@ -113,12 +113,12 @@ class MainActivityViewModel(
      *   then pause playback, otherwise send "play" to resume playback.
      */
     fun playMedia(mediaItem: MediaItemData, pauseAllowed: Boolean = true) {
-        val nowPlaying = mediaSessionConnection.nowPlaying.value
-        val transportControls = mediaSessionConnection.transportControls
+        val nowPlaying = musicServiceConnection.nowPlaying.value
+        val transportControls = musicServiceConnection.transportControls
 
-        val isPrepared = mediaSessionConnection.playbackState.value?.isPrepared ?: false
+        val isPrepared = musicServiceConnection.playbackState.value?.isPrepared ?: false
         if (isPrepared && mediaItem.mediaId == nowPlaying?.id) {
-            mediaSessionConnection.playbackState.value?.let { playbackState ->
+            musicServiceConnection.playbackState.value?.let { playbackState ->
                 when {
                     playbackState.isPlaying ->
                         if (pauseAllowed) transportControls.pause() else Unit
@@ -137,12 +137,12 @@ class MainActivityViewModel(
     }
 
     fun playMediaId(mediaId: String) {
-        val nowPlaying = mediaSessionConnection.nowPlaying.value
-        val transportControls = mediaSessionConnection.transportControls
+        val nowPlaying = musicServiceConnection.nowPlaying.value
+        val transportControls = musicServiceConnection.transportControls
 
-        val isPrepared = mediaSessionConnection.playbackState.value?.isPrepared ?: false
+        val isPrepared = musicServiceConnection.playbackState.value?.isPrepared ?: false
         if (isPrepared && mediaId == nowPlaying?.id) {
-            mediaSessionConnection.playbackState.value?.let { playbackState ->
+            musicServiceConnection.playbackState.value?.let { playbackState ->
                 when {
                     playbackState.isPlaying -> transportControls.pause()
                     playbackState.isPlayEnabled -> transportControls.play()
@@ -160,12 +160,12 @@ class MainActivityViewModel(
     }
 
     class Factory(
-        private val mediaSessionConnection: MediaSessionConnection
+        private val musicServiceConnection: MusicServiceConnection
     ) : ViewModelProvider.NewInstanceFactory() {
 
         @Suppress("unchecked_cast")
         override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-            return MainActivityViewModel(mediaSessionConnection) as T
+            return MainActivityViewModel(musicServiceConnection) as T
         }
     }
 }

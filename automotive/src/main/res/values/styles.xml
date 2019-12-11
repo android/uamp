@@ -17,21 +17,79 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.Car.Dark.NoActionBar">
+    <style name="AppTheme" parent="Theme.MaterialComponents.NoActionBar.Bridge">
         <!-- Customize your theme here. -->
+        <item name="toolbarNavigationButtonStyle">@style/CarToolbarNavButton</item>
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:buttonStyle">@style/CarButton</item>
+        <item name="android:windowBackground">@color/darkBackground</item>
+        <item name="toolbarStyle">@style/CarToolbar</item>
+        <item name="android:textColorPrimary">@color/car_text_light</item>
+    </style>
 
-        <item name="android:background">@color/darkBackground</item>
+    <style name="CarToolbar" parent="Widget.MaterialComponents.Toolbar">
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:paddingStart">@dimen/sign_in_toolbar_padding</item>
+        <item name="android:paddingEnd">@dimen/sign_in_toolbar_padding</item>
+        <item name="android:minHeight">@dimen/sign_in_toolbar_height</item>
+        <item name="navigationIcon">@drawable/sign_in_toolbar_back_icon</item>
+    </style>
+
+    <style name="CarToolbarNavButton" parent="Widget.AppCompat.Toolbar.Button.Navigation">
+        <item name="tint">@android:color/white</item>
+        <item name="android:background">@drawable/sign_in_toolbar_back_ripple_background</item>
+        <item name="android:minWidth">@dimen/sign_in_toolbar_nav_button_size</item>
     </style>
 
     <style name="AppTheme.Drawer" parent="Theme.Car.Dark.NoActionBar.Drawer">
-        <item name="carToolbarStyle">@style/AppToolbar</item>
+        <item name="carToolbarStyle">@style/CarToolbar</item>
     </style>
 
-    <style name="AppToolbar" parent="Widget.Car.CarToolbar">
-        <item name="android:background">@color/colorPrimary</item>
+    <style name="CarButton" parent="Widget.AppCompat.Button">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:ellipsize">none</item>
+        <item name="android:minHeight">@dimen/button_height</item>
+        <item name="android:minWidth">@dimen/button_min_width</item>
+        <item name="android:paddingStart">@dimen/button_padding</item>
+        <item name="android:paddingEnd">@dimen/button_padding</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:background">@drawable/default_button_background</item>
+        <item name="android:textAppearance">@style/SecondaryText.Dark</item>
     </style>
 
+    <style name="CarButton.SignIn">
+        <item name="android:background">@drawable/sign_in_button_background</item>
+    </style>
+
+    <style name="CarButton.GoogleSignIn">
+        <item name="android:background">@drawable/google_sign_in_button_background</item>
+    </style>
+
+    <style name="DisplayText" parent="TextAppearance.AppCompat">
+        <item name="android:textSize">@dimen/display_text_size</item>
+    </style>
+
+    <style name="PrimaryText" parent="TextAppearance.AppCompat">
+        <item name="android:textSize">@dimen/primary_text_size</item>
+    </style>
+
+    <style name="SecondaryText" parent="TextAppearance.AppCompat">
+        <item name="android:textSize">@dimen/secondary_text_size</item>
+    </style>
+
+    <style name="SecondaryText.Dark">
+        <item name="android:textColor">@color/car_text_dark</item>
+    </style>
+
+    <style name="InputBox" parent="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">@color/grey_300</item>
+        <item name="boxStrokeWidth">@dimen/sign_in_input_box_stroke_width</item>
+        <item name="boxCornerRadiusBottomEnd">@dimen/sign_in_input_box_radius</item>
+        <item name="boxCornerRadiusBottomStart">@dimen/sign_in_input_box_radius</item>
+        <item name="boxCornerRadiusTopEnd">@dimen/sign_in_input_box_radius</item>
+        <item name="boxCornerRadiusTopStart">@dimen/sign_in_input_box_radius</item>
+    </style>
 </resources>
