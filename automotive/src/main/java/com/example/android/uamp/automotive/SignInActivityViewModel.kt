@@ -25,7 +25,7 @@ import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.example.android.uamp.common.MediaSessionConnection
+import com.example.android.uamp.common.MusicServiceConnection
 import java.util.Random
 
 /**
@@ -33,7 +33,7 @@ import java.util.Random
  */
 class SignInActivityViewModel(application: Application) : AndroidViewModel(application) {
     private val applicationContext = application.applicationContext
-    private val mediaSessionConnection = MediaSessionConnection(
+    private val musicServiceConnection = MusicServiceConnection(
             applicationContext,
             ComponentName(applicationContext, AutomotiveMusicService::class.java)
     )
@@ -53,7 +53,7 @@ class SignInActivityViewModel(application: Application) : AndroidViewModel(appli
                 putString(LOGIN_EMAIL, email)
                 putString(LOGIN_PASSWORD, password)
             }
-            mediaSessionConnection.sendCommand(LOGIN, loginParams) { resultCode, _ ->
+            musicServiceConnection.sendCommand(LOGIN, loginParams) { resultCode, _ ->
                 _loggedIn.postValue(resultCode == Activity.RESULT_OK)
             }
         }
