@@ -27,9 +27,9 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
 import com.example.android.uamp.media.R
 import com.example.android.uamp.media.extensions.album
-import com.example.android.uamp.media.extensions.albumArt
 import com.example.android.uamp.media.extensions.albumArtUri
 import com.example.android.uamp.media.extensions.artist
+import com.example.android.uamp.media.extensions.asAlbumArtContentUri
 import com.example.android.uamp.media.extensions.displayDescription
 import com.example.android.uamp.media.extensions.displayIconUri
 import com.example.android.uamp.media.extensions.displaySubtitle
@@ -108,16 +108,20 @@ class JsonSource(context: Context, private val source: Uri) : AbstractMusicSourc
                 }
 
                 // Block on downloading artwork.
-                val art = glide.applyDefaultRequestOptions(glideOptions)
-                    .asBitmap()
+                val artFile = glide.applyDefaultRequestOptions(glideOptions)
+                    .downloadOnly()
                     .load(song.image)
                     .submit(NOTIFICATION_LARGE_ICON_SIZE, NOTIFICATION_LARGE_ICON_SIZE)
                     .get()
 
+                // Expose file via Local URI
+                val artUri = artFile.asAlbumArtContentUri()
+
                 MediaMetadataCompat.Builder()
                     .from(song)
                     .apply {
-                        albumArt = art
+                        displayIconUri = artUri.toString() // Used by ExoPlayer and Notification
+                        albumArtUri = artUri.toString()
                     }
                     .build()
             }.toList()

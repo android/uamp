@@ -20,11 +20,10 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Build
-import androidx.annotation.RequiresApi
-import androidx.core.app.NotificationCompat
-import androidx.media.app.NotificationCompat.MediaStyle
-import androidx.media.session.MediaButtonReceiver
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat.ACTION_PAUSE
@@ -32,10 +31,16 @@ import android.support.v4.media.session.PlaybackStateCompat.ACTION_PLAY
 import android.support.v4.media.session.PlaybackStateCompat.ACTION_SKIP_TO_NEXT
 import android.support.v4.media.session.PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS
 import android.support.v4.media.session.PlaybackStateCompat.ACTION_STOP
+import androidx.annotation.RequiresApi
+import androidx.core.app.NotificationCompat
+import androidx.media.app.NotificationCompat.MediaStyle
+import androidx.media.session.MediaButtonReceiver
 import com.example.android.uamp.media.extensions.isPlayEnabled
 import com.example.android.uamp.media.extensions.isPlaying
 import com.example.android.uamp.media.extensions.isSkipToNextEnabled
 import com.example.android.uamp.media.extensions.isSkipToPreviousEnabled
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 const val NOW_PLAYING_CHANNEL: String = "com.example.android.uamp.media.NOW_PLAYING"
 const val NOW_PLAYING_NOTIFICATION: Int = 0xb339
@@ -66,7 +71,7 @@ class NotificationBuilder(private val context: Context) {
     private val stopPendingIntent =
             MediaButtonReceiver.buildMediaButtonPendingIntent(context, ACTION_STOP)
 
-    fun buildNotification(sessionToken: MediaSessionCompat.Token): Notification {
+    suspend fun buildNotification(sessionToken: MediaSessionCompat.Token): Notification {
         if (shouldCreateNowPlayingChannel()) {
             createNowPlayingChannel()
         }
@@ -98,11 +103,15 @@ class NotificationBuilder(private val context: Context) {
                 .setShowActionsInCompactView(playPauseIndex)
                 .setShowCancelButton(true)
 
+        val largeIconBitmap = description.iconUri?.let {
+            resolveUriAsBitmap(it)
+        }
+
         return builder.setContentIntent(controller.sessionActivity)
                 .setContentText(description.subtitle)
                 .setContentTitle(description.title)
                 .setDeleteIntent(stopPendingIntent)
-                .setLargeIcon(description.iconBitmap)
+                .setLargeIcon(largeIconBitmap)
                 .setOnlyAlertOnce(true)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setStyle(mediaStyle)
@@ -128,5 +137,18 @@ class NotificationBuilder(private val context: Context) {
 
         platformNotificationManager.createNotificationChannel(notificationChannel)
     }
+
+    private suspend fun resolveUriAsBitmap(uri: Uri): Bitmap? {
+        return withContext(Dispatchers.IO) {
+            val parcelFileDescriptor =
+              context.contentResolver.openFileDescriptor(uri, MODE_READ_ONLY)
+              ?: return@withContext null
+            val fileDescriptor = parcelFileDescriptor.fileDescriptor
+            BitmapFactory.decodeFileDescriptor(fileDescriptor).apply {
+                parcelFileDescriptor.close()
+            }
+        }
+    }
 }
 
+private const val MODE_READ_ONLY = "r"

@@ -23,6 +23,7 @@ import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource
 import com.google.android.exoplayer2.source.ExtractorMediaSource
+import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DataSource
 
 /**
@@ -82,7 +83,7 @@ inline val MediaMetadataCompat.art: Bitmap
 inline val MediaMetadataCompat.artUri: Uri
     get() = this.getString(MediaMetadataCompat.METADATA_KEY_ART_URI).toUri()
 
-inline val MediaMetadataCompat.albumArt: Bitmap
+inline val MediaMetadataCompat.albumArt: Bitmap?
     get() = getBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART)
 
 inline val MediaMetadataCompat.albumArtUri: Uri
@@ -272,7 +273,7 @@ inline val MediaMetadataCompat.fullDescription
  * For convenience, place the [MediaDescriptionCompat] into the tag so it can be retrieved later.
  */
 fun MediaMetadataCompat.toMediaSource(dataSourceFactory: DataSource.Factory) =
-        ExtractorMediaSource.Factory(dataSourceFactory)
+        ProgressiveMediaSource.Factory(dataSourceFactory)
                 .setTag(fullDescription)
                 .createMediaSource(mediaUri)
 
