@@ -4,8 +4,12 @@ Universal Android Music Player Sample
 The goal of this sample is to show how to implement an audio media app that works
 across multiple form factors and provide a consistent user experience
 on Android phones, tablets, Android Auto, Android Wear, Android TV, Google Cast devices,
-and with the Google Assistant.
+and with the Google Assistant. 
 
+To get started with UAMP please read the [full guide](docs/FullGuide.md).
+
+![Screenshot showing UAMP's UI for browsing albums and songs](docs/images/1-browse-albums-screenshot.png "Browse albums screenshot")
+![Screenshot showing UAMP's UI for playing a song](docs/images/2-play-song-screenshot.png "Play song screenshot")
 
 Pre-requisites
 --------------
