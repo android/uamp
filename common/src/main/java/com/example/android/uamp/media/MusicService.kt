@@ -33,35 +33,25 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.util.Log
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.media.MediaBrowserServiceCompat
-import com.example.android.uamp.media.extensions.flag
-import com.example.android.uamp.media.library.BrowseTree
-import com.example.android.uamp.media.library.JsonSource
-import com.example.android.uamp.media.library.MEDIA_SEARCH_SUPPORTED
-import com.example.android.uamp.media.library.MusicSource
-import com.example.android.uamp.media.library.UAMP_BROWSABLE_ROOT
-import com.example.android.uamp.media.library.UAMP_EMPTY_ROOT
-import com.google.android.exoplayer2.C
-import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.ExoPlayerFactory
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.Timeline
+import com.example.android.uamp.media.extensions.*
+import com.example.android.uamp.media.library.*
+import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.ext.cast.CastPlayer
 import com.google.android.exoplayer2.ext.cast.SessionAvailabilityListener
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.ext.mediasession.TimelineQueueNavigator
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
+import com.google.android.exoplayer2.util.MimeTypes
 import com.google.android.exoplayer2.util.Util
+import com.google.android.gms.cast.MediaInfo
+import com.google.android.gms.cast.MediaMetadata
+import com.google.android.gms.cast.MediaQueueItem
 import com.google.android.gms.cast.framework.CastContext
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 
 /**
  * This class is the entry point for browsing and playback commands from the APP's UI
@@ -173,7 +163,6 @@ open class MusicService : MediaBrowserServiceCompat(), SessionAvailabilityListen
             mediaSource.load()
         }
 
-
         // ExoPlayer will manage the MediaSession for us.
         mediaSessionConnector = MediaSessionConnector(mediaSession)
 
@@ -240,9 +229,73 @@ open class MusicService : MediaBrowserServiceCompat(), SessionAvailabilityListen
     }
 
     override fun onCastSessionAvailable() {
+        switchToPlayer(castPlayer)
     }
 
     override fun onCastSessionUnavailable() {
+        switchToPlayer(exoPlayer)
+    }
+
+    private fun switchToPlayer(player: Player) {
+        if (this.currentPlayer == player) {
+            return
+        }
+
+        var playbackPositionMs = C.TIME_UNSET
+        var windowIndex = 0
+        var playWhenReady = false
+
+        val previousPlayer: Player = this.currentPlayer
+        // Save state from the previous player.
+        val playbackState = previousPlayer.playbackState
+        if (playbackState != Player.STATE_ENDED) {
+            playbackPositionMs = previousPlayer.currentPosition
+            windowIndex = previousPlayer.currentWindowIndex
+            playWhenReady = previousPlayer.playWhenReady
+        }
+        previousPlayer.stop(true)
+
+        when (player) {
+            exoPlayer -> mediaSessionConnector.connectToExoPlayer(this)
+            castPlayer -> mediaSessionConnector.connectToCastPlayer()
+            else -> throw IllegalStateException("Cannot switch playback to $player")
+        }
+
+        // if the cast session was just started, load items
+        // otherwise, seek and play, either on cast or exo
+        if (currentPlayer == castPlayer && castPlayer.currentTimeline.isEmpty) {
+            val items: Array<MediaQueueItem> = mediaSource.map {
+                it.toMediaQueueItem()
+            }.toTypedArray()
+            castPlayer.loadItems(items, windowIndex, playbackPositionMs, Player.REPEAT_MODE_OFF)
+        } else {
+            currentPlayer.seekTo(playbackPositionMs)
+            currentPlayer.playWhenReady = playWhenReady
+        }
+    }
+
+    private fun MediaMetadataCompat.toMediaQueueItem(): MediaQueueItem {
+        val metadata: MediaMetadata = toCastMediaMetadata()
+        val mediaInfo = MediaInfo.Builder(this.mediaUri.toString())
+                .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
+                .setContentType(MimeTypes.AUDIO_MPEG)
+                .setStreamDuration(this.duration)
+                .setMetadata(metadata)
+                .build()
+        return MediaQueueItem.Builder(mediaInfo).build()
+    }
+
+    private fun MediaMetadataCompat.toCastMediaMetadata(): MediaMetadata {
+        val mediaMetadata = MediaMetadata(MediaMetadata.MEDIA_TYPE_MUSIC_TRACK)
+        mediaMetadata.putString(MediaMetadata.KEY_TITLE, this.title)
+        mediaMetadata.putString(MediaMetadata.KEY_ARTIST, this.artist)
+        mediaMetadata.putString(MediaMetadata.KEY_ALBUM_TITLE, this.album)
+        mediaMetadata.putString(MediaMetadata.KEY_ALBUM_ARTIST, this.albumArtist)
+        mediaMetadata.putString(MediaMetadata.KEY_COMPOSER, this.composer)
+        this.date?.let { date -> mediaMetadata.putString(MediaMetadata.KEY_RELEASE_DATE, date) }
+        mediaMetadata.putInt(MediaMetadata.KEY_TRACK_NUMBER, this.trackNumber.toInt())
+        mediaMetadata.putInt(MediaMetadata.KEY_DISC_NUMBER, this.discNumber.toInt())
+        return mediaMetadata
     }
 
     /**
