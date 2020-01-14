@@ -33,6 +33,7 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.util.Log
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.media.MediaBrowserServiceCompat
@@ -49,10 +50,13 @@ import com.google.android.exoplayer2.ExoPlayerFactory
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.Timeline
 import com.google.android.exoplayer2.audio.AudioAttributes
+import com.google.android.exoplayer2.ext.cast.CastPlayer
+import com.google.android.exoplayer2.ext.cast.SessionAvailabilityListener
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.ext.mediasession.TimelineQueueNavigator
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
+import com.google.android.gms.cast.framework.CastContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -70,7 +74,7 @@ import kotlinx.coroutines.launch
  * For more information on implementing a MediaBrowserService,
  * visit [https://developer.android.com/guide/topics/media-apps/audio-app/building-a-mediabrowserservice.html](https://developer.android.com/guide/topics/media-apps/audio-app/building-a-mediabrowserservice.html).
  */
-open class MusicService : MediaBrowserServiceCompat() {
+open class MusicService : MediaBrowserServiceCompat(), SessionAvailabilityListener {
     private lateinit var becomingNoisyReceiver: BecomingNoisyReceiver
     private lateinit var notificationManager: NotificationManagerCompat
     private lateinit var notificationBuilder: NotificationBuilder
@@ -110,6 +114,12 @@ open class MusicService : MediaBrowserServiceCompat() {
     private val exoPlayer: ExoPlayer by lazy {
         ExoPlayerFactory.newSimpleInstance(this).apply {
             setAudioAttributes(uAmpAudioAttributes, true)
+        }
+    }
+
+    private val castPlayer: CastPlayer by lazy {
+        CastPlayer(CastContext.getSharedInstance(this)).apply {
+            setSessionAvailabilityListener(this@MusicService)
         }
     }
 
@@ -160,26 +170,40 @@ open class MusicService : MediaBrowserServiceCompat() {
             mediaSource.load()
         }
 
-        // ExoPlayer will manage the MediaSession for us.
-        mediaSessionConnector = MediaSessionConnector(mediaSession).also { connector ->
-            // Produces DataSource instances through which media data is loaded.
-            val dataSourceFactory = DefaultDataSourceFactory(
-                this, Util.getUserAgent(this, UAMP_USER_AGENT), null
-            )
 
-            // Create the PlaybackPreparer of the media session connector.
-            val playbackPreparer = UampPlaybackPreparer(
+        // ExoPlayer will manage the MediaSession for us.
+        mediaSessionConnector = MediaSessionConnector(mediaSession)
+
+        if (castPlayer.isCastSessionAvailable) {
+            mediaSessionConnector.connectToCastPlayer()
+        } else {
+            mediaSessionConnector.connectToExoPlayer(this)
+        }
+        mediaSessionConnector.setQueueNavigator(UampQueueNavigator(mediaSession))
+
+        packageValidator = PackageValidator(this, R.xml.allowed_media_browser_callers)
+    }
+
+    private fun MediaSessionConnector.connectToExoPlayer(context: Context) {
+        // Produces DataSource instances through which media data is loaded.
+        val dataSourceFactory = DefaultDataSourceFactory(
+                context, Util.getUserAgent(context, UAMP_USER_AGENT), null
+        )
+
+        // Create the PlaybackPreparer of the media session connector.
+        val playbackPreparer = UampPlaybackPreparer(
                 mediaSource,
                 exoPlayer,
                 dataSourceFactory
-            )
+        )
+        setPlayer(exoPlayer)
+        setPlaybackPreparer(playbackPreparer)
+    }
 
-            connector.setPlayer(exoPlayer)
-            connector.setPlaybackPreparer(playbackPreparer)
-            connector.setQueueNavigator(UampQueueNavigator(mediaSession))
-        }
-
-        packageValidator = PackageValidator(this, R.xml.allowed_media_browser_callers)
+    private fun MediaSessionConnector.connectToCastPlayer() {
+        setPlayer(castPlayer)
+        // removes preparer to make sure we don't preload local content while casting
+        setPlaybackPreparer(null)
     }
 
     /**
@@ -197,7 +221,8 @@ open class MusicService : MediaBrowserServiceCompat() {
          * be reported as [PlaybackStateCompat.STATE_NONE], the service will first remove
          * itself as a foreground service, and will then call [stopSelf].
          */
-        exoPlayer.stop(true)
+        //exoPlayer.stop(true)
+        castPlayer.stop(true)
     }
 
     override fun onDestroy() {
@@ -208,6 +233,12 @@ open class MusicService : MediaBrowserServiceCompat() {
 
         // Cancel coroutines when the service is going away.
         serviceJob.cancel()
+    }
+
+    override fun onCastSessionAvailable() {
+    }
+
+    override fun onCastSessionUnavailable() {
     }
 
     /**
