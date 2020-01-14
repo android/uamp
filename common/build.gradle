@@ -54,6 +54,8 @@ dependencies {
 
     api "com.google.code.gson:gson:$gson_version"
 
+    api "com.android.support:mediarouter-v7:28.0.0"
+
     // ExoPlayer dependencies
 
     // This allows UAMP to utilize a local version of ExoPlayer, which is particularly
