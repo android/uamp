@@ -60,6 +60,18 @@ dependencies {
     implementation "androidx.constraintlayout:constraintlayout:$constraint_layout_version"
     implementation "androidx.lifecycle:lifecycle-extensions:$arch_lifecycle_version"
 
+    // ExoPlayer dependencies
+
+    // This allows UAMP to utilize a local version of ExoPlayer, which is particularly
+    // useful for extending the MediaSession extension, as well as for testing and
+    // customization. If the ":exoplayer-library-core" project is included, we assume
+    // the others are included as well.
+    if (findProject(':exoplayer-library-core') != null) {
+        api project(':exoplayer-extension-cast')
+    } else {
+        api "com.google.android.exoplayer:extension-cast:$exoplayer_version"
+    }
+
     // Glide dependencies
     implementation "com.github.bumptech.glide:glide:$glide_version"
     kapt "com.github.bumptech.glide:compiler:$glide_version"
