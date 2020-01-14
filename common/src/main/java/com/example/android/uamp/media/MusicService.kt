@@ -88,6 +88,9 @@ open class MusicService : MediaBrowserServiceCompat(), SessionAvailabilityListen
     protected lateinit var mediaController: MediaControllerCompat
     protected lateinit var mediaSessionConnector: MediaSessionConnector
 
+    // references either ExoPlayer or CastPlayer
+    private lateinit var currentPlayer: Player
+
     /**
      * This must be `by lazy` because the source won't initially be ready.
      * See [MusicService.onLoadChildren] to see where it's accessed (and first
@@ -197,11 +200,13 @@ open class MusicService : MediaBrowserServiceCompat(), SessionAvailabilityListen
                 dataSourceFactory
         )
         setPlayer(exoPlayer)
+        currentPlayer = exoPlayer
         setPlaybackPreparer(playbackPreparer)
     }
 
     private fun MediaSessionConnector.connectToCastPlayer() {
         setPlayer(castPlayer)
+        currentPlayer = castPlayer
         // removes preparer to make sure we don't preload local content while casting
         setPlaybackPreparer(null)
     }
@@ -221,8 +226,7 @@ open class MusicService : MediaBrowserServiceCompat(), SessionAvailabilityListen
          * be reported as [PlaybackStateCompat.STATE_NONE], the service will first remove
          * itself as a foreground service, and will then call [stopSelf].
          */
-        //exoPlayer.stop(true)
-        castPlayer.stop(true)
+        currentPlayer.stop(true)
     }
 
     override fun onDestroy() {
