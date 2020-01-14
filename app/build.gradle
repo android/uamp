@@ -38,6 +38,9 @@ android {
             useSupportLibrary true
         }
     }
+    kotlinOptions {
+        freeCompilerArgs = ["-Xallow-result-return-type"]
+    }
     dataBinding {
         enabled = true
     }

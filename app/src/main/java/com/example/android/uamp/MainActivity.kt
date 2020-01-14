@@ -26,12 +26,22 @@ import com.example.android.uamp.media.MusicService
 import com.example.android.uamp.utils.Event
 import com.example.android.uamp.utils.InjectorUtils
 import com.example.android.uamp.viewmodels.MainActivityViewModel
+import com.google.android.gms.cast.framework.CastContext
+import com.google.android.gms.dynamite.DynamiteModule
 
 class MainActivity : AppCompatActivity() {
     private lateinit var viewModel: MainActivityViewModel
+    private lateinit var castContext: CastContext
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Getting the cast context later than onStart can cause device discovery not to take place.
+        castContext = getCastContext().getOrElse {
+            setContentView(R.layout.cast_context_error)
+            return
+        }
+
         setContentView(R.layout.activity_main)
 
         // Since UAMP is a music player, the volume controls should adjust the music volume while
@@ -77,6 +87,22 @@ class MainActivity : AppCompatActivity() {
                 navigateToMediaItem(mediaId)
             }
         })
+    }
+
+    private fun getCastContext(): Result<CastContext> {
+        try {
+            return Result.success(CastContext.getSharedInstance(this))
+        } catch (e: RuntimeException) {
+            var cause = e.cause
+            while (cause != null) {
+                if (cause is DynamiteModule.LoadingException) {
+                    return Result.failure(cause)
+                }
+                cause = cause.cause
+            }
+            // Unknown error. We'll propagate it.
+            throw e
+        }
     }
 
     private fun navigateToMediaItem(mediaId: String) {
