@@ -25,6 +25,11 @@ import com.google.android.exoplayer2.source.ConcatenatingMediaSource
 import com.google.android.exoplayer2.source.ExtractorMediaSource
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DataSource
+import com.google.android.exoplayer2.util.MimeTypes
+import com.google.android.gms.cast.MediaInfo
+import com.google.android.gms.cast.MediaMetadata
+import com.google.android.gms.cast.MediaQueueItem
+import com.google.android.gms.common.images.WebImage
 
 /**
  * Useful extensions for [MediaMetadataCompat].
@@ -180,6 +185,13 @@ inline var MediaMetadataCompat.Builder.mediaUri: String?
         putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, value)
     }
 
+inline var MediaMetadataCompat.Builder.artUri: String?
+    @Deprecated(NO_GET, level = DeprecationLevel.ERROR)
+    get() = throw IllegalAccessException("Cannot get from MediaMetadataCompat.Builder")
+    set(value) {
+        putString(MediaMetadataCompat.METADATA_KEY_ART_URI, value)
+    }
+
 inline var MediaMetadataCompat.Builder.albumArtUri: String?
     @Deprecated(NO_GET, level = DeprecationLevel.ERROR)
     get() = throw IllegalAccessException("Cannot get from MediaMetadataCompat.Builder")
@@ -290,6 +302,33 @@ fun List<MediaMetadataCompat>.toMediaSource(
         concatenatingMediaSource.addMediaSource(it.toMediaSource(dataSourceFactory))
     }
     return concatenatingMediaSource
+}
+
+fun MediaMetadataCompat.toMediaQueueItem(): MediaQueueItem {
+    val metadata: MediaMetadata = toCastMediaMetadata()
+    val mediaInfo = MediaInfo.Builder(this.mediaUri.toString())
+            .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
+            .setContentType(MimeTypes.AUDIO_MPEG)
+            .setStreamDuration(this.duration)
+            .setMetadata(metadata)
+            .build()
+    return MediaQueueItem.Builder(mediaInfo).build()
+}
+
+private fun MediaMetadataCompat.toCastMediaMetadata(): MediaMetadata {
+    val mediaMetadata = MediaMetadata(MediaMetadata.MEDIA_TYPE_MUSIC_TRACK)
+    mediaMetadata.putString(MediaMetadata.KEY_TITLE, this.title)
+    mediaMetadata.putString(MediaMetadata.KEY_ARTIST, this.artist)
+    mediaMetadata.putString(MediaMetadata.KEY_ALBUM_TITLE, this.album)
+    mediaMetadata.addImage(WebImage(this.artUri))
+    mediaMetadata.addImage(WebImage(this.albumArtUri))
+    mediaMetadata.addImage(WebImage(this.displayIconUri))
+    mediaMetadata.putString(MediaMetadata.KEY_ALBUM_ARTIST, this.albumArtist)
+    mediaMetadata.putString(MediaMetadata.KEY_COMPOSER, this.composer)
+    this.date?.let { date -> mediaMetadata.putString(MediaMetadata.KEY_RELEASE_DATE, date) }
+    mediaMetadata.putInt(MediaMetadata.KEY_TRACK_NUMBER, this.trackNumber.toInt())
+    mediaMetadata.putInt(MediaMetadata.KEY_DISC_NUMBER, this.discNumber.toInt())
+    return mediaMetadata
 }
 
 /**

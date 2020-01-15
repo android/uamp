@@ -26,23 +26,7 @@ import com.bumptech.glide.RequestManager
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
 import com.example.android.uamp.media.R
-import com.example.android.uamp.media.extensions.album
-import com.example.android.uamp.media.extensions.albumArtUri
-import com.example.android.uamp.media.extensions.artist
-import com.example.android.uamp.media.extensions.asAlbumArtContentUri
-import com.example.android.uamp.media.extensions.displayDescription
-import com.example.android.uamp.media.extensions.displayIconUri
-import com.example.android.uamp.media.extensions.displaySubtitle
-import com.example.android.uamp.media.extensions.displayTitle
-import com.example.android.uamp.media.extensions.downloadStatus
-import com.example.android.uamp.media.extensions.duration
-import com.example.android.uamp.media.extensions.flag
-import com.example.android.uamp.media.extensions.genre
-import com.example.android.uamp.media.extensions.id
-import com.example.android.uamp.media.extensions.mediaUri
-import com.example.android.uamp.media.extensions.title
-import com.example.android.uamp.media.extensions.trackCount
-import com.example.android.uamp.media.extensions.trackNumber
+import com.example.android.uamp.media.extensions.*
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -159,6 +143,7 @@ fun MediaMetadataCompat.Builder.from(jsonMusic: JsonMusic): MediaMetadataCompat.
     duration = durationMs
     genre = jsonMusic.genre
     mediaUri = jsonMusic.source
+    artUri = jsonMusic.image // raw full-path URI to image, instead of Content Provider URI
     albumArtUri = jsonMusic.image
     trackNumber = jsonMusic.trackNumber
     trackCount = jsonMusic.totalTrackCount
