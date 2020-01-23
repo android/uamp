@@ -17,6 +17,7 @@
 package com.example.android.uamp.automotive
 
 import android.os.Bundle
+import android.text.method.LinkMovementMethod
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -24,6 +25,7 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.widget.Toolbar
+import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import com.google.android.material.textfield.TextInputEditText
@@ -40,6 +42,7 @@ class UsernameAndPasswordSignInFragment : Fragment() {
     private lateinit var passwordContainer : TextInputLayout
     private lateinit var passwordInput : TextInputEditText
     private lateinit var submitButton : Button
+    private lateinit var footerTextView: TextView
 
     override fun onCreateView(
             inflater: LayoutInflater, container: ViewGroup?,
@@ -57,6 +60,7 @@ class UsernameAndPasswordSignInFragment : Fragment() {
         passwordContainer = view.findViewById(R.id.password_container)
         passwordInput = view.findViewById(R.id.password_input)
         submitButton = view.findViewById(R.id.submit_button)
+        footerTextView = view.findViewById(R.id.footer)
 
         toolbar.setNavigationOnClickListener {
             requireActivity().supportFragmentManager.popBackStack()
@@ -65,6 +69,11 @@ class UsernameAndPasswordSignInFragment : Fragment() {
         appIcon.setImageDrawable(context.getDrawable(R.drawable.aural_logo))
         primaryTextView.text = getString(R.string.username_and_password_sign_in_primary_text)
         passwordContainer.hint = getString(R.string.password_hint)
+
+        // Links in footer text should be clickable.
+        footerTextView.text = HtmlCompat.fromHtml(context.getString(R.string.sign_in_footer),
+          HtmlCompat.FROM_HTML_MODE_LEGACY)
+        footerTextView.movementMethod = LinkMovementMethod.getInstance()
 
         // Get user identifier from previous screen.
         val userId = arguments?.getString(SignInLandingPageFragment.CAR_SIGN_IN_IDENTIFIER_KEY)
