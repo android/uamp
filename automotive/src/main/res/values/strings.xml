@@ -25,6 +25,8 @@
     <string name="email_hint">Email</string>
     <string name="login_button_label">Login</string>
     <string name="missing_fields_error">Please fill in missing fields</string>
+    <string name="username_help_text">Forgot username? | Use phone app to sign in</string>
+    <string name="password_help_text">Forgot password? | Reset with phone app</string>
     <string name="sign_in_next_button_label">Next</string>
     <string name="sign_in_submit_button_label">Next</string>
     <string name="sign_in_user_id_hint">Enter username</string>
