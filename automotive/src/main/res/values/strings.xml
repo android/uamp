@@ -34,10 +34,10 @@
     <string name="phone_sign_in_button_label">Sign in with phone</string>
     <string name="phone_sign_in_primary_text">Choose phone sign-in method</string>
     <string name="pin_sign_in_button_label">PIN</string>
-    <string name="pin_sign_in_primary_text">Sign in with the PIN code</string>
-    <string name="pin_sign_in_secondary_text">Go to google.com/aural/fast-pair on your phone</string>
+    <string name="pin_sign_in_primary_text">Sign in with PIN</string>
+    <string name="pin_sign_in_secondary_text">Go to example.com/fast-pair on your phone</string>
     <string name="qr_sign_in_button_label">QR code</string>
-    <string name="qr_sign_in_primary_text">Sign in with the QR code</string>
+    <string name="qr_sign_in_primary_text">Sign in with QR code</string>
     <string name="qr_sign_in_secondary_text">Use your phone\'s camera to capture this code</string>
     <string name="google_sign_in_button_label">Sign in with Google</string>
     <string name="sign_in_footer">By signing in with Aural, you agree to the &lt;a href=&quot;http://www.google.com&quot;&gt;Terms &amp; Conditions&lt;/a&gt; and &lt;a href=&quot;http://www.google.com&quot;&gt;Privacy policy&lt;/a&gt;</string>
