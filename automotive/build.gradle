@@ -55,6 +55,7 @@ dependencies {
     implementation "androidx.core:core-ktx:$androidx_core_ktx_version"
     implementation "androidx.preference:preference:$androidx_preference_version"
     implementation "androidx.car:car:$androidx_car_version"
+    implementation "androidx.constraintlayout:constraintlayout:$constraint_layout_version"
     implementation "androidx.appcompat:appcompat:$androidx_app_compat_version"
     implementation "androidx.lifecycle:lifecycle-extensions:$arch_lifecycle_version"
 
