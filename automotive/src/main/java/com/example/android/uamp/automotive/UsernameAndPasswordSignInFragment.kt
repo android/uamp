@@ -16,6 +16,7 @@
 
 package com.example.android.uamp.automotive
 
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -65,6 +66,9 @@ class UsernameAndPasswordSignInFragment : Fragment() {
         appIcon.setImageDrawable(context.getDrawable(R.drawable.aural_logo))
         primaryTextView.text = getString(R.string.username_and_password_sign_in_primary_text)
         passwordContainer.hint = getString(R.string.password_hint)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            passwordInput.setAutofillHints(View.AUTOFILL_HINT_PASSWORD)
+        }
 
         // Get user identifier from previous screen.
         val userId = arguments?.getString(SignInLandingPageFragment.CAR_SIGN_IN_IDENTIFIER_KEY)
