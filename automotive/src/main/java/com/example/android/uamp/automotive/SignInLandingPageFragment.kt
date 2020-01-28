@@ -17,12 +17,14 @@
 package com.example.android.uamp.automotive
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.text.InputType
 import android.text.TextUtils
 import android.text.method.LinkMovementMethod
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.AUTOFILL_HINT_USERNAME
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
@@ -95,6 +97,10 @@ class SignInLandingPageFragment : Fragment() {
             usernameAndPasswordSignInButton = view.findViewById(R.id.sign_in_button)
             identifierContainer = view.findViewById(R.id.identifier_container)
             identifierInput = view.findViewById(R.id.identifier_input)
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                identifierInput.setAutofillHints(AUTOFILL_HINT_USERNAME)
+            }
         }
 
         toolbar.setNavigationOnClickListener { requireActivity().finish() }

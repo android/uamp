@@ -16,6 +16,7 @@
 
 package com.example.android.uamp.automotive
 
+import android.os.Build
 import android.os.Bundle
 import android.text.method.LinkMovementMethod
 import android.view.LayoutInflater
@@ -69,6 +70,9 @@ class UsernameAndPasswordSignInFragment : Fragment() {
         appIcon.setImageDrawable(context.getDrawable(R.drawable.aural_logo))
         primaryTextView.text = getString(R.string.username_and_password_sign_in_primary_text)
         passwordContainer.hint = getString(R.string.password_hint)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            passwordInput.setAutofillHints(View.AUTOFILL_HINT_PASSWORD)
+        }
 
         // Links in footer text should be clickable.
         footerTextView.text = HtmlCompat.fromHtml(context.getString(R.string.sign_in_footer),
