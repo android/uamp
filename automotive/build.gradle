@@ -49,15 +49,15 @@ android {
 
 dependencies {
     implementation project(':common')
-
+    implementation project(':automotive:automotive-lib')
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
     implementation "androidx.core:core-ktx:$androidx_core_ktx_version"
+    implementation "androidx.constraintlayout:constraintlayout:$constraint_layout_version"
     implementation "androidx.preference:preference:$androidx_preference_version"
-    implementation "androidx.car:car:$androidx_car_version"
     implementation "androidx.appcompat:appcompat:$androidx_app_compat_version"
     implementation "androidx.lifecycle:lifecycle-extensions:$arch_lifecycle_version"
-
+    implementation "com.google.android.material:material:$material_version"
     implementation "com.google.android.gms:play-services-auth:$play_services_auth_version"
 
     testImplementation "junit:junit:$junit_version"

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="@dimen/preference_min_height"
+    android:gravity="center_vertical"
+    android:paddingEnd="?android:attr/scrollbarSize"
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+  <ImageView
+      android:id="@android:id/icon"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_gravity="center"
+      android:minWidth="@dimen/preference_icon_minWidth"/>
+
+  <RelativeLayout
+      android:layout_width="0dp"
+      android:layout_height="wrap_content"
+      android:layout_marginStart="@dimen/preference_start_margin"
+      android:layout_marginEnd="8dip"
+      android:layout_marginTop="@dimen/preference_top_margin"
+      android:layout_marginBottom="@dimen/preference_bottom_margin"
+      android:layout_weight="1"
+      android:clipChildren="false"
+      android:clipToPadding="false">
+
+    <TextView android:id="@android:id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:singleLine="true"
+        android:textAppearance="@style/TextAppearance.Automotive.PrimaryText"
+        android:textColor="?android:attr/textColorPrimary"
+        android:ellipsize="marquee"
+        android:fadingEdge="horizontal"/>
+
+    <TextView android:id="@android:id/summary"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@android:id/title"
+        android:layout_alignStart="@android:id/title"
+        android:textAppearance="@style/TextAppearance.Automotive.SecondaryText"
+        android:textColor="?android:attr/textColorSecondary"
+        android:maxLines="4"/>
+
+    <!-- Using UnPressableLinearLayout as a workaround to disable the pressed state propagation
+    to the children of this container layout. Otherwise, the animated pressed state will also
+    play for the thumb in the AbsSeekBar in addition to the preference's ripple background.
+    The background of the SeekBar is also set to null to disable the ripple background -->
+    <androidx.preference.UnPressableLinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_below="@android:id/summary"
+        android:layout_alignStart="@android:id/title"
+        android:clipChildren="false"
+        android:clipToPadding="false">
+      <SeekBar
+          android:id="@+id/seekbar"
+          android:layout_width="0dp"
+          android:layout_weight="1"
+          android:layout_height="wrap_content"
+          android:paddingStart="0dp"
+          android:paddingEnd="@dimen/preference_end_margin"
+          android:focusable="false"
+          android:clickable="false"
+          android:background="@null" />
+
+      <TextView android:id="@+id/seekbar_value"
+          android:layout_width="36dp"
+          android:layout_height="match_parent"
+          android:gravity="right|center_vertical"
+          android:fontFamily="sans-serif-condensed"
+          android:singleLine="true"
+          android:textAppearance="@style/SecondaryText"
+          android:ellipsize="marquee"
+          android:fadingEdge="horizontal"/>
+    </androidx.preference.UnPressableLinearLayout>
+
+  </RelativeLayout>
+
+</LinearLayout>

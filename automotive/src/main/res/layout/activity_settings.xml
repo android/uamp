@@ -22,19 +22,18 @@
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary" />
+            android:layout_height="?attr/actionBarSize"/>
 
     </com.google.android.material.appbar.AppBarLayout>
 
     <FrameLayout
         android:id="@+id/settings_container"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/darkBackground" />
+        android:layout_height="match_parent" />
 </LinearLayout>

@@ -44,4 +44,53 @@
     <string name="qr_code_url">https://chart.apis.google.com/chart?cht=qr&amp;chs=392x392&amp;chl=https://www.youtube.com/watch?v=8I8mCFYYfdk</string>
 
     <string name="server_client_id">YOUR_SERVER_CLIENT_ID</string>
+
+    <!-- Category title for basic preferences [CHAR_LIMIT=26]-->
+    <string name="basic_preferences">Basic attributes</string>
+    <!-- Title of a basic preference [CHAR_LIMIT=10]-->
+    <string name="title_basic_preference">Preference</string>
+    <!-- Summary of a basic preference [CHAR_LIMIT=71]-->
+    <string name="summary_basic_preference">Simple preference with no special attributes</string>
+    <!-- Title of a preference with stylized text [CHAR_LIMIT=71]-->
+    <string name="title_stylish_preference"><b>Very</b> <i>stylish</i> <u>preference</u></string>
+    <!-- Summary of a preference with stylized text [CHAR_LIMIT=150]-->
+    <string name="summary_stylish_preference">Define style tags such as &lt;b&gt; in a string resource to customize a preference\'s text</string>
+    <!-- Title of an icon preference [CHAR_LIMIT=25]-->
+    <string name="title_icon_preference">Icon preference</string>
+    <!-- Summary of an icon preference [CHAR_LIMIT=103]-->
+    <string name="summary_icon_preference">Define a drawable to display it at the start of the preference</string>
+    <!-- Title of a single line title preference [CHAR_LIMIT=165]-->
+    <string name="title_single_line_title_preference">Single line title preference - no matter how long the title is it will never wrap to multiple lines</string>
+    <!-- Summary of a single line title preference [CHAR_LIMIT=108]-->
+    <string name="summary_single_line_title_preference">This title will be ellipsized instead of wrapping to another line</string>
+    <!-- Title of a single line title preference without summary [CHAR_LIMIT=28]-->
+    <string name="title_single_line_no_summary">Single line preference - no summary</string>
+    <!-- Category title for preferences with widgets [CHAR_LIMIT=12]-->
+    <string name="widgets">Widgets</string>
+    <!-- Title of a checkbox preference [CHAR_LIMIT=31]-->
+    <string name="title_checkbox_preference">Checkbox preference</string>
+    <!-- Summary of a checkbox preference [CHAR_LIMIT=78]-->
+    <string name="summary_checkbox_preference">Tap anywhere in this preference to toggle state</string>
+    <!-- Title of a switch preference [CHAR_LIMIT=28]-->
+    <string name="title_switch_preference">Switch preference</string>
+    <!-- Summary of a switch preference [CHAR_LIMIT=78]-->
+    <string name="summary_switch_preference">Tap anywhere in this preference to toggle state</string>
+    <!-- Title of a seekbar preference [CHAR_LIMIT=30]-->
+    <string name="title_seekbar_preference">Seekbar preference</string>
+    <!-- Category title for preferences which launch dialogs [CHAR_LIMIT=12]-->
+    <string name="dialogs">Dialogs</string>
+    <!-- Title of an edittext preference [CHAR_LIMIT=32]-->
+    <string name="title_edittext_preference">EditText preference</string>
+    <!-- Title of the dialog for an edittext preference [CHAR_LIMIT=43]-->
+    <string name="dialog_title_edittext_preference">This title can be changed!</string>
+    <!-- Title of a list preference [CHAR_LIMIT=25]-->
+    <string name="title_list_preference">List preference</string>
+    <!-- Title of the dialog for a list preference [CHAR_LIMIT=30]-->
+    <string name="dialog_title_list_preference">Choose one option!</string>
+    <!-- Title of a multi-select list preference [CHAR_LIMIT=46]-->
+    <string name="title_multi_list_preference">Multi-select list preference</string>
+    <!-- Summary of a multi-select list preference [CHAR_LIMIT=71]-->
+    <string name="summary_multi_list_preference">Shows a dialog with multiple choice options</string>
+    <!-- Title of the dialog for a multi-select list preference [CHAR_LIMIT=33]-->
+    <string name="dialog_title_multi_list_preference">Choose some options!</string>
 </resources>

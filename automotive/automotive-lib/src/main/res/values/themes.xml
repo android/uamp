@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2019 Google LLC
+  ~ Copyright 2020 Google LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,18 +13,14 @@
   ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
--->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:orientation="vertical"
-              android:layout_width="match_parent"
-              android:layout_height="wrap_content">
-
-    <TextView android:id="@android:id/title"
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-              android:textSize="26sp"
-              android:layout_marginLeft="60dp"
-              android:layout_marginTop="25dp"
-              android:layout_marginBottom="25dp"/>
-
-</LinearLayout>
+  -->
+<resources>
+  <style name="Theme.Automotive" parent="Theme.MaterialComponents.NoActionBar.Bridge">
+    <item name="preferenceTheme">@style/AutomotivePreference</item>
+    <item name="toolbarNavigationButtonStyle">@style/Widget.Automotive.Toolbar.NavButton</item>
+    <item name="android:windowBackground">@android:color/black</item>
+    <item name="toolbarStyle">@style/Widget.Automotive.Toolbar</item>
+    <item name="android:textColorPrimary">@color/primary_text</item>
+    <item name="android:textColorSecondary">@color/secondary_text</item>
+  </style>
+</resources>

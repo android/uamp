@@ -51,7 +51,7 @@
         <!-- Car compatible theme must use minSDK24 -->
         <activity
             android:name=".SettingsActivity"
-            android:theme="@style/AppTheme.Drawer"
+            android:theme="@style/Theme.Automotive"
             android:label="@string/settings_label">
             <intent-filter>
                 <action android:name="android.intent.action.APPLICATION_PREFERENCES" />
