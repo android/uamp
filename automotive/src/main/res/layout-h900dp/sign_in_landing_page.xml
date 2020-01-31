@@ -88,6 +88,20 @@
                 app:layout_constraintWidth_max="@dimen/sign_in_button_max_width"
                 app:layout_goneMarginTop="@dimen/sign_in_button1_top_margin_no_input" />
 
+          <TextView
+              android:id="@+id/help_text"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:layout_marginBottom="@dimen/sign_in_footer_bottom_margin"
+              android:adjustViewBounds="true"
+              android:gravity="center"
+              android:maxWidth="@dimen/sign_in_text_max_width"
+              android:textAppearance="@style/SecondaryText"
+              android:text="@string/username_help_text"
+              app:layout_constraintBottom_toTopOf="@id/footer"
+              app:layout_constraintLeft_toLeftOf="parent"
+              app:layout_constraintRight_toRightOf="parent" />
+
             <TextView
                 android:id="@+id/footer"
                 android:layout_width="wrap_content"
