@@ -1,11 +1,11 @@
 /*
- * Copyright 2020 The Android Open Source Project
+ * Copyright 2020 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,6 +27,8 @@ import androidx.annotation.ArrayRes
 import androidx.core.content.res.TypedArrayUtils
 import androidx.preference.Preference
 
+const val LIST_PREFERENCE_ARG_KEY = "AutomotiveListPreferenceKey"
+
 /**
  * A {@link Preference} that displays a list of entries in a {@link ListPreferenceFragment}.
  *
@@ -41,16 +43,12 @@ import androidx.preference.Preference
  */
 class ListPreference : Preference {
 
-  companion object {
-    internal const val ARG_KEY = "AutomotiveListPreferenceKey"
-  }
-
   private val TAG = "ListPreference"
-  private var mEntries: Array<CharSequence>? = null
-  private var mEntryValues: Array<CharSequence>? = null
-  private var mValue: String? = null
-  private var mSummary: String? = null
-  private var mValueSet: Boolean = false
+  private var entries: Array<CharSequence>? = null
+  private var entryValues: Array<CharSequence>? = null
+  private var value: String? = null
+  private var summary: String? = null
+  private var valueSet: Boolean = false
 
   constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int, defStyleRes: Int)
     : super(context, attrs, defStyleAttr, defStyleRes) {
@@ -66,18 +64,18 @@ class ListPreference : Preference {
 
   private fun init(context: Context, attrs: AttributeSet?, defStyleAttr: Int, defStyleRes: Int) {
 
-    val a = context.obtainStyledAttributes(
+    val attributes = context.obtainStyledAttributes(
       attrs, R.styleable.ListPreference, defStyleAttr, defStyleRes)
 
-    mEntries = TypedArrayUtils.getTextArray(a, R.styleable.ListPreference_entries,
+    entries = TypedArrayUtils.getTextArray(attributes, R.styleable.ListPreference_entries,
       R.styleable.ListPreference_android_entries)
 
-    mEntryValues = TypedArrayUtils.getTextArray(a, R.styleable.ListPreference_entryValues,
+    entryValues = TypedArrayUtils.getTextArray(attributes, R.styleable.ListPreference_entryValues,
       R.styleable.ListPreference_android_entryValues)
 
-    a.recycle()
+    attributes.recycle()
 
-    extras.putString(ARG_KEY, key)
+    extras.putString(LIST_PREFERENCE_ARG_KEY, key)
     fragment = ListPreferenceFragment::class.qualifiedName
   }
 
@@ -92,7 +90,7 @@ class ListPreference : Preference {
    * @see .setEntryValues
    */
   fun setEntries(entries: Array<CharSequence>) {
-    mEntries = entries
+    this.entries = entries
   }
 
   /**
@@ -109,7 +107,7 @@ class ListPreference : Preference {
    * @return The list as an array
    */
   fun getEntries(): Array<CharSequence>? {
-    return mEntries
+    return entries
   }
 
   /**
@@ -120,7 +118,7 @@ class ListPreference : Preference {
    * @param entryValues The array to be used as values to save for the preference
    */
   fun setEntryValues(entryValues: Array<CharSequence>) {
-    mEntryValues = entryValues
+    this.entryValues = entryValues
   }
 
   /**
@@ -137,15 +135,15 @@ class ListPreference : Preference {
    * @return The array of values
    */
   fun getEntryValues(): Array<CharSequence>? {
-    return mEntryValues
+    return entryValues
   }
 
   override fun setSummary(summary: CharSequence?) {
     super.setSummary(summary)
-    if (summary == null && mSummary != null) {
-      mSummary = null
-    } else if (summary != null && summary != mSummary) {
-      mSummary = summary.toString()
+    if (summary == null && this.summary != null) {
+      this.summary = null
+    } else if (summary != null && summary != this.summary) {
+      this.summary = summary.toString()
     }
   }
 
@@ -155,15 +153,16 @@ class ListPreference : Preference {
     }
     val entry = getEntry()
     val summary = super.getSummary()
-    if (mSummary == null) {
+    if (this.summary == null) {
       return summary
     }
-    val formattedString = String.format(mSummary!!, entry ?: "")
+    val formattedString = String.format(this.summary!!, entry ?: "")
     if (TextUtils.equals(formattedString, summary)) {
       return summary
     }
     Log.w(TAG,
-      "Setting a summary with a String formatting marker is no longer supported." + " You should use a SummaryProvider instead.")
+      "Setting a summary with a String formatting marker is no longer supported." +
+        " You should use a SummaryProvider instead.")
     return formattedString
   }
 
@@ -174,10 +173,10 @@ class ListPreference : Preference {
    */
   fun setValue(value: String?) {
     // Always persist/notify the first time.
-    val changed = !TextUtils.equals(mValue, value)
-    if (changed || !mValueSet) {
-      mValue = value
-      mValueSet = true
+    val changed = !TextUtils.equals(this.value, value)
+    if (changed || !valueSet) {
+      this.value = value
+      valueSet = true
       persistString(value)
       if (changed) {
         notifyChanged()
@@ -191,7 +190,7 @@ class ListPreference : Preference {
    * @return The value of the key
    */
   fun getValue(): String? {
-    return mValue
+    return value
   }
 
   /**
@@ -201,7 +200,7 @@ class ListPreference : Preference {
    */
   fun getEntry(): CharSequence? {
     val index = getValueIndex()
-    return if (index >= 0 && mEntries != null) mEntries!![index] else null
+    return if (index >= 0 && entries != null) entries!![index] else null
   }
 
   /**
@@ -211,9 +210,9 @@ class ListPreference : Preference {
    * @return The index of the value, or -1 if not found
    */
   fun findIndexOfValue(value: String?): Int {
-    if (value != null && mEntryValues != null) {
-      for (i in mEntryValues!!.indices.reversed()) {
-        if (mEntryValues!![i] == value) {
+    if (value != null && entryValues != null) {
+      for (i in entryValues!!.indices.reversed()) {
+        if (entryValues!![i] == value) {
           return i
         }
       }
@@ -227,13 +226,13 @@ class ListPreference : Preference {
    * @param index The index of the value to set
    */
   fun setValueIndex(index: Int) {
-    if (mEntryValues != null) {
-      setValue(mEntryValues!![index].toString())
+    if (entryValues != null) {
+      setValue(entryValues!![index].toString())
     }
   }
 
   private fun getValueIndex(): Int {
-    return findIndexOfValue(mValue)
+    return findIndexOfValue(value)
   }
 
   protected override fun onGetDefaultValue(a: TypedArray, index: Int): Any? {

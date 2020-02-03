@@ -1,11 +1,11 @@
 /*
- * Copyright 2020 The Android Open Source Project
+ * Copyright 2020 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,11 +22,12 @@ import android.os.Parcel
 import android.os.Parcelable
 import android.util.AttributeSet
 import androidx.annotation.ArrayRes
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.res.TypedArrayUtils
 import androidx.preference.Preference
 import java.util.Collections
 import kotlin.collections.HashSet
+
+const val MULTI_SELECT_LIST_PREFERENCE_ARG_KEY = "AutomotiveMultiSelectListPreferenceKey"
 
 /**
  * A {@link Preference} that displays a list of entries in a {@link ListPreferenceFragment}.
@@ -42,13 +43,9 @@ import kotlin.collections.HashSet
  */
 class MultiSelectListPreference : Preference {
 
-  companion object {
-    internal const val ARG_KEY = "AutomotiveMultiSelectListPreferenceKey"
-  }
-
-  private var mEntries: Array<CharSequence>? = null
-  private var mEntryValues: Array<CharSequence>? = null
-  private val mValues = HashSet<String>()
+  private var entries: Array<CharSequence>? = null
+  private var entryValues: Array<CharSequence>? = null
+  private val values = HashSet<String>()
 
   constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int, defStyleRes: Int)
     : super(context, attrs, defStyleAttr, defStyleRes) {
@@ -65,18 +62,18 @@ class MultiSelectListPreference : Preference {
 
   private fun init(context: Context, attrs: AttributeSet?, defStyleAttr: Int, defStyleRes: Int) {
 
-    val a = context.obtainStyledAttributes(
+    val attributes = context.obtainStyledAttributes(
       attrs, R.styleable.ListPreference, defStyleAttr, defStyleRes)
 
-    mEntries = TypedArrayUtils.getTextArray(a, R.styleable.ListPreference_entries,
+    entries = TypedArrayUtils.getTextArray(attributes, R.styleable.ListPreference_entries,
       R.styleable.ListPreference_android_entries)
 
-    mEntryValues = TypedArrayUtils.getTextArray(a, R.styleable.ListPreference_entryValues,
+    entryValues = TypedArrayUtils.getTextArray(attributes, R.styleable.ListPreference_entryValues,
       R.styleable.ListPreference_android_entryValues)
 
-    a.recycle()
+    attributes.recycle()
 
-    extras.putString(ARG_KEY, key)
+    extras.putString(MULTI_SELECT_LIST_PREFERENCE_ARG_KEY, key)
     fragment = MultiSelectListPreferenceFragment::class.qualifiedName
   }
 
@@ -91,7 +88,7 @@ class MultiSelectListPreference : Preference {
    * @see .setEntryValues
    */
   fun setEntries(entries: Array<CharSequence>) {
-    mEntries = entries
+    this.entries = entries
   }
 
   /**
@@ -108,7 +105,7 @@ class MultiSelectListPreference : Preference {
    * @return The list as an array
    */
   fun getEntries(): Array<CharSequence>? {
-    return mEntries
+    return entries
   }
 
   /**
@@ -116,14 +113,14 @@ class MultiSelectListPreference : Preference {
    * a user clicks on the second item in entries, the second item in this array will be saved to the
    * preference.
    *
-   * @param entryValues The array to be used as mValues to save for the preference
+   * @param entryValues The array to be used as values to save for the preference
    */
   fun setEntryValues(entryValues: Array<CharSequence>) {
-    mEntryValues = entryValues
+    this.entryValues = entryValues
   }
 
   /**
-   * @param entryValuesResId The entry mValues array as a resource
+   * @param entryValuesResId The entry values array as a resource
    * @see .setEntryValues
    */
   fun setEntryValues(@ArrayRes entryValuesResId: Int) {
@@ -131,22 +128,22 @@ class MultiSelectListPreference : Preference {
   }
 
   /**
-   * Returns the array of mValues to be saved for the preference.
+   * Returns the array of values to be saved for the preference.
    *
-   * @return The array of mValues
+   * @return The array of values
    */
   fun getEntryValues(): Array<CharSequence>? {
-    return mEntryValues
+    return entryValues
   }
 
   /**
    * Sets the values for the key. This should contain entries in [.getEntryValues].
    *
-   * @param values The mValues to set for the key
+   * @param values The values to set for the key
    */
   fun setValues(values: Set<String>) {
-    mValues.clear()
-    mValues.addAll(values)
+    this.values.clear()
+    this.values.addAll(values)
 
     persistStringSet(values)
     notifyChanged()
@@ -158,19 +155,19 @@ class MultiSelectListPreference : Preference {
    * @return The set of current values
    */
   fun getValues(): Set<String> {
-    return mValues
+    return values
   }
 
   /**
-   * Returns the index of the given value (in the entry mValues array).
+   * Returns the index of the given value (in the entry values array).
    *
    * @param value The value whose index should be returned
    * @return The index of the value, or -1 if not found
    */
   fun findIndexOfValue(value: String?): Int {
-    if (value != null && mEntryValues != null) {
-      for (i in mEntryValues!!.indices.reversed()) {
-        if (mEntryValues!![i] == value) {
+    if (value != null && entryValues != null) {
+      for (i in entryValues!!.indices.reversed()) {
+        if (entryValues!![i] == value) {
           return i
         }
       }
@@ -179,9 +176,9 @@ class MultiSelectListPreference : Preference {
   }
 
   protected fun getSelectedItems(): BooleanArray {
-    val entries = mEntryValues
+    val entries = entryValues
     val entryCount = entries!!.size
-    val values = mValues
+    val values = this.values
     val result = BooleanArray(entryCount)
 
     for (i in 0 until entryCount) {
@@ -243,7 +240,7 @@ class MultiSelectListPreference : Preference {
       Collections.addAll<String>(mValues as HashSet<String>, *strings)
     }
 
-    internal constructor(superState: Parcelable) : super(superState) {}
+    internal constructor(superState: Parcelable) : super(superState)
 
     override fun writeToParcel(dest: Parcel, flags: Int) {
       super.writeToParcel(dest, flags)

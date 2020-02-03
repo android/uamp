@@ -1,11 +1,11 @@
 /*
- * Copyright 2020 The Android Open Source Project
+ * Copyright 2020 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,8 +30,8 @@ import androidx.recyclerview.widget.RecyclerView
 internal class ListPreferenceAdapter(preference: ListPreference) :
   RecyclerView.Adapter<ListPreferenceAdapter.ViewHolder>() {
 
-  private var mEntries: Array<CharSequence>? = preference.getEntries()
-  private var mSelectedEntry: Int = preference.findIndexOfValue(preference.getValue())
+  private var entries: Array<CharSequence>? = preference.getEntries()
+  private var selectedEntry: Int = preference.findIndexOfValue(preference.getValue())
 
   override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
     return ViewHolder(LayoutInflater.from(parent.context)
@@ -39,22 +39,22 @@ internal class ListPreferenceAdapter(preference: ListPreference) :
   }
 
   override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-    holder.title.text = mEntries?.get(position)
-    holder.radioButton.isChecked = position == mSelectedEntry
+    holder.title.text = entries?.get(position)
+    holder.radioButton.isChecked = position == selectedEntry
     holder.holderView.setOnClickListener {
-      val previousIndex = mSelectedEntry
-      mSelectedEntry = position
+      val previousIndex = selectedEntry
+      selectedEntry = position
       notifyItemChanged(previousIndex)
       notifyItemChanged(position)
     }
   }
 
   fun getSelectedEntry(): Int {
-    return mSelectedEntry
+    return selectedEntry
   }
 
   override fun getItemCount(): Int {
-    mEntries?.let { return mEntries!!.size }
+    entries?.let { return entries!!.size }
     return 0
   }
 

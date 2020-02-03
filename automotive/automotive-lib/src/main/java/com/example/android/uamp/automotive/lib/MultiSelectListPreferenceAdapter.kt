@@ -1,11 +1,11 @@
 /*
- * Copyright 2020 The Android Open Source Project
+ * Copyright 2020 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,9 +31,9 @@ import java.util.HashSet
 class MultiSelectListPreferenceAdapter(preference: MultiSelectListPreference) :
   RecyclerView.Adapter<MultiSelectListPreferenceAdapter.ViewHolder>() {
 
-  private var mSelectedEntries: MutableSet<String> = HashSet(preference.getValues())
-  private var mEntries: Array<CharSequence>? = preference.getEntries()
-  private var mEntryValues: Array<CharSequence>? = preference.getEntryValues()
+  private var selectedEntries: MutableSet<String> = HashSet(preference.getValues())
+  private var entries: Array<CharSequence>? = preference.getEntries()
+  private var entryValues: Array<CharSequence>? = preference.getEntryValues()
 
   override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
     return ViewHolder(LayoutInflater.from(parent.context)
@@ -41,15 +41,15 @@ class MultiSelectListPreferenceAdapter(preference: MultiSelectListPreference) :
   }
 
   override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-    holder.title.text = mEntries?.get(position)
-    val entryValue = mEntryValues?.get(position).toString()
+    holder.title.text = entries?.get(position)
+    val entryValue = entryValues?.get(position).toString()
 
-    holder.checkBox.isChecked = mSelectedEntries.contains(entryValue)
+    holder.checkBox.isChecked = selectedEntries.contains(entryValue)
     holder.holderView.setOnClickListener {
-      if (mSelectedEntries.contains(entryValue)) {
-        mSelectedEntries.remove(entryValue)
+      if (selectedEntries.contains(entryValue)) {
+        selectedEntries.remove(entryValue)
       } else {
-        mSelectedEntries.add(entryValue)
+        selectedEntries.add(entryValue)
       }
 
       notifyItemChanged(position)
@@ -57,11 +57,11 @@ class MultiSelectListPreferenceAdapter(preference: MultiSelectListPreference) :
   }
 
   fun getSelectedEntries(): Set<String> {
-    return mSelectedEntries
+    return selectedEntries
   }
 
   override fun getItemCount(): Int {
-    mEntries?.let { return mEntries!!.size }
+    entries?.let { return entries!!.size }
     return 0
   }
 

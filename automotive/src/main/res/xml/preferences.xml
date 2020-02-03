@@ -19,6 +19,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
   <PreferenceCategory
+      android:title="Account">
+    <Preference
+        android:key="logout"
+        android:title="Log Out" />
+  </PreferenceCategory>
+
+  <PreferenceCategory
       android:title="@string/basic_preferences">
 
     <Preference
@@ -91,13 +98,6 @@
         android:summary="@string/summary_multi_list_preference"
         android:title="@string/title_multi_list_preference" />
 
-  </PreferenceCategory>
-
-  <PreferenceCategory
-      android:title="Account">
-    <Preference
-        android:key="logout"
-        android:title="Log Out" />
   </PreferenceCategory>
 
 </androidx.preference.PreferenceScreen>
