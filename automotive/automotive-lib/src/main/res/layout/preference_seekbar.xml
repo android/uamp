@@ -16,6 +16,7 @@
   -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:minHeight="@dimen/preference_min_height"
@@ -24,12 +25,18 @@
     android:clipChildren="false"
     android:clipToPadding="false">
 
-  <ImageView
-      android:id="@android:id/icon"
+  <FrameLayout
+      android:id="@+id/icon_frame"
+      android:layout_marginStart="@dimen/preference_start_margin"
       android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:layout_gravity="center"
-      android:minWidth="@dimen/preference_icon_minWidth"/>
+      android:layout_height="wrap_content">
+    <androidx.preference.internal.PreferenceImageView
+        android:id="@android:id/icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:maxWidth="@dimen/preference_icon_max_size"
+        app:maxHeight="@dimen/preference_icon_max_size" />
+  </FrameLayout>
 
   <RelativeLayout
       android:layout_width="0dp"
@@ -85,8 +92,8 @@
 
       <TextView android:id="@+id/seekbar_value"
           android:layout_width="36dp"
-          android:layout_height="match_parent"
-          android:gravity="right|center_vertical"
+          android:layout_height="wrap_content"
+          android:gravity="center"
           android:fontFamily="sans-serif-condensed"
           android:singleLine="true"
           android:textAppearance="@style/SecondaryText"
