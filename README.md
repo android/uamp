@@ -25,7 +25,6 @@ This sample uses the Gradle build system. To build this project, use the
 Support
 -------
 
-- Google+ Community: https://plus.google.com/communities/105153134372062985968
 - Stack Overflow: http://stackoverflow.com/questions/tagged/android
 
 If you've found an error in this sample, please
