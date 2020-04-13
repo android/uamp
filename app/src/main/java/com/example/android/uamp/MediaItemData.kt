@@ -66,12 +66,9 @@ data class MediaItemData(
          * - If something else changed, then refresh the full item for simplicity.
          */
         val diffCallback = object : DiffUtil.ItemCallback<MediaItemData>() {
-            override fun areItemsTheSame(oldItem: MediaItemData,
-                                         newItem: MediaItemData): Boolean =
-                    oldItem.mediaId == newItem.mediaId
+            override fun areItemsTheSame(oldItem: MediaItemData, newItem: MediaItemData): Boolean = oldItem.mediaId == newItem.mediaId
 
-            override fun areContentsTheSame(oldItem: MediaItemData, newItem: MediaItemData) =
-                    oldItem.mediaId == newItem.mediaId && oldItem.playbackRes == newItem.playbackRes
+            override fun areContentsTheSame(oldItem: MediaItemData, newItem: MediaItemData) = oldItem.mediaId == newItem.mediaId && oldItem.playbackRes == newItem.playbackRes
 
             override fun getChangePayload(oldItem: MediaItemData, newItem: MediaItemData) =
                     if (oldItem.playbackRes != newItem.playbackRes) {

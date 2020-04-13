@@ -30,7 +30,7 @@ import com.google.android.exoplayer2.upstream.DataSource
  * Useful extensions for [MediaMetadataCompat].
  */
 inline val MediaMetadataCompat.id: String
-    get() = getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID)
+    get() = getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID) ?: "android.media.metadata.MEDIA_ID"
 
 inline val MediaMetadataCompat.title: String?
     get() = getString(MediaMetadataCompat.METADATA_KEY_TITLE)

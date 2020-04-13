@@ -39,9 +39,7 @@ import com.example.android.uamp.utils.Event
  * Small [ViewModel] that watches a [MusicServiceConnection] to become connected
  * and provides the root/initial media ID of the underlying [MediaBrowserCompat].
  */
-class MainActivityViewModel(
-    private val musicServiceConnection: MusicServiceConnection
-) : ViewModel() {
+class MainActivityViewModel(private val musicServiceConnection: MusicServiceConnection) : ViewModel() {
 
     val rootMediaId: LiveData<String> =
         Transformations.map(musicServiceConnection.isConnected) { isConnected ->
@@ -159,9 +157,7 @@ class MainActivityViewModel(
         }
     }
 
-    class Factory(
-        private val musicServiceConnection: MusicServiceConnection
-    ) : ViewModelProvider.NewInstanceFactory() {
+    class Factory(private val musicServiceConnection: MusicServiceConnection) : ViewModelProvider.NewInstanceFactory() {
 
         @Suppress("unchecked_cast")
         override fun <T : ViewModel?> create(modelClass: Class<T>): T {

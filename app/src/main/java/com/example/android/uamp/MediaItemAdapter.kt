@@ -37,8 +37,7 @@ class MediaItemAdapter(private val itemClickedListener: (MediaItemData) -> Unit
 ) : ListAdapter<MediaItemData, MediaViewHolder>(MediaItemData.diffCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MediaViewHolder {
-        val view = LayoutInflater.from(parent.context)
-                .inflate(R.layout.fragment_mediaitem, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.fragment_mediaitem, parent, false)
         return MediaViewHolder(view, itemClickedListener)
     }
 
@@ -81,9 +80,7 @@ class MediaItemAdapter(private val itemClickedListener: (MediaItemData) -> Unit
     }
 }
 
-class MediaViewHolder(view: View,
-                      itemClickedListener: (MediaItemData) -> Unit
-) : RecyclerView.ViewHolder(view) {
+class MediaViewHolder(view: View, itemClickedListener: (MediaItemData) -> Unit) : RecyclerView.ViewHolder(view) {
 
     val titleView: TextView = view.title
     val subtitleView: TextView = view.subtitle
