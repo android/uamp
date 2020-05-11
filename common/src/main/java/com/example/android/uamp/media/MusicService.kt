@@ -18,6 +18,7 @@ package com.example.android.uamp.media
 
 import android.app.Notification
 import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -43,11 +44,14 @@ import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.Timeline
 import com.google.android.exoplayer2.audio.AudioAttributes
+import com.google.android.exoplayer2.ext.cast.SessionAvailabilityListener
+import com.google.android.exoplayer2.ext.cast.CastPlayer
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.ext.mediasession.TimelineQueueNavigator
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
+import com.google.android.gms.cast.framework.CastContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -64,12 +68,21 @@ import kotlinx.coroutines.launch
  *
  * For more information on implementing a MediaBrowserService,
  * visit [https://developer.android.com/guide/topics/media-apps/audio-app/building-a-mediabrowserservice.html](https://developer.android.com/guide/topics/media-apps/audio-app/building-a-mediabrowserservice.html).
+ *
+ * This class also handles playback for Cast sessions.
+ * When a Cast session is active, playback commands are passed to a
+ * [CastPlayer](https://exoplayer.dev/doc/reference/com/google/android/exoplayer2/ext/cast/CastPlayer.html),
+ * otherwise they are passed to an ExoPlayer for local playback.
  */
-open class MusicService : MediaBrowserServiceCompat() {
+open class MusicService : MediaBrowserServiceCompat(), SessionAvailabilityListener {
 
     private lateinit var notificationManager: UampNotificationManager
     private lateinit var mediaSource: MusicSource
     private lateinit var packageValidator: PackageValidator
+
+    // The current player will either be an ExoPlayer (for local playback) or a CastPlayer (for
+    // remote playback through a Cast device).
+    private lateinit var currentPlayer: Player
 
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
@@ -107,6 +120,15 @@ open class MusicService : MediaBrowserServiceCompat() {
             setAudioAttributes(uAmpAudioAttributes, true)
             setHandleAudioBecomingNoisy(true)
             addListener(playerListener)
+        }
+    }
+
+    /**
+     * Create a CastPlayer to handle communication with a Cast session.
+     */
+    private val castPlayer: CastPlayer by lazy {
+        CastPlayer(CastContext.getSharedInstance(this)).apply {
+            setSessionAvailabilityListener(this@MusicService)
         }
     }
 
@@ -159,25 +181,49 @@ open class MusicService : MediaBrowserServiceCompat() {
         }
 
         // ExoPlayer will manage the MediaSession for us.
-        mediaSessionConnector = MediaSessionConnector(mediaSession).also { connector ->
-            // Produces DataSource instances through which media data is loaded.
-            val dataSourceFactory = DefaultDataSourceFactory(
-                this, Util.getUserAgent(this, UAMP_USER_AGENT), null
-            )
+        mediaSessionConnector = MediaSessionConnector(mediaSession)
 
-            // Create the PlaybackPreparer of the media session connector.
-            val playbackPreparer = UampPlaybackPreparer(
-                mediaSource,
-                exoPlayer,
-                dataSourceFactory
-            )
-
-            connector.setPlayer(exoPlayer)
-            connector.setPlaybackPreparer(playbackPreparer)
-            connector.setQueueNavigator(UampQueueNavigator(mediaSession))
+        if (castPlayer.isCastSessionAvailable) {
+            mediaSessionConnector.connectToCastPlayer()
+        } else {
+            mediaSessionConnector.connectToExoPlayer(this)
         }
 
         packageValidator = PackageValidator(this, R.xml.allowed_media_browser_callers)
+    }
+
+    private fun MediaSessionConnector.connectToExoPlayer(context: Context) {
+        // Produces DataSource instances through which media data is loaded.
+        val dataSourceFactory = DefaultDataSourceFactory(
+                context, Util.getUserAgent(context, UAMP_USER_AGENT), null
+        )
+
+        // Create the PlaybackPreparer of the media session connector.
+        val playbackPreparer = UampPlaybackPreparer(
+                mediaSource,
+                exoPlayer,
+                dataSourceFactory
+        )
+        setPlayer(exoPlayer)
+        currentPlayer = exoPlayer
+        setPlaybackPreparer(playbackPreparer)
+
+        mediaSessionConnector.setQueueNavigator(UampQueueNavigator(mediaSession))
+
+    }
+
+    private fun MediaSessionConnector.connectToCastPlayer() {
+        // Create the PlaybackPreparer of the media session connector.
+        val playbackPreparer = UampCastPlaybackPreparer(
+                mediaSource,
+                castPlayer
+        )
+        setPlayer(castPlayer)
+        currentPlayer = castPlayer
+        setPlaybackPreparer(playbackPreparer)
+
+        // Disallow handling skip actions, for now.
+        mediaSessionConnector.setQueueNavigator(null)
     }
 
     /**
@@ -196,7 +242,7 @@ open class MusicService : MediaBrowserServiceCompat() {
          * The service will then remove itself as a foreground service, and will call
          * [stopSelf].
          */
-        exoPlayer.stop(true)
+        currentPlayer.stop(true)
     }
 
     override fun onDestroy() {
@@ -397,6 +443,49 @@ open class MusicService : MediaBrowserServiceCompat() {
                 Toast.LENGTH_LONG
             ).show()
         }
+    }
+
+    /**
+     * Called when a Cast session has started and the user wishes to control playback on a
+     * remote Cast receiver rather than play audio locally.
+     */
+    override fun onCastSessionAvailable() {
+        switchToPlayer(castPlayer)
+    }
+
+    /**
+     * Called when a Cast session has ended and the user wishes to control playback locally.
+     */
+    override fun onCastSessionUnavailable() {
+        switchToPlayer(exoPlayer)
+    }
+
+    private fun switchToPlayer(player: Player) {
+        if (this.currentPlayer == player) {
+            return
+        }
+
+        var playbackPositionMs = C.TIME_UNSET
+        var windowIndex = 0
+        var playWhenReady = false
+
+        val previousPlayer: Player = this.currentPlayer
+        // Save state from the previous player.
+        val playbackState = previousPlayer.playbackState
+        if (playbackState != Player.STATE_ENDED) {
+            playbackPositionMs = previousPlayer.currentPosition
+            windowIndex = previousPlayer.currentWindowIndex
+            playWhenReady = previousPlayer.playWhenReady
+        }
+        previousPlayer.stop(true)
+
+        when (player) {
+            exoPlayer -> mediaSessionConnector.connectToExoPlayer(this)
+            castPlayer -> mediaSessionConnector.connectToCastPlayer()
+            else -> throw IllegalStateException("Cannot switch playback to $player")
+        }
+
+        currentPlayer.seekTo(playbackPositionMs)
     }
 }
 
