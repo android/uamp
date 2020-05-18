@@ -29,6 +29,10 @@ import com.google.android.exoplayer2.upstream.DataSource
 /**
  * Useful extensions for [MediaMetadataCompat].
  */
+// TODO: The fact that this method returns a String and not a String? is convenient, however, it
+//  masks a problem: getString(METADATA_KEY_MEDIA_ID) can return null values. It may be better to
+//  return a String? here and have the caller handle null unless we can guarantee that
+//  MediaMetadataCompat always has a value for METADATA_KEY_MEDIA_ID.
 inline val MediaMetadataCompat.id: String
     get() = getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID)
 
