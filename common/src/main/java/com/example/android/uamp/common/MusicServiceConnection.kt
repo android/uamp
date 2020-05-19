@@ -30,6 +30,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.media.MediaBrowserServiceCompat
 import com.example.android.uamp.common.MusicServiceConnection.MediaBrowserConnectionCallback
 import com.example.android.uamp.media.NETWORK_FAILURE
+import com.example.android.uamp.media.extensions.id
 
 /**
  * Class that manages a connection to a [MediaBrowserServiceCompat] instance, typically a
@@ -137,7 +138,17 @@ class MusicServiceConnection(context: Context, serviceComponent: ComponentName) 
         }
 
         override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
-            nowPlaying.postValue(metadata ?: NOTHING_PLAYING)
+            // When ExoPlayer stops we will receive a callback with "empty" metadata. This is a
+            // metadata object which has been instantiated with default values. The default value
+            // for media ID is null so we assume that if this value is null we are not playing
+            // anything.
+            nowPlaying.postValue(
+                if (metadata?.id == null) {
+                    NOTHING_PLAYING
+                } else {
+                    metadata
+                }
+            )
         }
 
         override fun onQueueChanged(queue: MutableList<MediaSessionCompat.QueueItem>?) {
