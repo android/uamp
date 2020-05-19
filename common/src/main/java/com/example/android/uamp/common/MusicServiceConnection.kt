@@ -137,12 +137,13 @@ class MusicServiceConnection(context: Context, serviceComponent: ComponentName) 
         }
 
         override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
-            if (metadata == null ||
-                    metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID) == null) {
-                nowPlaying.postValue(NOTHING_PLAYING)
-            } else {
-                nowPlaying.postValue(metadata)
-            }
+            nowPlaying.postValue(
+                if (metadata?.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID) == null) {
+                    NOTHING_PLAYING
+                } else {
+                    metadata
+                }
+            )
         }
 
         override fun onQueueChanged(queue: MutableList<MediaSessionCompat.QueueItem>?) {
