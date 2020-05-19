@@ -137,6 +137,10 @@ class MusicServiceConnection(context: Context, serviceComponent: ComponentName) 
         }
 
         override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
+            // When ExoPlayer stops we will receive a callback with "empty" metadata. This is a
+            // metadata object which has been instantiated with default values. The default value
+            // for media ID is null so we assume that if this value is null we are not playing
+            // anything.
             nowPlaying.postValue(
                 if (metadata?.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID) == null) {
                     NOTHING_PLAYING
