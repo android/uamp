@@ -30,6 +30,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.media.MediaBrowserServiceCompat
 import com.example.android.uamp.common.MusicServiceConnection.MediaBrowserConnectionCallback
 import com.example.android.uamp.media.NETWORK_FAILURE
+import com.example.android.uamp.media.extensions.id
 
 /**
  * Class that manages a connection to a [MediaBrowserServiceCompat] instance, typically a
@@ -142,7 +143,7 @@ class MusicServiceConnection(context: Context, serviceComponent: ComponentName) 
             // for media ID is null so we assume that if this value is null we are not playing
             // anything.
             nowPlaying.postValue(
-                if (metadata?.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID) == null) {
+                if (metadata?.id == null) {
                     NOTHING_PLAYING
                 } else {
                     metadata
