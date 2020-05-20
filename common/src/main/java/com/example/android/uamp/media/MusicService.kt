@@ -16,41 +16,29 @@
 
 package com.example.android.uamp.media
 
+import android.app.Notification
 import android.app.PendingIntent
-import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.media.AudioManager
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaBrowserCompat.MediaItem
 import android.support.v4.media.MediaDescriptionCompat
-import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import androidx.core.app.NotificationManagerCompat
-import androidx.core.content.ContextCompat
 import androidx.media.MediaBrowserServiceCompat
 import com.example.android.uamp.media.extensions.flag
-import com.example.android.uamp.media.library.BrowseTree
-import com.example.android.uamp.media.library.JsonSource
-import com.example.android.uamp.media.library.MEDIA_SEARCH_SUPPORTED
-import com.example.android.uamp.media.library.MusicSource
-import com.example.android.uamp.media.library.UAMP_BROWSABLE_ROOT
-import com.example.android.uamp.media.library.UAMP_EMPTY_ROOT
-import com.google.android.exoplayer2.C
-import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.ExoPlayerFactory
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.Timeline
+import com.example.android.uamp.media.library.*
+import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.ext.mediasession.TimelineQueueNavigator
+import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
 import kotlinx.coroutines.CoroutineScope
@@ -71,9 +59,10 @@ import kotlinx.coroutines.launch
  * visit [https://developer.android.com/guide/topics/media-apps/audio-app/building-a-mediabrowserservice.html](https://developer.android.com/guide/topics/media-apps/audio-app/building-a-mediabrowserservice.html).
  */
 open class MusicService : MediaBrowserServiceCompat() {
+
     private lateinit var becomingNoisyReceiver: BecomingNoisyReceiver
-    private lateinit var notificationManager: NotificationManagerCompat
-    private lateinit var notificationBuilder: NotificationBuilder
+    private lateinit var notificationManager: UampNotificationManager
+
     private lateinit var mediaSource: MusicSource
     private lateinit var packageValidator: PackageValidator
 
@@ -81,7 +70,6 @@ open class MusicService : MediaBrowserServiceCompat() {
     private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
 
     protected lateinit var mediaSession: MediaSessionCompat
-    protected lateinit var mediaController: MediaControllerCompat
     protected lateinit var mediaSessionConnector: MediaSessionConnector
 
     /**
@@ -110,6 +98,7 @@ open class MusicService : MediaBrowserServiceCompat() {
     private val exoPlayer: ExoPlayer by lazy {
         ExoPlayerFactory.newSimpleInstance(this).apply {
             setAudioAttributes(uAmpAudioAttributes, true)
+            addListener(PlayerEventListener())
         }
     }
 
@@ -141,14 +130,23 @@ open class MusicService : MediaBrowserServiceCompat() {
          */
         sessionToken = mediaSession.sessionToken
 
-        // Because ExoPlayer will manage the MediaSession, add the service as a callback for
-        // state changes.
-        mediaController = MediaControllerCompat(this, mediaSession).also {
-            it.registerCallback(MediaControllerCallback())
-        }
+        notificationManager = UampNotificationManager(
+                this,
+                exoPlayer,
+                mediaSession.sessionToken,
+                object : PlayerNotificationManager.NotificationListener {
+                    override fun onNotificationPosted(notificationId: Int, notification: Notification?, ongoing: Boolean) {
+                        startForegroundService(Intent(applicationContext, MusicService::class.java))
+                        if (ongoing){
+                            startForeground(notificationId, notification)
+                        }
+                    }
 
-        notificationBuilder = NotificationBuilder(this)
-        notificationManager = NotificationManagerCompat.from(this)
+                    override fun onNotificationCancelled(notificationId: Int, dismissedByUser: Boolean) {
+                        stopForeground(true)
+                    }
+                }
+        )
 
         becomingNoisyReceiver =
             BecomingNoisyReceiver(context = this, sessionToken = mediaSession.sessionToken)
@@ -185,7 +183,7 @@ open class MusicService : MediaBrowserServiceCompat() {
     /**
      * This is the code that causes UAMP to stop playing when swiping it away from recents.
      * The choice to do this is app specific. Some apps stop playback, while others allow playback
-     * to continue and allow uses to stop it with the notification.
+     * to continue and allow users to stop it with the notification.
      */
     override fun onTaskRemoved(rootIntent: Intent) {
         super.onTaskRemoved(rootIntent)
@@ -197,6 +195,7 @@ open class MusicService : MediaBrowserServiceCompat() {
          * be reported as [PlaybackStateCompat.STATE_NONE], the service will first remove
          * itself as a foreground service, and will then call [stopSelf].
          */
+        notificationManager.removeNotification()
         exoPlayer.stop(true)
     }
 
@@ -311,103 +310,16 @@ open class MusicService : MediaBrowserServiceCompat() {
     }
 
     /**
-     * Removes the [NOW_PLAYING_NOTIFICATION] notification.
-     *
-     * Since `stopForeground(false)` was already called (see
-     * [MediaControllerCallback.onPlaybackStateChanged], it's possible to cancel the notification
-     * with `notificationManager.cancel(NOW_PLAYING_NOTIFICATION)` if minSdkVersion is >=
-     * [Build.VERSION_CODES.LOLLIPOP].
-     *
-     * Prior to [Build.VERSION_CODES.LOLLIPOP], notifications associated with a foreground
-     * service remained marked as "ongoing" even after calling [Service.stopForeground],
-     * and cannot be cancelled normally.
-     *
-     * Fortunately, it's possible to simply call [Service.stopForeground] a second time, this
-     * time with `true`. This won't change anything about the service's state, but will simply
-     * remove the notification.
+     * Listen for events from ExoPlayer.
      */
-    private fun removeNowPlayingNotification() {
-        stopForeground(true)
-    }
-
-    /**
-     * Class to receive callbacks about state changes to the [MediaSessionCompat]. In response
-     * to those callbacks, this class:
-     *
-     * - Build/update the service's notification.
-     * - Register/unregister a broadcast receiver for [AudioManager.ACTION_AUDIO_BECOMING_NOISY].
-     * - Calls [Service.startForeground] and [Service.stopForeground].
-     */
-    private inner class MediaControllerCallback : MediaControllerCompat.Callback() {
-        override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
-            mediaController.playbackState?.let { state ->
-                serviceScope.launch {
-                    updateNotification(state)
-                }
-            }
-        }
-
-        override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
-            state?.let { state ->
-                serviceScope.launch {
-                    updateNotification(state)
-                }
-            }
-        }
-
-        private suspend fun updateNotification(state: PlaybackStateCompat) {
-            val updatedState = state.state
-
-            // Skip building a notification when state is "none" and metadata is null.
-            val notification = if (mediaController.metadata != null
-                    && updatedState != PlaybackStateCompat.STATE_NONE) {
-                notificationBuilder.buildNotification(mediaSession.sessionToken)
-            } else {
-                null
-            }
-
-            when (updatedState) {
-                PlaybackStateCompat.STATE_BUFFERING,
-                PlaybackStateCompat.STATE_PLAYING -> {
+    private inner class PlayerEventListener : Player.EventListener {
+        override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
+            when (playbackState){
+                Player.STATE_BUFFERING,
+                Player.STATE_READY ->
                     becomingNoisyReceiver.register()
-
-                    /**
-                     * This may look strange, but the documentation for [Service.startForeground]
-                     * notes that "calling this method does *not* put the service in the started
-                     * state itself, even though the name sounds like it."
-                     */
-                    if (notification != null) {
-                        notificationManager.notify(NOW_PLAYING_NOTIFICATION, notification)
-
-                        if (!isForegroundService) {
-                            ContextCompat.startForegroundService(
-                                applicationContext,
-                                Intent(applicationContext, this@MusicService.javaClass)
-                            )
-                            startForeground(NOW_PLAYING_NOTIFICATION, notification)
-                            isForegroundService = true
-                        }
-                    }
-                }
-                else -> {
+                else ->
                     becomingNoisyReceiver.unregister()
-
-                    if (isForegroundService) {
-                        stopForeground(false)
-                        isForegroundService = false
-
-                        // If playback has ended, also stop the service.
-                        if (updatedState == PlaybackStateCompat.STATE_NONE) {
-                            stopSelf()
-                        }
-
-                        if (notification != null) {
-                            notificationManager.notify(NOW_PLAYING_NOTIFICATION, notification)
-                        } else {
-                            removeNowPlayingNotification()
-                        }
-                    }
-                }
             }
         }
     }
