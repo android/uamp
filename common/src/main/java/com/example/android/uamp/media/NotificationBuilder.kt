@@ -42,10 +42,12 @@ import com.example.android.uamp.media.extensions.isSkipToPreviousEnabled
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-const val NOW_PLAYING_CHANNEL: String = "com.example.android.uamp.media.NOW_PLAYING"
-const val NOW_PLAYING_NOTIFICATION: Int = 0xb339
+/*const val NOW_PLAYING_CHANNEL: String = "com.example.android.uamp.media.NOW_PLAYING"
+const val NOW_PLAYING_NOTIFICATION: Int = 0xb339*/
 
 /**
+ * TODO: Remove this class if refactoring successful
+ *
  * Helper class to encapsulate code for building notifications.
  */
 class NotificationBuilder(private val context: Context) {
