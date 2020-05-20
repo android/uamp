@@ -15,17 +15,89 @@
   ~ limitations under the License.
   -->
 <androidx.preference.PreferenceScreen
-    xmlns:android="http://schemas.android.com/apk/res/android">
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <PreferenceCategory
-        android:title="Account"
-        android:layout="@layout/preference_category">
+  <PreferenceCategory
+      android:title="Account">
+    <Preference
+        android:key="logout"
+        android:title="Log Out" />
+  </PreferenceCategory>
 
-        <Preference
-            android:key="logout"
-            android:title="Log Out"
-            android:layout="@layout/preference"/>
+  <PreferenceCategory
+      android:title="@string/basic_preferences">
 
-    </PreferenceCategory>
+    <Preference
+        android:key="preference"
+        android:summary="@string/summary_basic_preference"
+        android:title="@string/title_basic_preference" />
+
+    <Preference
+        android:key="stylized"
+        android:summary="@string/summary_stylish_preference"
+        android:title="@string/title_stylish_preference" />
+
+    <Preference
+        android:icon="@drawable/ic_settings_wifi"
+        android:key="icon"
+        android:summary="@string/summary_icon_preference"
+        android:title="@string/title_icon_preference" />
+
+    <Preference
+        android:key="single_line_title"
+        android:summary="@string/summary_single_line_title_preference"
+        android:title="@string/title_single_line_title_preference"
+        app:singleLineTitle="true" />
+
+    <Preference
+        android:key="single_line_no_summary"
+        android:title="@string/title_single_line_no_summary"
+        app:singleLineTitle="true" />
+  </PreferenceCategory>
+
+  <PreferenceCategory
+      android:title="@string/widgets">
+
+    <CheckBoxPreference
+        android:key="checkbox"
+        android:summary="@string/summary_checkbox_preference"
+        android:title="@string/title_checkbox_preference" />
+
+    <SwitchPreference
+        android:key="switch"
+        android:summary="@string/summary_switch_preference"
+        android:title="@string/title_switch_preference" />
+
+    <SeekBarPreference
+        android:defaultValue="5"
+        android:key="seekbar"
+        android:max="10"
+        android:title="@string/title_seekbar_preference" />
+  </PreferenceCategory>
+
+  <PreferenceCategory
+      android:title="@string/dialogs">
+
+    <EditTextPreference
+        android:dialogTitle="@string/dialog_title_edittext_preference"
+        android:key="edittext"
+        android:title="@string/title_edittext_preference" />
+
+    <com.example.android.uamp.automotive.lib.ListPreference
+        android:entries="@array/entries"
+        android:entryValues="@array/entry_values"
+        android:key="list_mod"
+        android:summary="@string/summary_basic_preference"
+        android:title="@string/title_list_preference" />
+
+    <com.example.android.uamp.automotive.lib.MultiSelectListPreference
+        android:entries="@array/entries"
+        android:entryValues="@array/entry_values"
+        android:key="multi_select_list_mod"
+        android:summary="@string/summary_multi_list_preference"
+        android:title="@string/title_multi_list_preference" />
+
+  </PreferenceCategory>
 
 </androidx.preference.PreferenceScreen>

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2020 Google LLC
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     https://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="@dimen/preference_min_height"
+    android:gravity="center_vertical"
+    android:paddingEnd="?android:attr/scrollbarSize"
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+  <FrameLayout
+      android:id="@+id/icon_frame"
+      android:layout_marginStart="@dimen/preference_start_margin"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content">
+    <androidx.preference.internal.PreferenceImageView
+        android:id="@android:id/icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:maxWidth="@dimen/preference_icon_max_size"
+        app:maxHeight="@dimen/preference_icon_max_size" />
+  </FrameLayout>
+
+  <RelativeLayout
+      android:layout_width="0dp"
+      android:layout_height="wrap_content"
+      android:layout_marginStart="@dimen/preference_start_margin"
+      android:layout_marginEnd="8dip"
+      android:layout_marginTop="@dimen/preference_top_margin"
+      android:layout_marginBottom="@dimen/preference_bottom_margin"
+      android:layout_weight="1"
+      android:clipChildren="false"
+      android:clipToPadding="false">
+
+    <TextView android:id="@android:id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:singleLine="true"
+        android:textAppearance="@style/TextAppearance.Automotive.PrimaryText"
+        android:textColor="?android:attr/textColorPrimary"
+        android:ellipsize="marquee"
+        android:fadingEdge="horizontal"/>
+
+    <TextView android:id="@android:id/summary"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@android:id/title"
+        android:layout_alignStart="@android:id/title"
+        android:textAppearance="@style/TextAppearance.Automotive.SecondaryText"
+        android:textColor="?android:attr/textColorSecondary"
+        android:maxLines="4"/>
+
+    <!-- Using UnPressableLinearLayout as a workaround to disable the pressed state propagation
+    to the children of this container layout. Otherwise, the animated pressed state will also
+    play for the thumb in the AbsSeekBar in addition to the preference's ripple background.
+    The background of the SeekBar is also set to null to disable the ripple background -->
+    <androidx.preference.UnPressableLinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_below="@android:id/summary"
+        android:layout_alignStart="@android:id/title"
+        android:clipChildren="false"
+        android:clipToPadding="false">
+      <SeekBar
+          android:id="@+id/seekbar"
+          android:layout_width="0dp"
+          android:layout_weight="1"
+          android:layout_height="wrap_content"
+          android:paddingStart="0dp"
+          android:paddingEnd="@dimen/preference_end_margin"
+          android:focusable="false"
+          android:clickable="false"
+          android:background="@null" />
+
+      <TextView android:id="@+id/seekbar_value"
+          android:layout_width="36dp"
+          android:layout_height="wrap_content"
+          android:gravity="center"
+          android:fontFamily="sans-serif-condensed"
+          android:singleLine="true"
+          android:textAppearance="@style/SecondaryText"
+          android:ellipsize="marquee"
+          android:fadingEdge="horizontal"/>
+    </androidx.preference.UnPressableLinearLayout>
+
+  </RelativeLayout>
+
+</LinearLayout>
