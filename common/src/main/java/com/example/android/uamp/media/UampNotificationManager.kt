@@ -16,8 +16,8 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-const val NOW_PLAYING_CHANNEL: String = "com.example.android.uamp.media.NOW_PLAYING"
-const val NOW_PLAYING_NOTIFICATION: Int = 0xb339
+const val NOW_PLAYING_CHANNEL = "com.example.android.uamp.media.NOW_PLAYING"
+const val NOW_PLAYING_NOTIFICATION = 0xb339
 
 /**
  * A wrapper class for ExoPlayer's PlayerNotificationManager. It sets up the notification shown to
@@ -25,12 +25,12 @@ const val NOW_PLAYING_NOTIFICATION: Int = 0xb339
  */
 class UampNotificationManager(private val context: Context,
                               private val player: ExoPlayer,
-                              sessionToken : MediaSessionCompat.Token,
+                              sessionToken: MediaSessionCompat.Token,
                               notificationListener: PlayerNotificationManager.NotificationListener) {
 
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
-    private val notificationManager : PlayerNotificationManager
+    private val notificationManager: PlayerNotificationManager
 
     init {
         val mediaController = MediaControllerCompat(context, sessionToken)
@@ -55,11 +55,11 @@ class UampNotificationManager(private val context: Context,
         }
     }
 
-    fun hideNotification(){
+    fun hideNotification() {
         notificationManager.setPlayer(null)
     }
 
-    fun showNotification(){
+    fun showNotification() {
         notificationManager.setPlayer(player)
     }
 
@@ -69,15 +69,18 @@ class UampNotificationManager(private val context: Context,
         var currentIconUri: Uri? = null
         var currentBitmap: Bitmap? = null
 
-        override fun createCurrentContentIntent(player: Player?): PendingIntent? = controller.sessionActivity
+        override fun createCurrentContentIntent(player: Player?): PendingIntent? =
+                controller.sessionActivity
 
-        override fun getCurrentContentText(player: Player?): String? = controller.metadata.description.subtitle.toString()
+        override fun getCurrentContentText(player: Player?) =
+                controller.metadata.description.subtitle.toString()
 
-        override fun getCurrentContentTitle(player: Player?): String = controller.metadata.description.title.toString()
+        override fun getCurrentContentTitle(player: Player?) =
+                controller.metadata.description.title.toString()
 
-        override fun getCurrentLargeIcon(player: Player?,
-                                         callback: PlayerNotificationManager.BitmapCallback?): Bitmap? {
-
+        override fun getCurrentLargeIcon(
+                player: Player?,
+                callback: PlayerNotificationManager.BitmapCallback?): Bitmap? {
             val iconUri = controller.metadata.description.iconUri
             return if (currentIconUri != iconUri || currentBitmap == null) {
 
