@@ -69,10 +69,8 @@ import kotlinx.coroutines.launch
  * visit [https://developer.android.com/guide/topics/media-apps/audio-app/building-a-mediabrowserservice.html](https://developer.android.com/guide/topics/media-apps/audio-app/building-a-mediabrowserservice.html).
  */
 open class MusicService : MediaBrowserServiceCompat() {
-
     private lateinit var becomingNoisyReceiver: BecomingNoisyReceiver
     private lateinit var notificationManager: UampNotificationManager
-
     private lateinit var mediaSource: MusicSource
     private lateinit var packageValidator: PackageValidator
 
