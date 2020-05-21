@@ -321,7 +321,9 @@ open class MusicService : MediaBrowserServiceCompat() {
      * Listen for notification events.
      */
     private inner class PlayerNotificationListener : PlayerNotificationManager.NotificationListener {
-        override fun onNotificationPosted(notificationId: Int, notification: Notification?, ongoing: Boolean) {
+        override fun onNotificationPosted(notificationId: Int,
+                                          notification: Notification?,
+                                          ongoing: Boolean) {
             if (ongoing && !isForegroundService){
                 ContextCompat.startForegroundService(
                         applicationContext,
