@@ -319,11 +319,7 @@ open class MusicService : MediaBrowserServiceCompat() {
      */
     private inner class PlayerNotificationListener : PlayerNotificationManager.NotificationListener {
         override fun onNotificationPosted(notificationId: Int, notification: Notification?, ongoing: Boolean) {
-            Log.d(TAG, "onNotificationPosted")
-
             if (ongoing && !isForegroundService){
-                Log.d(TAG, "ongoing is true, calling startForeground, id: $notificationId")
-
                 ContextCompat.startForegroundService(
                         applicationContext,
                         Intent(applicationContext, this@MusicService.javaClass)
@@ -335,7 +331,6 @@ open class MusicService : MediaBrowserServiceCompat() {
         }
 
         override fun onNotificationCancelled(notificationId: Int, dismissedByUser: Boolean) {
-            Log.d(TAG, "onNotificationCancelled")
             stopForeground(true)
             isForegroundService = false
             stopSelf()
