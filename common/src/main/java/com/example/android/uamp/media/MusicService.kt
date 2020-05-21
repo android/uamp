@@ -30,11 +30,21 @@ import android.support.v4.media.MediaBrowserCompat.MediaItem
 import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
-import android.support.v4.media.session.PlaybackStateCompat
+import android.util.Log
+import androidx.core.content.ContextCompat
 import androidx.media.MediaBrowserServiceCompat
 import com.example.android.uamp.media.extensions.flag
-import com.example.android.uamp.media.library.*
-import com.google.android.exoplayer2.*
+import com.example.android.uamp.media.library.BrowseTree
+import com.example.android.uamp.media.library.JsonSource
+import com.example.android.uamp.media.library.MEDIA_SEARCH_SUPPORTED
+import com.example.android.uamp.media.library.MusicSource
+import com.example.android.uamp.media.library.UAMP_BROWSABLE_ROOT
+import com.example.android.uamp.media.library.UAMP_EMPTY_ROOT
+import com.google.android.exoplayer2.C
+import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.ExoPlayerFactory
+import com.google.android.exoplayer2.Player
+import com.google.android.exoplayer2.Timeline
 import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.ext.mediasession.TimelineQueueNavigator
@@ -130,22 +140,17 @@ open class MusicService : MediaBrowserServiceCompat() {
          */
         sessionToken = mediaSession.sessionToken
 
+        /**
+         * The notification manager will use our player and media session to decide when to post
+         * notifications. When notifications are posted or removed our listener will be called, this
+         * allows us to promote the service to foreground (required so that we're not killed if
+         * the main UI is not visible).
+         */
         notificationManager = UampNotificationManager(
                 this,
                 exoPlayer,
                 mediaSession.sessionToken,
-                object : PlayerNotificationManager.NotificationListener {
-                    override fun onNotificationPosted(notificationId: Int, notification: Notification?, ongoing: Boolean) {
-                        startForegroundService(Intent(applicationContext, MusicService::class.java))
-                        if (ongoing){
-                            startForeground(notificationId, notification)
-                        }
-                    }
-
-                    override fun onNotificationCancelled(notificationId: Int, dismissedByUser: Boolean) {
-                        stopForeground(true)
-                    }
-                }
+                PlayerNotificationListener()
         )
 
         becomingNoisyReceiver =
@@ -181,21 +186,21 @@ open class MusicService : MediaBrowserServiceCompat() {
     }
 
     /**
-     * This is the code that causes UAMP to stop playing when swiping it away from recents.
-     * The choice to do this is app specific. Some apps stop playback, while others allow playback
-     * to continue and allow users to stop it with the notification.
+     * This is the code that causes UAMP to stop playing when swiping the activity away from
+     * recents. The choice to do this is app specific. Some apps stop playback, while others allow
+     * playback to continue and allow users to stop it with the notification.
      */
     override fun onTaskRemoved(rootIntent: Intent) {
         super.onTaskRemoved(rootIntent)
 
         /**
-         * By stopping playback, the player will transition to [Player.STATE_IDLE]. This will
-         * cause a state change in the MediaSession, and (most importantly) call
-         * [MediaControllerCallback.onPlaybackStateChanged]. Because the playback state will
-         * be reported as [PlaybackStateCompat.STATE_NONE], the service will first remove
-         * itself as a foreground service, and will then call [stopSelf].
+         * By stopping playback, the player will transition to [Player.STATE_IDLE] triggering
+         * [Player.EventListener.onPlayerStateChanged] to be called. This will cause the
+         * notification to be hidden and trigger
+         * [PlayerNotificationManager.NotificationListener.onNotificationCancelled] to be called.
+         * The service will then remove itself as a foreground service, and will call
+         * [stopSelf].
          */
-        notificationManager.removeNotification()
         exoPlayer.stop(true)
     }
 
@@ -310,16 +315,48 @@ open class MusicService : MediaBrowserServiceCompat() {
     }
 
     /**
+     * Listen for notification events.
+     */
+    private inner class PlayerNotificationListener : PlayerNotificationManager.NotificationListener {
+        override fun onNotificationPosted(notificationId: Int, notification: Notification?, ongoing: Boolean) {
+            Log.d(TAG, "onNotificationPosted")
+
+            if (ongoing && !isForegroundService){
+                Log.d(TAG, "ongoing is true, calling startForeground, id: $notificationId")
+
+                ContextCompat.startForegroundService(
+                        applicationContext,
+                        Intent(applicationContext, this@MusicService.javaClass)
+                )
+
+                startForeground(notificationId, notification)
+                isForegroundService = true
+            }
+        }
+
+        override fun onNotificationCancelled(notificationId: Int, dismissedByUser: Boolean) {
+            Log.d(TAG, "onNotificationCancelled")
+            stopForeground(true)
+            isForegroundService = false
+            stopSelf()
+        }
+    }
+
+    /**
      * Listen for events from ExoPlayer.
      */
     private inner class PlayerEventListener : Player.EventListener {
         override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
             when (playbackState){
                 Player.STATE_BUFFERING,
-                Player.STATE_READY ->
+                Player.STATE_READY -> {
+                    notificationManager.showNotification()
                     becomingNoisyReceiver.register()
-                else ->
+                }
+                else -> {
+                    notificationManager.hideNotification()
                     becomingNoisyReceiver.unregister()
+                }
             }
         }
     }
@@ -386,3 +423,4 @@ private const val CONTENT_STYLE_LIST = 1
 private const val CONTENT_STYLE_GRID = 2
 
 private const val UAMP_USER_AGENT = "uamp.next"
+private const val TAG = "MusicService"

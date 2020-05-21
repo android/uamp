@@ -24,7 +24,7 @@ const val NOW_PLAYING_NOTIFICATION: Int = 0xb339
  * the user during audio playback and provides track metadata, such as track title and icon image.
  */
 class UampNotificationManager(private val context: Context,
-                              player: ExoPlayer,
+                              private val player: ExoPlayer,
                               sessionToken : MediaSessionCompat.Token,
                               notificationListener: PlayerNotificationManager.NotificationListener) {
 
@@ -42,7 +42,6 @@ class UampNotificationManager(private val context: Context,
                 DescriptionAdapter(mediaController),
                 notificationListener).apply {
 
-            setPlayer(player)
             setMediaSessionToken(sessionToken)
             setSmallIcon(R.drawable.ic_notification)
 
@@ -56,8 +55,12 @@ class UampNotificationManager(private val context: Context,
         }
     }
 
-    fun removeNotification(){
+    fun hideNotification(){
         notificationManager.setPlayer(null)
+    }
+
+    fun showNotification(){
+        notificationManager.setPlayer(player)
     }
 
     private inner class DescriptionAdapter(private val controller: MediaControllerCompat)
