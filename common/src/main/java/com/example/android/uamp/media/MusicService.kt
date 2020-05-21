@@ -30,7 +30,6 @@ import android.support.v4.media.MediaBrowserCompat.MediaItem
 import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
-import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.media.MediaBrowserServiceCompat
 import com.example.android.uamp.media.extensions.flag
@@ -99,6 +98,8 @@ open class MusicService : MediaBrowserServiceCompat() {
         .setUsage(C.USAGE_MEDIA)
         .build()
 
+    private val playerListener = PlayerEventListener()
+
     /**
      * Configure ExoPlayer to handle audio focus for us.
      * See [Player.AudioComponent.setAudioAttributes] for details.
@@ -106,7 +107,7 @@ open class MusicService : MediaBrowserServiceCompat() {
     private val exoPlayer: ExoPlayer by lazy {
         ExoPlayerFactory.newSimpleInstance(this).apply {
             setAudioAttributes(uAmpAudioAttributes, true)
-            addListener(PlayerEventListener())
+            addListener(playerListener)
         }
     }
 
@@ -210,6 +211,10 @@ open class MusicService : MediaBrowserServiceCompat() {
 
         // Cancel coroutines when the service is going away.
         serviceJob.cancel()
+
+        // Free ExoPlayer resources.
+        exoPlayer.removeListener(playerListener)
+        exoPlayer.release()
     }
 
     /**
