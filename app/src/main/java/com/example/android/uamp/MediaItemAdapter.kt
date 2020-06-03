@@ -25,7 +25,10 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.android.uamp.MediaItemData.Companion.PLAYBACK_RES_CHANGED
-import kotlinx.android.synthetic.main.fragment_mediaitem.view.*
+import kotlinx.android.synthetic.main.fragment_mediaitem.view.albumArt
+import kotlinx.android.synthetic.main.fragment_mediaitem.view.item_state
+import kotlinx.android.synthetic.main.fragment_mediaitem.view.subtitle
+import kotlinx.android.synthetic.main.fragment_mediaitem.view.title
 
 /**
  * [RecyclerView.Adapter] of [MediaItemData]s used by the [MediaItemFragment].
