@@ -324,7 +324,7 @@ open class MusicService : MediaBrowserServiceCompat() {
         override fun onNotificationPosted(notificationId: Int,
                                           notification: Notification?,
                                           ongoing: Boolean) {
-            if (ongoing && !isForegroundService){
+            if (ongoing && !isForegroundService) {
                 ContextCompat.startForegroundService(
                         applicationContext,
                         Intent(applicationContext, this@MusicService.javaClass)
