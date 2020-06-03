@@ -38,12 +38,13 @@ class PhoneSignInFragment : Fragment() {
     private lateinit var appIcon: ImageView
     private lateinit var primaryTextView: TextView
     private lateinit var pinSignInButton: Button
-    private lateinit var qrCodeSignInButton : Button
+    private lateinit var qrCodeSignInButton: Button
     private lateinit var footerTextView: TextView
 
     override fun onCreateView(
-            inflater: LayoutInflater, container: ViewGroup?,
-            savedInstanceState: Bundle?): View? {
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         return inflater.inflate(R.layout.phone_sign_in, container, false)
     }
 
@@ -68,23 +69,25 @@ class PhoneSignInFragment : Fragment() {
         pinSignInButton.text = getString(R.string.pin_sign_in_button_label)
         pinSignInButton.setOnClickListener {
             requireActivity().supportFragmentManager.beginTransaction()
-                    .replace(R.id.sign_in_container, PinCodeSignInFragment())
-                    .addToBackStack("landingPage")
-                    .commit()
+                .replace(R.id.sign_in_container, PinCodeSignInFragment())
+                .addToBackStack("landingPage")
+                .commit()
         }
 
         // Set up QR code sign in button.
         qrCodeSignInButton.text = getString(R.string.qr_sign_in_button_label)
         qrCodeSignInButton.setOnClickListener {
             requireActivity().supportFragmentManager.beginTransaction()
-                    .replace(R.id.sign_in_container, QrCodeSignInFragment())
-                    .addToBackStack("landingPage")
-                    .commit()
+                .replace(R.id.sign_in_container, QrCodeSignInFragment())
+                .addToBackStack("landingPage")
+                .commit()
         }
 
         // Links in footer text should be clickable.
-        footerTextView.text = HtmlCompat.fromHtml(context.getString(R.string.sign_in_footer),
-                HtmlCompat.FROM_HTML_MODE_LEGACY)
+        footerTextView.text = HtmlCompat.fromHtml(
+            context.getString(R.string.sign_in_footer),
+            HtmlCompat.FROM_HTML_MODE_LEGACY
+        )
         footerTextView.movementMethod = LinkMovementMethod.getInstance()
     }
 }

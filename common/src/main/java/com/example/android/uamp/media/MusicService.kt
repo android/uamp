@@ -146,10 +146,10 @@ open class MusicService : MediaBrowserServiceCompat() {
          * the main UI is not visible).
          */
         notificationManager = UampNotificationManager(
-                this,
-                exoPlayer,
-                mediaSession.sessionToken,
-                PlayerNotificationListener()
+            this,
+            exoPlayer,
+            mediaSession.sessionToken,
+            PlayerNotificationListener()
         )
 
         becomingNoisyReceiver =
@@ -320,14 +320,17 @@ open class MusicService : MediaBrowserServiceCompat() {
     /**
      * Listen for notification events.
      */
-    private inner class PlayerNotificationListener : PlayerNotificationManager.NotificationListener {
-        override fun onNotificationPosted(notificationId: Int,
-                                          notification: Notification?,
-                                          ongoing: Boolean) {
+    private inner class PlayerNotificationListener :
+        PlayerNotificationManager.NotificationListener {
+        override fun onNotificationPosted(
+            notificationId: Int,
+            notification: Notification?,
+            ongoing: Boolean
+        ) {
             if (ongoing && !isForegroundService) {
                 ContextCompat.startForegroundService(
-                        applicationContext,
-                        Intent(applicationContext, this@MusicService.javaClass)
+                    applicationContext,
+                    Intent(applicationContext, this@MusicService.javaClass)
                 )
 
                 startForeground(notificationId, notification)
@@ -347,7 +350,7 @@ open class MusicService : MediaBrowserServiceCompat() {
      */
     private inner class PlayerEventListener : Player.EventListener {
         override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
-            when (playbackState){
+            when (playbackState) {
                 Player.STATE_BUFFERING,
                 Player.STATE_READY -> {
                     notificationManager.showNotification()

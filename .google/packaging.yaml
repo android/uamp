@@ -16,12 +16,12 @@ level:        INTERMEDIATE
 icon: screenshots/icon-web.png
 
 apiRefs:
-    - android:android.support.v4.media.session.MediaSessionCompat
-    - android:android.support.v4.media.session.MediaControllerCompat
-    - androidx.media.MediaBrowserServiceCompat
-    - android:android.support.v4.media.MediaBrowserCompat
-    - androidx.media.app.NotificationCompat.MediaStyle
-    - android:com.google.android.exoplayer2.SimpleExoPlayer
-    - android:com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
+  - android:android.support.v4.media.session.MediaSessionCompat
+  - android:android.support.v4.media.session.MediaControllerCompat
+  - androidx.media.MediaBrowserServiceCompat
+  - android:android.support.v4.media.MediaBrowserCompat
+  - androidx.media.app.NotificationCompat.MediaStyle
+  - android:com.google.android.exoplayer2.SimpleExoPlayer
+  - android:com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 
 license: apache2-android

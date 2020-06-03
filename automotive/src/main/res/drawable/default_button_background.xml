@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ Copyright 2019 Google Inc. All rights reserved.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,13 +14,12 @@
   ~ limitations under the License.
   -->
 <!-- Default background styles for car buttons when enabled/disabled. -->
-<ripple
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
     android:color="?attr/colorControlHighlight">
     <item>
         <shape android:shape="rectangle">
-            <corners android:radius="@dimen/car_button_radius"/>
-            <solid android:color="@color/colorAccent"/>
+            <corners android:radius="@dimen/car_button_radius" />
+            <solid android:color="@color/colorAccent" />
         </shape>
     </item>
 </ripple>

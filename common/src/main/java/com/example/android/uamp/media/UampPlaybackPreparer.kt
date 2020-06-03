@@ -39,9 +39,9 @@ import com.google.android.exoplayer2.upstream.DataSource
  * Class to bridge UAMP to the ExoPlayer MediaSession extension.
  */
 class UampPlaybackPreparer(
-        private val musicSource: MusicSource,
-        private val exoPlayer: ExoPlayer,
-        private val dataSourceFactory: DataSource.Factory
+    private val musicSource: MusicSource,
+    private val exoPlayer: ExoPlayer,
+    private val dataSourceFactory: DataSource.Factory
 ) : MediaSessionConnector.PlaybackPreparer {
 
     /**
@@ -51,10 +51,10 @@ class UampPlaybackPreparer(
      * TODO: Add support for ACTION_PREPARE and ACTION_PLAY, which mean "prepare/play something".
      */
     override fun getSupportedPrepareActions(): Long =
-            PlaybackStateCompat.ACTION_PREPARE_FROM_MEDIA_ID or
-                    PlaybackStateCompat.ACTION_PLAY_FROM_MEDIA_ID or
-                    PlaybackStateCompat.ACTION_PREPARE_FROM_SEARCH or
-                    PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH
+        PlaybackStateCompat.ACTION_PREPARE_FROM_MEDIA_ID or
+                PlaybackStateCompat.ACTION_PLAY_FROM_MEDIA_ID or
+                PlaybackStateCompat.ACTION_PREPARE_FROM_SEARCH or
+                PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH
 
     override fun onPrepare() = Unit
 
@@ -133,7 +133,7 @@ class UampPlaybackPreparer(
      * @return a [List] of [MediaMetadataCompat] objects representing a playlist.
      */
     private fun buildPlaylist(item: MediaMetadataCompat): List<MediaMetadataCompat> =
-            musicSource.filter { it.album == item.album }.sortedBy { it.trackNumber }
+        musicSource.filter { it.album == item.album }.sortedBy { it.trackNumber }
 }
 
 private const val TAG = "MediaSessionHelper"

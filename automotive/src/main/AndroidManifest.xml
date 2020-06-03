@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ Copyright 2019 Google LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -51,8 +50,8 @@
         <!-- Car compatible theme must use minSDK24 -->
         <activity
             android:name=".SettingsActivity"
-            android:theme="@style/AppTheme.Drawer"
-            android:label="@string/settings_label">
+            android:label="@string/settings_label"
+            android:theme="@style/AppTheme.Drawer">
             <intent-filter>
                 <action android:name="android.intent.action.APPLICATION_PREFERENCES" />
             </intent-filter>

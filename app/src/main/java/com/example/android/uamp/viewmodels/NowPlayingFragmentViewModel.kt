@@ -48,8 +48,8 @@ import com.example.android.uamp.media.extensions.title
  * resources.
  */
 class NowPlayingFragmentViewModel(
-        private val app: Application,
-        musicServiceConnection: MusicServiceConnection
+    private val app: Application,
+    musicServiceConnection: MusicServiceConnection
 ) : AndroidViewModel(app) {
 
     /**

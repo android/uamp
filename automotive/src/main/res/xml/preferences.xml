@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ Copyright 2019 Google Inc. All rights reserved.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,17 +13,16 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<androidx.preference.PreferenceScreen
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <PreferenceCategory
-        android:title="Account"
-        android:layout="@layout/preference_category">
+        android:layout="@layout/preference_category"
+        android:title="Account">
 
         <Preference
             android:key="logout"
-            android:title="Log Out"
-            android:layout="@layout/preference"/>
+            android:layout="@layout/preference"
+            android:title="Log Out" />
 
     </PreferenceCategory>
 

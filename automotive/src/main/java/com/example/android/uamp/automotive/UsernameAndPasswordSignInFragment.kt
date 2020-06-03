@@ -40,14 +40,15 @@ class UsernameAndPasswordSignInFragment : Fragment() {
     private lateinit var toolbar: Toolbar
     private lateinit var appIcon: ImageView
     private lateinit var primaryTextView: TextView
-    private lateinit var passwordContainer : TextInputLayout
-    private lateinit var passwordInput : TextInputEditText
-    private lateinit var submitButton : Button
+    private lateinit var passwordContainer: TextInputLayout
+    private lateinit var passwordInput: TextInputEditText
+    private lateinit var submitButton: Button
     private lateinit var footerTextView: TextView
 
     override fun onCreateView(
-            inflater: LayoutInflater, container: ViewGroup?,
-            savedInstanceState: Bundle?): View? {
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         return inflater.inflate(R.layout.username_and_password_sign_in, container, false)
     }
 
@@ -75,8 +76,10 @@ class UsernameAndPasswordSignInFragment : Fragment() {
         }
 
         // Links in footer text should be clickable.
-        footerTextView.text = HtmlCompat.fromHtml(context.getString(R.string.sign_in_footer),
-          HtmlCompat.FROM_HTML_MODE_LEGACY)
+        footerTextView.text = HtmlCompat.fromHtml(
+            context.getString(R.string.sign_in_footer),
+            HtmlCompat.FROM_HTML_MODE_LEGACY
+        )
         footerTextView.movementMethod = LinkMovementMethod.getInstance()
 
         // Get user identifier from previous screen.
@@ -90,7 +93,7 @@ class UsernameAndPasswordSignInFragment : Fragment() {
 
     private fun onSignIn(userIdentifier: CharSequence, password: CharSequence) {
         ViewModelProviders.of(requireActivity())
-                .get(SignInActivityViewModel::class.java)
-                .login(userIdentifier.toString(), password.toString())
+            .get(SignInActivityViewModel::class.java)
+            .login(userIdentifier.toString(), password.toString())
     }
 }
