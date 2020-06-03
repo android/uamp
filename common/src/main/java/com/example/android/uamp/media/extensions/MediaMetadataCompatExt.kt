@@ -273,16 +273,16 @@ inline val MediaMetadataCompat.fullDescription
  * For convenience, place the [MediaDescriptionCompat] into the tag so it can be retrieved later.
  */
 fun MediaMetadataCompat.toMediaSource(dataSourceFactory: DataSource.Factory) =
-        ProgressiveMediaSource.Factory(dataSourceFactory)
-                .setTag(fullDescription)
-                .createMediaSource(mediaUri)
+    ProgressiveMediaSource.Factory(dataSourceFactory)
+        .setTag(fullDescription)
+        .createMediaSource(mediaUri)
 
 /**
  * Extension method for building a [ConcatenatingMediaSource] given a [List]
  * of [MediaMetadataCompat] objects.
  */
 fun List<MediaMetadataCompat>.toMediaSource(
-        dataSourceFactory: DataSource.Factory
+    dataSourceFactory: DataSource.Factory
 ): ConcatenatingMediaSource {
 
     val concatenatingMediaSource = ConcatenatingMediaSource()

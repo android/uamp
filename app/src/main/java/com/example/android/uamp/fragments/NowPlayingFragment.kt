@@ -46,8 +46,10 @@ class NowPlayingFragment : Fragment() {
         fun newInstance() = NowPlayingFragment()
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         return inflater.inflate(R.layout.fragment_nowplaying, container, false)
     }
 
@@ -59,30 +61,35 @@ class NowPlayingFragment : Fragment() {
 
         // Inject our activity and view models into this fragment
         mainActivityViewModel = ViewModelProviders
-                .of(context, InjectorUtils.provideMainActivityViewModel(context))
-                .get(MainActivityViewModel::class.java)
+            .of(context, InjectorUtils.provideMainActivityViewModel(context))
+            .get(MainActivityViewModel::class.java)
         nowPlayingViewModel = ViewModelProviders
-                .of(context, InjectorUtils.provideNowPlayingFragmentViewModel(context))
-                .get(NowPlayingFragmentViewModel::class.java)
+            .of(context, InjectorUtils.provideNowPlayingFragmentViewModel(context))
+            .get(NowPlayingFragmentViewModel::class.java)
 
         // Attach observers to the LiveData coming from this ViewModel
         nowPlayingViewModel.mediaMetadata.observe(this,
-                Observer { mediaItem -> updateUI(view, mediaItem) })
+            Observer { mediaItem -> updateUI(view, mediaItem) })
         nowPlayingViewModel.mediaButtonRes.observe(this,
-                Observer { res -> view.findViewById<ImageView>(R.id.media_button).setImageResource(res) })
+            Observer { res ->
+                view.findViewById<ImageView>(R.id.media_button).setImageResource(res)
+            })
         nowPlayingViewModel.mediaPosition.observe(this,
-                Observer { pos -> positionTextView.text =
-                        NowPlayingMetadata.timestampToMSS(context, pos) })
+            Observer { pos ->
+                positionTextView.text =
+                    NowPlayingMetadata.timestampToMSS(context, pos)
+            })
 
         // Setup UI handlers for buttons
         view.findViewById<ImageButton>(R.id.media_button).setOnClickListener {
-            nowPlayingViewModel.mediaMetadata.value?.let { mainActivityViewModel.playMediaId(it.id) } }
+            nowPlayingViewModel.mediaMetadata.value?.let { mainActivityViewModel.playMediaId(it.id) }
+        }
 
         // Initialize playback duration and position to zero
         view.findViewById<TextView>(R.id.duration).text =
-                NowPlayingMetadata.timestampToMSS(context, 0L)
+            NowPlayingMetadata.timestampToMSS(context, 0L)
         positionTextView = view.findViewById<TextView>(R.id.position)
-                .apply { text = NowPlayingMetadata.timestampToMSS(context, 0L) }
+            .apply { text = NowPlayingMetadata.timestampToMSS(context, 0L) }
     }
 
     /**
@@ -94,8 +101,8 @@ class NowPlayingFragment : Fragment() {
             albumArtView.setImageResource(R.drawable.ic_album_black_24dp)
         } else {
             Glide.with(view)
-                    .load(metadata.albumArtUri)
-                    .into(albumArtView)
+                .load(metadata.albumArtUri)
+                .into(albumArtView)
         }
         view.findViewById<TextView>(R.id.title).text = metadata.title
         view.findViewById<TextView>(R.id.subtitle).text = metadata.subtitle

@@ -39,21 +39,21 @@ import org.robolectric.RobolectricTestRunner
 class MusicSourceTest {
 
     private val musicList = listOf<MediaMetadataCompat>(
-            MediaMetadataCompat.Builder().apply {
-                id = "ich_hasse_dich"
-                title = "Ich hasse dich"
-                album = "Speechless"
-                artist = "Jemand"
-                genre = "Folk"
-            }.build(),
+        MediaMetadataCompat.Builder().apply {
+            id = "ich_hasse_dich"
+            title = "Ich hasse dich"
+            album = "Speechless"
+            artist = "Jemand"
+            genre = "Folk"
+        }.build(),
 
-            MediaMetadataCompat.Builder().apply {
-                id = "about_a_guy"
-                title = "About a Guy"
-                album = "Tales from the Render Farm"
-                artist = "7 Developers and a Pastry Chef"
-                genre = "Rock"
-            }.build()
+        MediaMetadataCompat.Builder().apply {
+            id = "about_a_guy"
+            title = "About a Guy"
+            album = "Tales from the Render Farm"
+            artist = "7 Developers and a Pastry Chef"
+            genre = "Rock"
+        }.build()
     )
 
     /** Variables for testing [MusicSource.whenReady] */
@@ -148,7 +148,8 @@ class MusicSourceTest {
     }
 }
 
-class TestMusicSource(private val music: List<MediaMetadataCompat>
+class TestMusicSource(
+    private val music: List<MediaMetadataCompat>
 ) : AbstractMusicSource(), Iterable<MediaMetadataCompat> by music {
     override suspend fun load() = Unit
 

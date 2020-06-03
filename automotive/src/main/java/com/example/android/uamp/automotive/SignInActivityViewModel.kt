@@ -34,8 +34,8 @@ import java.util.Random
 class SignInActivityViewModel(application: Application) : AndroidViewModel(application) {
     private val applicationContext = application.applicationContext
     private val musicServiceConnection = MusicServiceConnection(
-            applicationContext,
-            ComponentName(applicationContext, AutomotiveMusicService::class.java)
+        applicationContext,
+        ComponentName(applicationContext, AutomotiveMusicService::class.java)
     )
 
     private val _loggedIn = MutableLiveData<Boolean>()
@@ -44,9 +44,9 @@ class SignInActivityViewModel(application: Application) : AndroidViewModel(appli
     fun login(email: String, password: String) {
         if (TextUtils.isEmpty(email) or TextUtils.isEmpty(password)) {
             Toast.makeText(
-                    applicationContext,
-                    applicationContext.getString(R.string.missing_fields_error),
-                    Toast.LENGTH_SHORT
+                applicationContext,
+                applicationContext.getString(R.string.missing_fields_error),
+                Toast.LENGTH_SHORT
             ).show()
         } else {
             val loginParams = Bundle().apply {

@@ -32,7 +32,7 @@ import com.bumptech.glide.Glide
  * Fragment that is used to facilitate QR code sign-in. Users scan a QR code rendered by this
  * fragment with their phones, which performs the authentication required for sign-in
  *
-* <p>This screen serves as a demo for UI best practices for QR code sign in. Sign in implementation
+ * <p>This screen serves as a demo for UI best practices for QR code sign in. Sign in implementation
  * will be app specific and is not included.
  */
 class QrCodeSignInFragment : Fragment() {
@@ -41,12 +41,13 @@ class QrCodeSignInFragment : Fragment() {
     private lateinit var appIcon: ImageView
     private lateinit var primaryTextView: TextView
     private lateinit var secondaryTextView: TextView
-    private lateinit var qrCode : ImageView
+    private lateinit var qrCode: ImageView
     private lateinit var footerTextView: TextView
 
     override fun onCreateView(
-            inflater: LayoutInflater, container: ViewGroup?,
-            savedInstanceState: Bundle?): View? {
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         return inflater.inflate(R.layout.qr_sign_in, container, false)
     }
 
@@ -70,8 +71,10 @@ class QrCodeSignInFragment : Fragment() {
         secondaryTextView.text = getString(R.string.qr_sign_in_secondary_text)
 
         // Links in footer text should be clickable.
-        footerTextView.text = HtmlCompat.fromHtml(context.getString(R.string.sign_in_footer),
-                HtmlCompat.FROM_HTML_MODE_LEGACY)
+        footerTextView.text = HtmlCompat.fromHtml(
+            context.getString(R.string.sign_in_footer),
+            HtmlCompat.FROM_HTML_MODE_LEGACY
+        )
         footerTextView.movementMethod = LinkMovementMethod.getInstance()
 
         setQrCode(getString(R.string.qr_code_url))

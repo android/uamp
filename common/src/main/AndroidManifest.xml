@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ Copyright 2017 Google Inc. All rights reserved.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,7 +39,7 @@
         <provider
             android:name=".library.AlbumArtContentProvider"
             android:authorities="com.example.android.uamp.media.library.provider"
-            android:exported="true"/>
+            android:exported="true" />
 
     </application>
 </manifest>

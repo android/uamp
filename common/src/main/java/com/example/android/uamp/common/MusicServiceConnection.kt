@@ -84,7 +84,7 @@ class MusicServiceConnection(context: Context, serviceComponent: ComponentName) 
     }
 
     fun sendCommand(command: String, parameters: Bundle?) =
-            sendCommand(command, parameters) { _, _ -> }
+        sendCommand(command, parameters) { _, _ -> }
 
     fun sendCommand(
         command: String,

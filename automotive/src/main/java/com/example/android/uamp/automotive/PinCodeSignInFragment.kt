@@ -41,12 +41,13 @@ class PinCodeSignInFragment : Fragment() {
     private lateinit var appIcon: ImageView
     private lateinit var primaryTextView: TextView
     private lateinit var secondaryTextView: TextView
-    private lateinit var pinCodeContainer : ViewGroup
+    private lateinit var pinCodeContainer: ViewGroup
     private lateinit var footerTextView: TextView
 
     override fun onCreateView(
-            inflater: LayoutInflater, container: ViewGroup?,
-            savedInstanceState: Bundle?): View? {
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         return inflater.inflate(R.layout.pin_sign_in, container, false)
     }
 
@@ -70,13 +71,15 @@ class PinCodeSignInFragment : Fragment() {
         secondaryTextView.text = getString(R.string.pin_sign_in_secondary_text)
 
         // Links in footer text should be clickable.
-        footerTextView.text = HtmlCompat.fromHtml(context.getString(R.string.sign_in_footer),
-                HtmlCompat.FROM_HTML_MODE_LEGACY)
+        footerTextView.text = HtmlCompat.fromHtml(
+            context.getString(R.string.sign_in_footer),
+            HtmlCompat.FROM_HTML_MODE_LEGACY
+        )
         footerTextView.movementMethod = LinkMovementMethod.getInstance()
 
         val pin = ViewModelProviders.of(requireActivity())
-                .get(SignInActivityViewModel::class.java)
-                .generatePin()
+            .get(SignInActivityViewModel::class.java)
+            .generatePin()
         setPin(pin)
     }
 
@@ -93,9 +96,10 @@ class PinCodeSignInFragment : Fragment() {
 
         for (element in pin) {
             val pinItem = LayoutInflater.from(context).inflate(
-                    R.layout.pin_item,
-                    pinCodeContainer,
-                    false) as TextView
+                R.layout.pin_item,
+                pinCodeContainer,
+                false
+            ) as TextView
             pinItem.text = element.toString()
             pinCodeContainer.addView(pinItem)
         }

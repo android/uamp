@@ -28,13 +28,13 @@ import java.nio.charset.Charset
  * Helper method to check if a [String] contains another in a case insensitive way.
  */
 fun String?.containsCaseInsensitive(other: String?) =
-        if (this == null && other == null) {
-            true
-        } else if (this != null && other != null) {
-            toLowerCase().contains(other.toLowerCase())
-        } else {
-            false
-        }
+    if (this == null && other == null) {
+        true
+    } else if (this != null && other != null) {
+        toLowerCase().contains(other.toLowerCase())
+    } else {
+        false
+    }
 
 /**
  * Helper extension to URL encode a [String]. Returns an empty string when called on null.

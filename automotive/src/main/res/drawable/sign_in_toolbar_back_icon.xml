@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ Copyright 2019 Google Inc. All rights reserved.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,8 +19,7 @@
     android:viewportWidth="48"
     android:viewportHeight="48">
 
-    <path
-        android:pathData="M0 0h48v48H0z" />
+    <path android:pathData="M0 0h48v48H0z" />
     <path
         android:fillColor="#000000"
         android:pathData="M40 22H15.66l11.17-11.17L24 8 8 24l16 16 2.83-2.83L15.66 26H40v-4z" />
