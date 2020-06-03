@@ -352,6 +352,13 @@ open class MusicService : MediaBrowserServiceCompat() {
                 Player.STATE_READY -> {
                     notificationManager.showNotification()
                     becomingNoisyReceiver.register()
+
+                    // If playback is paused we remove the foreground state which allows the
+                    // notification to be dismissed. An alternative would be to provide a "close"
+                    // button in the notification which stops playback and clears the notification.
+                    if (playbackState == Player.STATE_READY){
+                        if (!playWhenReady) stopForeground(false)
+                    }
                 }
                 else -> {
                     notificationManager.hideNotification()
