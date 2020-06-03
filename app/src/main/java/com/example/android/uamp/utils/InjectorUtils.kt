@@ -30,8 +30,10 @@ import com.example.android.uamp.viewmodels.NowPlayingFragmentViewModel
  */
 object InjectorUtils {
     private fun provideMusicServiceConnection(context: Context): MusicServiceConnection {
-        return MusicServiceConnection.getInstance(context,
-                ComponentName(context, MusicService::class.java))
+        return MusicServiceConnection.getInstance(
+            context,
+            ComponentName(context, MusicService::class.java)
+        )
     }
 
     fun provideMainActivityViewModel(context: Context): MainActivityViewModel.Factory {
@@ -52,6 +54,7 @@ object InjectorUtils {
         val applicationContext = context.applicationContext
         val musicServiceConnection = provideMusicServiceConnection(applicationContext)
         return NowPlayingFragmentViewModel.Factory(
-                applicationContext as Application, musicServiceConnection)
+            applicationContext as Application, musicServiceConnection
+        )
     }
 }

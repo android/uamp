@@ -19,9 +19,9 @@ package com.example.android.uamp.media.library
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
-import androidx.annotation.IntDef
 import android.support.v4.media.MediaMetadataCompat
 import android.util.Log
+import androidx.annotation.IntDef
 import com.example.android.uamp.media.MusicService
 import com.example.android.uamp.media.extensions.album
 import com.example.android.uamp.media.extensions.albumArtist
@@ -55,10 +55,12 @@ interface MusicSource : Iterable<MediaMetadataCompat> {
     fun search(query: String, extras: Bundle): List<MediaMetadataCompat>
 }
 
-@IntDef(STATE_CREATED,
-        STATE_INITIALIZING,
-        STATE_INITIALIZED,
-        STATE_ERROR)
+@IntDef(
+    STATE_CREATED,
+    STATE_INITIALIZING,
+    STATE_INITIALIZED,
+    STATE_ERROR
+)
 @Retention(AnnotationRetention.SOURCE)
 annotation class State
 
@@ -110,16 +112,16 @@ abstract class AbstractMusicSource : MusicSource {
      * on a single thread.
      */
     override fun whenReady(performAction: (Boolean) -> Unit): Boolean =
-            when (state) {
-                STATE_CREATED, STATE_INITIALIZING -> {
-                    onReadyListeners += performAction
-                    false
-                }
-                else -> {
-                    performAction(state != STATE_ERROR)
-                    true
-                }
+        when (state) {
+            STATE_CREATED, STATE_INITIALIZING -> {
+                onReadyListeners += performAction
+                false
             }
+            else -> {
+                performAction(state != STATE_ERROR)
+                true
+            }
+        }
 
     /**
      * Handles searching a [MusicSource] from a focused voice search, often coming

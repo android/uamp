@@ -40,8 +40,8 @@ import com.example.android.uamp.media.extensions.isPlaying
  * [ViewModel] for [MediaItemFragment].
  */
 class MediaItemFragmentViewModel(
-        private val mediaId: String,
-        musicServiceConnection: MusicServiceConnection
+    private val mediaId: String,
+    musicServiceConnection: MusicServiceConnection
 ) : ViewModel() {
 
     /**

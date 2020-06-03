@@ -86,7 +86,7 @@ class BrowseTree(context: Context, musicSource: MusicSource) {
             id = UAMP_ALBUMS_ROOT
             title = context.getString(R.string.albums_title)
             albumArtUri = RESOURCE_ROOT_URI +
-              context.resources.getResourceEntryName(R.drawable.ic_album)
+                    context.resources.getResourceEntryName(R.drawable.ic_album)
             flag = MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
         }.build()
 
@@ -100,9 +100,9 @@ class BrowseTree(context: Context, musicSource: MusicSource) {
             albumChildren += mediaItem
 
             // Add the first track of each album to the 'Recommended' category
-            if (mediaItem.trackNumber == 1L){
+            if (mediaItem.trackNumber == 1L) {
                 val recommendedChildren = mediaIdToChildren[UAMP_RECOMMENDED_ROOT]
-                                        ?: mutableListOf()
+                    ?: mutableListOf()
                 recommendedChildren += mediaItem
                 mediaIdToChildren[UAMP_RECOMMENDED_ROOT] = recommendedChildren
             }
@@ -121,7 +121,7 @@ class BrowseTree(context: Context, musicSource: MusicSource) {
      * marking the item as [MediaItem.FLAG_BROWSABLE], since it will have child
      * node(s) AKA at least 1 song.
      */
-    private fun buildAlbumRoot(mediaItem: MediaMetadataCompat) : MutableList<MediaMetadataCompat> {
+    private fun buildAlbumRoot(mediaItem: MediaMetadataCompat): MutableList<MediaMetadataCompat> {
         val albumMetadata = MediaMetadataCompat.Builder().apply {
             id = mediaItem.album.urlEncoded
             title = mediaItem.album

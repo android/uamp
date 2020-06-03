@@ -31,8 +31,8 @@ class SignInActivity : AppCompatActivity() {
         setContentView(R.layout.activity_sign_in)
 
         viewModel = ViewModelProviders
-                .of(this)
-                .get(SignInActivityViewModel::class.java)
+            .of(this)
+            .get(SignInActivityViewModel::class.java)
 
         viewModel.loggedIn.observe(this, Observer { loggedIn ->
             if (loggedIn == true) {
@@ -42,7 +42,7 @@ class SignInActivity : AppCompatActivity() {
         })
 
         supportFragmentManager.beginTransaction()
-                .add(R.id.sign_in_container, SignInLandingPageFragment())
-                .commit()
+            .add(R.id.sign_in_container, SignInLandingPageFragment())
+            .commit()
     }
 }

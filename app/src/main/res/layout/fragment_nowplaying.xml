@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ Copyright 2019 Google Inc. All rights reserved.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,8 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -27,9 +25,9 @@
         android:id="@+id/albumArt"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scaleType="centerCrop"
         android:contentDescription="@string/album_art_alt"
-        app:srcCompat="@android:color/transparent"/>
+        android:scaleType="centerCrop"
+        app:srcCompat="@android:color/transparent" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/divider"
@@ -61,15 +59,15 @@
         android:id="@+id/title"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
         android:layout_marginStart="@dimen/text_margin"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="@dimen/text_margin"
         android:ellipsize="end"
         android:maxLines="1"
         android:textAppearance="@style/TextAppearance.Uamp.Title"
-        app:layout_constraintTop_toBottomOf="@id/divider"
         app:layout_constraintLeft_toRightOf="@id/media_button"
         app:layout_constraintRight_toLeftOf="@id/position"
+        app:layout_constraintTop_toBottomOf="@id/divider"
         tools:text="Song Title" />
 
     <TextView
@@ -81,23 +79,23 @@
         android:ellipsize="end"
         android:maxLines="1"
         android:textAppearance="@style/TextAppearance.Uamp.Subtitle"
-        app:layout_constraintTop_toBottomOf="@+id/title"
         app:layout_constraintLeft_toRightOf="@id/media_button"
         app:layout_constraintRight_toLeftOf="@id/position"
+        app:layout_constraintTop_toBottomOf="@+id/title"
         tools:text="Artist" />
 
     <TextView
         android:id="@+id/position"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
         android:layout_marginStart="@dimen/text_margin"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="@dimen/text_margin"
         android:ellipsize="end"
         android:maxLines="1"
         android:textAppearance="@style/TextAppearance.Uamp.Title"
-        app:layout_constraintTop_toBottomOf="@id/divider"
         app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/divider"
         tools:text="0:00" />
 
     <TextView
@@ -109,8 +107,8 @@
         android:ellipsize="end"
         android:maxLines="1"
         android:textAppearance="@style/TextAppearance.Uamp.Subtitle"
-        app:layout_constraintTop_toBottomOf="@id/position"
         app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/position"
         tools:text="0:00" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

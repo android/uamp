@@ -68,16 +68,17 @@ class SignInLandingPageFragment : Fragment() {
     private lateinit var googleSignInButton: Button
     private lateinit var usernameAndPasswordSignInButton: Button
     private lateinit var primaryTextView: TextView
-    private lateinit var identifierContainer : TextInputLayout
-    private lateinit var identifierInput : TextInputEditText
+    private lateinit var identifierContainer: TextInputLayout
+    private lateinit var identifierInput: TextInputEditText
     private lateinit var footerTextView: TextView
 
     override fun onCreateView(
-            inflater: LayoutInflater, container: ViewGroup?,
-            savedInstanceState: Bundle?): View? {
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         val layout = if (ENABLE_USERNAME_PASSWORD_SIGN_IN)
             R.layout.sign_in_landing_page_with_username_and_password
-            else R.layout.sign_in_landing_page
+        else R.layout.sign_in_landing_page
 
         return inflater.inflate(layout, container, false)
     }
@@ -109,8 +110,10 @@ class SignInLandingPageFragment : Fragment() {
         primaryTextView.text = getString(R.string.sign_in_primary_text)
 
         // Links in footer text should be clickable.
-        footerTextView.text = HtmlCompat.fromHtml(context.getString(R.string.sign_in_footer),
-                HtmlCompat.FROM_HTML_MODE_LEGACY)
+        footerTextView.text = HtmlCompat.fromHtml(
+            context.getString(R.string.sign_in_footer),
+            HtmlCompat.FROM_HTML_MODE_LEGACY
+        )
         footerTextView.movementMethod = LinkMovementMethod.getInstance()
 
         configureUsernameAndPasswordSignIn()
@@ -138,9 +141,9 @@ class SignInLandingPageFragment : Fragment() {
                 fragment.arguments = args
 
                 requireActivity().supportFragmentManager.beginTransaction()
-                        .replace(R.id.sign_in_container, fragment)
-                        .addToBackStack("landingPage")
-                        .commit()
+                    .replace(R.id.sign_in_container, fragment)
+                    .addToBackStack("landingPage")
+                    .commit()
             }
         }
     }
@@ -167,9 +170,9 @@ class SignInLandingPageFragment : Fragment() {
         phoneSignInButton.text = getString(R.string.phone_sign_in_button_label)
         phoneSignInButton.setOnClickListener {
             requireActivity().supportFragmentManager.beginTransaction()
-                    .replace(R.id.sign_in_container, phoneSignInFragment)
-                    .addToBackStack("landingPage")
-                    .commit()
+                .replace(R.id.sign_in_container, phoneSignInFragment)
+                .addToBackStack("landingPage")
+                .commit()
         }
     }
 
@@ -186,9 +189,9 @@ class SignInLandingPageFragment : Fragment() {
         }
 
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.server_client_id))
-                .requestEmail()
-                .build()
+            .requestIdToken(getString(R.string.server_client_id))
+            .requestEmail()
+            .build()
 
         googleSignInButton.text = getString(R.string.google_sign_in_button_label)
 
@@ -199,13 +202,14 @@ class SignInLandingPageFragment : Fragment() {
         }
     }
 
-    private fun checkPlayServices() : Boolean {
+    private fun checkPlayServices(): Boolean {
         val apiAvailability = GoogleApiAvailability.getInstance();
         val resultCode = apiAvailability.isGooglePlayServicesAvailable(context);
         if (resultCode != ConnectionResult.SUCCESS) {
             if (apiAvailability.isUserResolvableError(resultCode)) {
                 apiAvailability.getErrorDialog(
-                        activity, resultCode, PLAY_SERVICES_RESOLUTION_REQUEST).show();
+                    activity, resultCode, PLAY_SERVICES_RESOLUTION_REQUEST
+                ).show();
             }
             return false;
         }
@@ -232,9 +236,10 @@ class SignInLandingPageFragment : Fragment() {
             // The ApiException status code indicates the detailed failure reason.
             // Please refer to the GoogleSignInStatusCodes class reference for more information.
             Toast.makeText(
-                    requireContext(), "Sign in failed with error code: " + e.statusCode,
-                    Toast.LENGTH_SHORT)
-                    .show()
+                requireContext(), "Sign in failed with error code: " + e.statusCode,
+                Toast.LENGTH_SHORT
+            )
+                .show()
         }
     }
 }

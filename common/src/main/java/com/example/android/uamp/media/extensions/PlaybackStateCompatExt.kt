@@ -16,8 +16,8 @@
 
 package com.example.android.uamp.media.extensions
 
-import android.support.v4.media.session.PlaybackStateCompat
 import android.os.SystemClock
+import android.support.v4.media.session.PlaybackStateCompat
 
 /**
  * Useful extension methods for [PlaybackStateCompat].
