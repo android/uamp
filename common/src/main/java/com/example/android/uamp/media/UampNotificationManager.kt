@@ -16,13 +16,17 @@
 
 package com.example.android.uamp.media
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.os.Build
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
+import androidx.annotation.RequiresApi
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
@@ -49,9 +53,15 @@ class UampNotificationManager(
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
     private val notificationManager: PlayerNotificationManager
+    private val platformNotificationManager: NotificationManager =
+        context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
     init {
         val mediaController = MediaControllerCompat(context, sessionToken)
+
+        if (shouldCreateNowPlayingChannel()) {
+            createNowPlayingChannel()
+        }
 
         notificationManager = PlayerNotificationManager(
             context,
@@ -76,6 +86,25 @@ class UampNotificationManager(
 
     fun showNotification() {
         notificationManager.setPlayer(player)
+    }
+
+    private fun shouldCreateNowPlayingChannel() =
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !nowPlayingChannelExists()
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun nowPlayingChannelExists() =
+        platformNotificationManager.getNotificationChannel(NOW_PLAYING_CHANNEL) != null
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun createNowPlayingChannel() {
+        val notificationChannel = NotificationChannel(NOW_PLAYING_CHANNEL,
+            context.getString(R.string.notification_channel),
+            NotificationManager.IMPORTANCE_LOW)
+            .apply {
+                description = context.getString(R.string.notification_channel_description)
+            }
+
+        platformNotificationManager.createNotificationChannel(notificationChannel)
     }
 
     private inner class DescriptionAdapter(private val controller: MediaControllerCompat) :
