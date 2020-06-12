@@ -59,13 +59,10 @@ class UampNotificationManager(
     init {
         val mediaController = MediaControllerCompat(context, sessionToken)
 
-        if (shouldCreateNowPlayingChannel()) {
-            createNowPlayingChannel()
-        }
-
-        notificationManager = PlayerNotificationManager(
+        notificationManager = PlayerNotificationManager.createWithNotificationChannel(
             context,
             NOW_PLAYING_CHANNEL,
+            R.string.notification_channel,
             NOW_PLAYING_NOTIFICATION,
             DescriptionAdapter(mediaController),
             notificationListener
@@ -86,25 +83,6 @@ class UampNotificationManager(
 
     fun showNotification() {
         notificationManager.setPlayer(player)
-    }
-
-    private fun shouldCreateNowPlayingChannel() =
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !nowPlayingChannelExists()
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun nowPlayingChannelExists() =
-        platformNotificationManager.getNotificationChannel(NOW_PLAYING_CHANNEL) != null
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun createNowPlayingChannel() {
-        val notificationChannel = NotificationChannel(NOW_PLAYING_CHANNEL,
-            context.getString(R.string.notification_channel),
-            NotificationManager.IMPORTANCE_LOW)
-            .apply {
-                description = context.getString(R.string.notification_channel_description)
-            }
-
-        platformNotificationManager.createNotificationChannel(notificationChannel)
     }
 
     private inner class DescriptionAdapter(private val controller: MediaControllerCompat) :
