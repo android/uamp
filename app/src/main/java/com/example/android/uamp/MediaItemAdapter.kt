@@ -17,7 +17,6 @@
 package com.example.android.uamp
 
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
@@ -25,10 +24,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.android.uamp.MediaItemData.Companion.PLAYBACK_RES_CHANGED
-import kotlinx.android.synthetic.main.fragment_mediaitem.view.albumArt
-import kotlinx.android.synthetic.main.fragment_mediaitem.view.item_state
-import kotlinx.android.synthetic.main.fragment_mediaitem.view.subtitle
-import kotlinx.android.synthetic.main.fragment_mediaitem.view.title
+import com.example.android.uamp.databinding.FragmentMediaitemBinding
 
 /**
  * [RecyclerView.Adapter] of [MediaItemData]s used by the [MediaItemFragment].
@@ -38,9 +34,9 @@ class MediaItemAdapter(
 ) : ListAdapter<MediaItemData, MediaViewHolder>(MediaItemData.diffCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MediaViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.fragment_mediaitem, parent, false)
-        return MediaViewHolder(view, itemClickedListener)
+        val inflater = LayoutInflater.from(parent.context)
+        val binding = FragmentMediaitemBinding.inflate(inflater, parent, false)
+        return MediaViewHolder(binding, itemClickedListener)
     }
 
     override fun onBindViewHolder(
@@ -85,19 +81,19 @@ class MediaItemAdapter(
 }
 
 class MediaViewHolder(
-    view: View,
+    binding: FragmentMediaitemBinding,
     itemClickedListener: (MediaItemData) -> Unit
-) : RecyclerView.ViewHolder(view) {
+) : RecyclerView.ViewHolder(binding.root) {
 
-    val titleView: TextView = view.title
-    val subtitleView: TextView = view.subtitle
-    val albumArt: ImageView = view.albumArt
-    val playbackState: ImageView = view.item_state
+    val titleView: TextView = binding.title
+    val subtitleView: TextView = binding.subtitle
+    val albumArt: ImageView = binding.albumArt
+    val playbackState: ImageView = binding.itemState
 
     var item: MediaItemData? = null
 
     init {
-        view.setOnClickListener {
+        binding.root.setOnClickListener {
             item?.let { itemClickedListener(it) }
         }
     }
