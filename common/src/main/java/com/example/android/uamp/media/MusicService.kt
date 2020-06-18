@@ -25,6 +25,8 @@ import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaBrowserCompat.MediaItem
 import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.session.MediaSessionCompat
+import android.util.Log
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.media.MediaBrowserServiceCompat
 import com.example.android.uamp.media.extensions.flag
@@ -35,6 +37,7 @@ import com.example.android.uamp.media.library.MusicSource
 import com.example.android.uamp.media.library.UAMP_BROWSABLE_ROOT
 import com.example.android.uamp.media.library.UAMP_EMPTY_ROOT
 import com.google.android.exoplayer2.C
+import com.google.android.exoplayer2.ExoPlaybackException
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
@@ -358,6 +361,17 @@ open class MusicService : MediaBrowserServiceCompat() {
                 else -> {
                     notificationManager.hideNotification()
                 }
+            }
+        }
+        override fun onPlayerError(error: ExoPlaybackException) {
+            when (error.type) {
+                ExoPlaybackException.TYPE_SOURCE -> {
+                    Toast.makeText(applicationContext,
+                        R.string.error_media_not_found,
+                        Toast.LENGTH_LONG).show()
+                    Log.e(TAG, "TYPE_SOURCE: " + error.sourceException.message)}
+                ExoPlaybackException.TYPE_RENDERER -> Log.e(TAG, "TYPE_RENDERER: " + error.rendererException.message)
+                ExoPlaybackException.TYPE_UNEXPECTED -> Log.e(TAG, "TYPE_UNEXPECTED: " + error.unexpectedException.message)
             }
         }
     }
