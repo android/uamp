@@ -26,4 +26,6 @@
     <string name="album_art_alt">Album art</string>
     <string name="duration_unknown">--:--</string>
     <string name="duration_format">%d:%02d</string>
+
+    <string name="cast_context_error">Failed to get Cast context. Try updating Google Play Services and restart the app.</string>
 </resources>
