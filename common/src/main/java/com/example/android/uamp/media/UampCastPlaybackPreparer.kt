@@ -31,7 +31,7 @@ class UampCastPlaybackPreparer(
      * *AND* [MediaSessionCompat.Callback.onPlayFromMediaId] when using [MediaSessionConnector].
      * This is done with the expectation that "play" is just "prepare" + "play".
      */
-    override fun onPrepareFromMediaId(mediaId: String?, extras: Bundle?) {
+    override fun onPrepareFromMediaId(mediaId: String, playWhenReady: Boolean, extras: Bundle?) {
         musicSource.whenReady {
             val itemToPlay: MediaMetadataCompat? = musicSource.find { item ->
                 item.id == mediaId
@@ -52,25 +52,26 @@ class UampCastPlaybackPreparer(
                 val initialWindowIndex = metadataList.indexOf(itemToPlay)
 
                 castPlayer.loadItems(items, initialWindowIndex, C.TIME_UNSET, Player.REPEAT_MODE_OFF)
+                castPlayer.playWhenReady = playWhenReady
             }
         }
     }
 
-    override fun onPrepare() = Unit
+    override fun onPrepare(playWhenReady: Boolean) = Unit
 
     /**
      * Do not support callbacks to both [MediaSessionCompat.Callback.onPrepareFromSearch]
      * *AND* [MediaSessionCompat.Callback.onPlayFromSearch] when using [MediaSessionConnector]
      * with cast.
      */
-    override fun onPrepareFromSearch(query: String?, extras: Bundle?)  = Unit
+    override fun onPrepareFromSearch(query: String, playWhenReady: Boolean, extras: Bundle?)  = Unit
 
-    override fun onPrepareFromUri(uri: Uri?, extras: Bundle?) = Unit
+    override fun onPrepareFromUri(uri: Uri, playWhenReady: Boolean, extras: Bundle?) = Unit
 
     override fun onCommand(
-            player: Player?,
-            controlDispatcher: ControlDispatcher?,
-            command: String?,
+            player: Player,
+            controlDispatcher: ControlDispatcher,
+            command: String,
             extras: Bundle?,
             cb: ResultReceiver?
     ) = false

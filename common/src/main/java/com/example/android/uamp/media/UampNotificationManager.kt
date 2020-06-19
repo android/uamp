@@ -83,6 +83,10 @@ class UampNotificationManager(
         notificationManager.setPlayer(player)
     }
 
+    fun showNotificationForPlayer(player: Player){
+        notificationManager.setPlayer(player)
+    }
+
     private inner class DescriptionAdapter(private val controller: MediaControllerCompat) :
         PlayerNotificationManager.MediaDescriptionAdapter {
 
