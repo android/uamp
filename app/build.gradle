@@ -39,12 +39,9 @@ android {
         }
     }
 
-    viewBinding {
-        enabled = true
-    }
-
-    dataBinding {
-        enabled = true
+    buildFeatures {
+        viewBinding true
+        dataBinding true
     }
 
     buildTypes {
