@@ -68,10 +68,7 @@ Screenshot: Notification showing information about the current song being played
 
 A [notification](https://developer.android.com/guide/topics/ui/notifiers/notifications.html) allows users to see the song being played and to control playback. It's also a mandatory requirement for a [foreground service](https://developer.android.com/guide/components/services#Foreground) and stops MusicService from being killed. 
 
-In UAMP a custom [NotificationBuilder](https://developer.android.com/reference/android/app/Notification.Builder) is used to create the Notification. It contains a list of supported actions including play, pause and skip tracks. 
-
-Updates to the notification are performed inside the [MediaControllerCallback](https://developer.android.com/reference/android/media/session/MediaController.Callback) whenever the playback state or metadata changes. 
-
+UAMP delegates the display and update of its notification to [`PlayerNotificationManager`](https://exoplayer.dev/doc/reference/index.html?com/google/android/exoplayer2/ui/PlayerNotificationManager.html) provided by ExoPlayer. 
 
 ## Playing audio
 
