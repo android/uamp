@@ -29,6 +29,7 @@ import com.example.android.uamp.utils.InjectorUtils
 import com.example.android.uamp.viewmodels.MainActivityViewModel
 import com.google.android.gms.cast.framework.CastButtonFactory
 import com.google.android.gms.cast.framework.CastContext
+import com.google.android.gms.dynamite.DynamiteModule
 
 class MainActivity : AppCompatActivity() {
 
@@ -43,6 +44,21 @@ class MainActivity : AppCompatActivity() {
         // Initialize the Cast context. This is required so that the media route button can be
         // created in the AppBar
         castContext = CastContext.getSharedInstance(this)
+
+        // Getting the cast context later than onStart can cause device discovery not to take place.
+        try {
+            castContext = CastContext.getSharedInstance(this)
+        } catch (e: RuntimeException) {
+            var cause = e.cause
+            while (cause != null) {
+                if (cause is DynamiteModule.LoadingException) {
+                    setContentView(R.layout.cast_context_error)
+                    return
+                }
+                cause = cause.cause
+            }
+            throw e
+        }
 
 
         setContentView(R.layout.activity_main)
