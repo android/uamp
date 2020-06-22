@@ -42,7 +42,7 @@ const val NOW_PLAYING_NOTIFICATION_ID = 0xb339 // Arbitrary number used to ident
  */
 class UampNotificationManager(
     private val context: Context,
-    private val player: ExoPlayer,
+    private val player: Player,
     sessionToken: MediaSessionCompat.Token,
     notificationListener: PlayerNotificationManager.NotificationListener
 ) {
