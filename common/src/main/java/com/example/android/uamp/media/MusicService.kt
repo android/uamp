@@ -169,7 +169,7 @@ open class MusicService : MediaBrowserServiceCompat(), SessionAvailabilityListen
          */
         notificationManager = UampNotificationManager(
             this,
-            exoPlayer,
+            currentPlayer, // Bug? pass in current player
             mediaSession.sessionToken,
             PlayerNotificationListener()
         )
