@@ -84,7 +84,7 @@ class NowPlayingFragmentViewModel(
         postValue(0L)
     }
     val mediaButtonRes = MutableLiveData<Int>().apply {
-        postValue(com.example.android.uamp.R.drawable.ic_album_black_24dp)
+        postValue(R.drawable.ic_album_black_24dp)
     }
 
     private var updatePosition = true
