@@ -365,39 +365,37 @@ open class MusicService : MediaBrowserServiceCompat() {
         }
 
         override fun onPlayerError(error: ExoPlaybackException) {
+            var message = R.string.generic_error;
             when (error.type) {
                 // If the data from MediaSource object could not be loaded the Exoplayer raises
                 // a type_source error.
                 // An error message is printed to UI via Toast message to inform the user.
                 ExoPlaybackException.TYPE_SOURCE -> {
-                    Toast.makeText(
-                        applicationContext,
-                        R.string.error_media_not_found,
-                        Toast.LENGTH_LONG
-                    ).show()
+                    message = R.string.error_media_not_found;
                     Log.e(TAG, "TYPE_SOURCE: " + error.sourceException.message)
                 }
                 // If the error occurs in a render component, Exoplayer raises a type_remote error.
-                ExoPlaybackException.TYPE_RENDERER -> Log.e(
-                    TAG,
-                    "TYPE_RENDERER: " + error.rendererException.message
-                )
+                ExoPlaybackException.TYPE_RENDERER -> {
+                    Log.e(TAG, "TYPE_RENDERER: " + error.rendererException.message)
+                }
                 // If occurs an unexpected RuntimeException Exoplayer raises a type_unexpected error.
-                ExoPlaybackException.TYPE_UNEXPECTED -> Log.e(
-                    TAG,
-                    "TYPE_UNEXPECTED: " + error.unexpectedException.message
-                )
+                ExoPlaybackException.TYPE_UNEXPECTED -> {
+                    Log.e(TAG, "TYPE_UNEXPECTED: " + error.unexpectedException.message)
+                }
                 // Occurs when there is a OutOfMemory error.
-                ExoPlaybackException.TYPE_OUT_OF_MEMORY -> Log.e(
-                    TAG,
-                    "TYPE_OUT_OF_MEMORY: " + error.outOfMemoryError.message
-                )
+                ExoPlaybackException.TYPE_OUT_OF_MEMORY -> {
+                    Log.e(TAG, "TYPE_OUT_OF_MEMORY: " + error.outOfMemoryError.message)
+                }
                 // If the error occurs in a remote component, Exoplayer raises a type_remote error.
-                ExoPlaybackException.TYPE_REMOTE -> Log.e(
-                    TAG,
-                    "TYPE_REMOTE: " + error.message
-                )
+                ExoPlaybackException.TYPE_REMOTE -> {
+                    Log.e(TAG, "TYPE_REMOTE: " + error.message)
+                }
             }
+            Toast.makeText(
+                applicationContext,
+                message,
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
 }
