@@ -169,7 +169,6 @@ open class MusicService : MediaBrowserServiceCompat(), SessionAvailabilityListen
          */
         notificationManager = UampNotificationManager(
             this,
-            currentPlayer, // Bug? pass in current player
             mediaSession.sessionToken,
             PlayerNotificationListener()
         )
@@ -189,6 +188,8 @@ open class MusicService : MediaBrowserServiceCompat(), SessionAvailabilityListen
         } else {
             mediaSessionConnector.connectToExoPlayer(this)
         }
+
+        notificationManager.showNotificationForPlayer(currentPlayer)
 
         packageValidator = PackageValidator(this, R.xml.allowed_media_browser_callers)
     }
