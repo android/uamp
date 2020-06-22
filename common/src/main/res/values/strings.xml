@@ -27,7 +27,7 @@
 
     <!-- Error messages -->
     <string name="error_media_not_found">Could not locate requested media.</string>
-
+    <string name="generic_error">The application has encountered an unexpected error.</string>
     <!-- Allowed caller template -->
     <string name="allowed_caller_log">
         Caller has a valid certificate, but its package doesn\'t match any expected package for the
