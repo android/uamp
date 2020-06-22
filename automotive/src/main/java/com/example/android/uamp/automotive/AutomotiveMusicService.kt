@@ -134,9 +134,9 @@ class AutomotiveMusicService : MusicService() {
     private inner class AutomotiveCommandReceiver : CommandReceiver {
         @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
         override fun onCommand(
-            player: Player?,
-            controlDispatcher: ControlDispatcher?,
-            command: String?,
+            player: Player,
+            controlDispatcher: ControlDispatcher,
+            command: String,
             extras: Bundle?,
             callback: ResultReceiver?
         ): Boolean =

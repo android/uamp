@@ -56,19 +56,9 @@ class UampPlaybackPreparer(
                 PlaybackStateCompat.ACTION_PREPARE_FROM_SEARCH or
                 PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH
 
-    override fun onPrepare() = Unit
+    override fun onPrepare(playWhenReady: Boolean) = Unit
 
-    /**
-     * Handles callbacks to both [MediaSessionCompat.Callback.onPrepareFromMediaId]
-     * *AND* [MediaSessionCompat.Callback.onPlayFromMediaId] when using [MediaSessionConnector].
-     * This is done with the expectation that "play" is just "prepare" + "play".
-     *
-     * If your app needs to do something special for either 'prepare' or 'play', it's possible
-     * to check [ExoPlayer.getPlayWhenReady]. If this returns `true`, then it's
-     * [MediaSessionCompat.Callback.onPlayFromMediaId], otherwise it's
-     * [MediaSessionCompat.Callback.onPrepareFromMediaId].
-     */
-    override fun onPrepareFromMediaId(mediaId: String?, extras: Bundle?) {
+    override fun onPrepareFromMediaId(mediaId: String, playWhenReady: Boolean, extras: Bundle?) {
         musicSource.whenReady {
             val itemToPlay: MediaMetadataCompat? = musicSource.find { item ->
                 item.id == mediaId
@@ -88,15 +78,12 @@ class UampPlaybackPreparer(
 
                 exoPlayer.prepare(mediaSource)
                 exoPlayer.seekTo(initialWindowIndex, 0)
+                exoPlayer.playWhenReady = playWhenReady
             }
         }
     }
 
     /**
-     * Handles callbacks to both [MediaSessionCompat.Callback.onPrepareFromSearch]
-     * *AND* [MediaSessionCompat.Callback.onPlayFromSearch] when using [MediaSessionConnector].
-     * (See above for details.)
-     *
      * This method is used by the Google Assistant to respond to requests such as:
      * - Play Geisha from Wake Up on UAMP
      * - Play electronic music on UAMP
@@ -104,22 +91,23 @@ class UampPlaybackPreparer(
      *
      * For details on how search is handled, see [AbstractMusicSource.search].
      */
-    override fun onPrepareFromSearch(query: String?, extras: Bundle?) {
+    override fun onPrepareFromSearch(query: String, playWhenReady: Boolean, extras: Bundle?) {
         musicSource.whenReady {
-            val metadataList = musicSource.search(query ?: "", extras ?: Bundle.EMPTY)
+            val metadataList = musicSource.search(query, extras ?: Bundle.EMPTY)
             if (metadataList.isNotEmpty()) {
                 val mediaSource = metadataList.toMediaSource(dataSourceFactory)
                 exoPlayer.prepare(mediaSource)
+                exoPlayer.playWhenReady = playWhenReady
             }
         }
     }
 
-    override fun onPrepareFromUri(uri: Uri?, extras: Bundle?) = Unit
+    override fun onPrepareFromUri(uri: Uri, playWhenReady: Boolean, extras: Bundle?) = Unit
 
     override fun onCommand(
-        player: Player?,
-        controlDispatcher: ControlDispatcher?,
-        command: String?,
+        player: Player,
+        controlDispatcher: ControlDispatcher,
+        command: String,
         extras: Bundle?,
         cb: ResultReceiver?
     ) = false
