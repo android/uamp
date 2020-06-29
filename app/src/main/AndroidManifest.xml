@@ -38,7 +38,7 @@
 
         <!-- Declare that UAMP supports Cast. -->
         <meta-data android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
-            android:value="com.google.android.exoplayer2.ext.cast.DefaultCastOptionsProvider"/>
+            android:value="com.example.android.uamp.cast.UampCastOptionsProvider"/>
 
         <activity android:name=".MainActivity">
             <intent-filter>
