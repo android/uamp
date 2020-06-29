@@ -397,13 +397,7 @@ open class MusicService : MediaBrowserServiceCompat(), SessionAvailabilityListen
             when (playbackState) {
                 Player.STATE_BUFFERING,
                 Player.STATE_READY -> {
-<<<<<<< HEAD
-                    notificationManager.showNotification()
-=======
                     notificationManager.showNotificationForPlayer(currentPlayer)
-                    becomingNoisyReceiver.register()
->>>>>>> 63fe714... buggy implementation
-
                     // If playback is paused we remove the foreground state which allows the
                     // notification to be dismissed. An alternative would be to provide a "close"
                     // button in the notification which stops playback and clears the notification.
