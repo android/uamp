@@ -312,7 +312,6 @@ private fun MediaMetadataCompat.toCastMediaMetadata(): MediaMetadata {
     mediaMetadata.putString(MediaMetadata.KEY_TITLE, this.title)
     mediaMetadata.putString(MediaMetadata.KEY_ARTIST, this.artist)
     mediaMetadata.putString(MediaMetadata.KEY_ALBUM_TITLE, this.album)
-    mediaMetadata.addImage(WebImage(this.artUri))
     mediaMetadata.addImage(WebImage(this.albumArtUri))
     mediaMetadata.addImage(WebImage(this.displayIconUri))
     mediaMetadata.putString(MediaMetadata.KEY_ALBUM_ARTIST, this.albumArtist)
