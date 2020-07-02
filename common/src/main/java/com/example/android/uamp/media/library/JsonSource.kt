@@ -21,15 +21,9 @@ import android.net.Uri
 import android.support.v4.media.MediaBrowserCompat.MediaItem
 import android.support.v4.media.MediaDescriptionCompat.STATUS_NOT_DOWNLOADED
 import android.support.v4.media.MediaMetadataCompat
-import com.bumptech.glide.Glide
-import com.bumptech.glide.RequestManager
-import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.bumptech.glide.request.RequestOptions
-import com.example.android.uamp.media.R
 import com.example.android.uamp.media.extensions.album
 import com.example.android.uamp.media.extensions.albumArtUri
 import com.example.android.uamp.media.extensions.artist
-import com.example.android.uamp.media.extensions.asAlbumArtContentUri
 import com.example.android.uamp.media.extensions.displayDescription
 import com.example.android.uamp.media.extensions.displayIconUri
 import com.example.android.uamp.media.extensions.displaySubtitle
@@ -61,11 +55,9 @@ import java.util.concurrent.TimeUnit
 class JsonSource(context: Context, private val source: Uri) : AbstractMusicSource() {
 
     private var catalog: List<MediaMetadataCompat> = emptyList()
-    private val glide: RequestManager
 
     init {
         state = STATE_INITIALIZING
-        glide = Glide.with(context)
     }
 
     override fun iterator(): Iterator<MediaMetadataCompat> = catalog.iterator()
@@ -107,21 +99,11 @@ class JsonSource(context: Context, private val source: Uri) : AbstractMusicSourc
                     }
                 }
 
-                // Block on downloading artwork.
-                val artFile = glide.applyDefaultRequestOptions(glideOptions)
-                    .downloadOnly()
-                    .load(song.image)
-                    .submit(NOTIFICATION_LARGE_ICON_SIZE, NOTIFICATION_LARGE_ICON_SIZE)
-                    .get()
-
-                // Expose file via Local URI
-                val artUri = artFile.asAlbumArtContentUri()
-
                 MediaMetadataCompat.Builder()
                     .from(song)
                     .apply {
-                        displayIconUri = artUri.toString() // Used by ExoPlayer and Notification
-                        albumArtUri = artUri.toString()
+                        displayIconUri = song.image // Used by ExoPlayer and Notification
+                        albumArtUri = song.image
                     }
                     .build()
             }.toList()
@@ -231,9 +213,3 @@ class JsonMusic {
     var duration: Long = -1
     var site: String = ""
 }
-
-private const val NOTIFICATION_LARGE_ICON_SIZE = 144 // px
-
-private val glideOptions = RequestOptions()
-    .fallback(R.drawable.default_art)
-    .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
