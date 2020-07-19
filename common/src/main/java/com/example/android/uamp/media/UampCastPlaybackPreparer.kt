@@ -41,18 +41,7 @@ class UampCastPlaybackPreparer(
 
                 // TODO: Notify caller of the error.
             } else {
-                val metadataList = buildPlaylist(itemToPlay)
-                val items: Array<MediaQueueItem> = metadataList.map {
-                    it.toMediaQueueItem()
-                }.toTypedArray()
 
-                // Since the playlist was probably based on some ordering (such as tracks
-                // on an album), find which window index to play first so that the song the
-                // user actually wants to hear plays first.
-                val initialWindowIndex = metadataList.indexOf(itemToPlay)
-
-                castPlayer.loadItems(items, initialWindowIndex, C.TIME_UNSET, Player.REPEAT_MODE_OFF)
-                castPlayer.playWhenReady = playWhenReady
             }
         }
     }
@@ -78,16 +67,6 @@ class UampCastPlaybackPreparer(
 
 
 
-    /**
-     * Builds a playlist based on a [MediaMetadataCompat].
-     *
-     * TODO: Support building a playlist by artist, genre, etc...
-     *
-     * @param item Item to base the playlist on.
-     * @return a [List] of [MediaMetadataCompat] objects representing a playlist.
-     */
-    private fun buildPlaylist(item: MediaMetadataCompat): List<MediaMetadataCompat> =
-            musicSource.filter { it.album == item.album }.sortedBy { it.trackNumber }
 }
 
 private const val TAG = "CastPlaybackPreparer"
