@@ -18,19 +18,27 @@ package com.example.android.uamp.media
 
 import android.app.Notification
 import android.app.PendingIntent
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.os.ResultReceiver
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaBrowserCompat.MediaItem
 import android.support.v4.media.MediaDescriptionCompat
+import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
+import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.media.MediaBrowserServiceCompat
+import com.example.android.uamp.media.extensions.album
 import com.example.android.uamp.media.extensions.flag
+import com.example.android.uamp.media.extensions.id
+import com.example.android.uamp.media.extensions.toMediaQueueItem
+import com.example.android.uamp.media.extensions.toMediaSource
+import com.example.android.uamp.media.extensions.trackNumber
+import com.example.android.uamp.media.library.AbstractMusicSource
 import com.example.android.uamp.media.library.BrowseTree
 import com.example.android.uamp.media.library.JsonSource
 import com.example.android.uamp.media.library.MEDIA_SEARCH_SUPPORTED
@@ -38,11 +46,11 @@ import com.example.android.uamp.media.library.MusicSource
 import com.example.android.uamp.media.library.UAMP_BROWSABLE_ROOT
 import com.example.android.uamp.media.library.UAMP_EMPTY_ROOT
 import com.google.android.exoplayer2.C
+import com.google.android.exoplayer2.ControlDispatcher
 import com.google.android.exoplayer2.ExoPlaybackException
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
-import com.google.android.exoplayer2.Timeline
 import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.ext.cast.SessionAvailabilityListener
 import com.google.android.exoplayer2.ext.cast.CastPlayer
@@ -51,6 +59,7 @@ import com.google.android.exoplayer2.ext.mediasession.TimelineQueueNavigator
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
+import com.google.android.gms.cast.MediaQueueItem
 import com.google.android.gms.cast.framework.CastContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -74,7 +83,7 @@ import kotlinx.coroutines.launch
  * [CastPlayer](https://exoplayer.dev/doc/reference/com/google/android/exoplayer2/ext/cast/CastPlayer.html),
  * otherwise they are passed to an ExoPlayer for local playback.
  */
-open class MusicService : MediaBrowserServiceCompat(), SessionAvailabilityListener {
+open class MusicService : MediaBrowserServiceCompat() {
 
     private lateinit var notificationManager: UampNotificationManager
     private lateinit var mediaSource: MusicSource
@@ -89,6 +98,7 @@ open class MusicService : MediaBrowserServiceCompat(), SessionAvailabilityListen
 
     protected lateinit var mediaSession: MediaSessionCompat
     protected lateinit var mediaSessionConnector: MediaSessionConnector
+    private var currentPlaylistItems: List<MediaMetadataCompat> = emptyList()
 
     /**
      * This must be `by lazy` because the source won't initially be ready.
@@ -97,6 +107,14 @@ open class MusicService : MediaBrowserServiceCompat(), SessionAvailabilityListen
      */
     private val browseTree: BrowseTree by lazy {
         BrowseTree(applicationContext, mediaSource)
+    }
+
+    private val dataSourceFactory: DefaultDataSourceFactory by lazy {
+        DefaultDataSourceFactory(
+            /* context= */ this,
+            Util.getUserAgent(/* context= */ this, UAMP_USER_AGENT), /* listener= */
+            null
+        )
     }
 
     private var isForegroundService = false
@@ -128,7 +146,7 @@ open class MusicService : MediaBrowserServiceCompat(), SessionAvailabilityListen
      */
     private val castPlayer: CastPlayer by lazy {
         CastPlayer(CastContext.getSharedInstance(this)).apply {
-            setSessionAvailabilityListener(this@MusicService)
+            setSessionAvailabilityListener(UampCastSessionAvailabilityListener())
             addListener(playerListener)
         }
     }
@@ -182,50 +200,16 @@ open class MusicService : MediaBrowserServiceCompat(), SessionAvailabilityListen
 
         // ExoPlayer will manage the MediaSession for us.
         mediaSessionConnector = MediaSessionConnector(mediaSession)
+        mediaSessionConnector.setPlaybackPreparer(UampPlaybackPreparer())
+        mediaSessionConnector.setQueueNavigator(UampQueueNavigator(mediaSession))
 
-        if (castPlayer.isCastSessionAvailable) {
-            mediaSessionConnector.connectToCastPlayer()
-        } else {
-            mediaSessionConnector.connectToExoPlayer(this)
-        }
-
+        switchToPlayer(
+            previousPlayer = null,
+            newPlayer = if (castPlayer.isCastSessionAvailable) castPlayer else exoPlayer
+        )
         notificationManager.showNotificationForPlayer(currentPlayer)
 
         packageValidator = PackageValidator(this, R.xml.allowed_media_browser_callers)
-    }
-
-    private fun MediaSessionConnector.connectToExoPlayer(context: Context) {
-        // Produces DataSource instances through which media data is loaded.
-        val dataSourceFactory = DefaultDataSourceFactory(
-                context, Util.getUserAgent(context, UAMP_USER_AGENT), null
-        )
-
-        // Create the PlaybackPreparer of the media session connector.
-        val playbackPreparer = UampPlaybackPreparer(
-                mediaSource,
-                exoPlayer,
-                dataSourceFactory
-        )
-        setPlayer(exoPlayer)
-        currentPlayer = exoPlayer
-        setPlaybackPreparer(playbackPreparer)
-
-        mediaSessionConnector.setQueueNavigator(UampQueueNavigator(mediaSession))
-
-    }
-
-    private fun MediaSessionConnector.connectToCastPlayer() {
-        // Create the PlaybackPreparer of the media session connector.
-        val playbackPreparer = UampCastPlaybackPreparer(
-                mediaSource,
-                castPlayer
-        )
-        setPlayer(castPlayer)
-        currentPlayer = castPlayer
-        setPlaybackPreparer(playbackPreparer)
-
-        // Disallow handling skip actions, for now.
-        mediaSessionConnector.setQueueNavigator(null)
     }
 
     /**
@@ -362,6 +346,167 @@ open class MusicService : MediaBrowserServiceCompat(), SessionAvailabilityListen
     }
 
     /**
+     * Load the supplied list of songs and the song to play into the current player.
+     */
+    private fun preparePlaylist(
+        metadataList: List<MediaMetadataCompat>,
+        itemToPlay: MediaMetadataCompat?,
+        playWhenReady: Boolean,
+        playbackStartPositionMs: Long
+    ) {
+        // Since the playlist was probably based on some ordering (such as tracks
+        // on an album), find which window index to play first so that the song the
+        // user actually wants to hear plays first.
+        val initialWindowIndex = if (itemToPlay == null) 0 else metadataList.indexOf(itemToPlay)
+        currentPlaylistItems = metadataList
+
+        currentPlayer.playWhenReady = playWhenReady
+        if (currentPlayer == exoPlayer) {
+            exoPlayer.seekTo(initialWindowIndex, playbackStartPositionMs)
+            val mediaSource = metadataList.toMediaSource(dataSourceFactory)
+            exoPlayer.prepare(mediaSource)
+        } else /* currentPlayer == castPlayer */ {
+            val items: Array<MediaQueueItem> = metadataList.map {
+                it.toMediaQueueItem()
+            }.toTypedArray()
+            castPlayer.loadItems(
+                items,
+                initialWindowIndex,
+                playbackStartPositionMs,
+                Player.REPEAT_MODE_OFF
+            )
+        }
+    }
+
+    private fun switchToPlayer(previousPlayer: Player?, newPlayer: Player) {
+        if (previousPlayer == newPlayer) {
+            return
+        }
+        currentPlayer = newPlayer
+        if (previousPlayer != null) {
+            val playbackState = previousPlayer.playbackState
+            if (playbackState != Player.STATE_IDLE && playbackState != Player.STATE_ENDED) {
+                preparePlaylist(
+                    currentPlaylistItems,
+                    currentPlaylistItems.get(previousPlayer.currentWindowIndex),
+                    previousPlayer.playWhenReady,
+                    previousPlayer.currentPosition
+                )
+            }
+        }
+        mediaSessionConnector.setPlayer(newPlayer)
+        previousPlayer?.stop(/* reset= */true)
+    }
+
+    private inner class UampCastSessionAvailabilityListener : SessionAvailabilityListener {
+
+        /**
+         * Called when a Cast session has started and the user wishes to control playback on a
+         * remote Cast receiver rather than play audio locally.
+         */
+        override fun onCastSessionAvailable() {
+            switchToPlayer(currentPlayer, castPlayer)
+        }
+
+        /**
+         * Called when a Cast session has ended and the user wishes to control playback locally.
+         */
+        override fun onCastSessionUnavailable() {
+            switchToPlayer(currentPlayer, exoPlayer)
+        }
+    }
+
+    private inner class UampQueueNavigator(
+        mediaSession: MediaSessionCompat
+    ) : TimelineQueueNavigator(mediaSession) {
+        override fun getMediaDescription(player: Player, windowIndex: Int): MediaDescriptionCompat =
+            currentPlaylistItems[windowIndex].description
+    }
+
+    private inner class UampPlaybackPreparer : MediaSessionConnector.PlaybackPreparer {
+
+        /**
+         * UAMP supports preparing (and playing) from search, as well as media ID, so those
+         * capabilities are declared here.
+         *
+         * TODO: Add support for ACTION_PREPARE and ACTION_PLAY, which mean "prepare/play something".
+         */
+        override fun getSupportedPrepareActions(): Long =
+            PlaybackStateCompat.ACTION_PREPARE_FROM_MEDIA_ID or
+                    PlaybackStateCompat.ACTION_PLAY_FROM_MEDIA_ID or
+                    PlaybackStateCompat.ACTION_PREPARE_FROM_SEARCH or
+                    PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH
+
+        override fun onPrepare(playWhenReady: Boolean) = Unit
+
+        override fun onPrepareFromMediaId(
+            mediaId: String,
+            playWhenReady: Boolean,
+            extras: Bundle?
+        ) {
+            mediaSource.whenReady {
+                val itemToPlay: MediaMetadataCompat? = mediaSource.find { item ->
+                    item.id == mediaId
+                }
+                if (itemToPlay == null) {
+                    Log.w(TAG, "Content not found: MediaID=$mediaId")
+                    // TODO: Notify caller of the error.
+                } else {
+                    preparePlaylist(
+                        buildPlaylist(itemToPlay),
+                        itemToPlay,
+                        playWhenReady,
+                        playbackStartPositionMs= C.TIME_UNSET
+                    )
+                }
+            }
+        }
+
+        /**
+         * This method is used by the Google Assistant to respond to requests such as:
+         * - Play Geisha from Wake Up on UAMP
+         * - Play electronic music on UAMP
+         * - Play music on UAMP
+         *
+         * For details on how search is handled, see [AbstractMusicSource.search].
+         */
+        override fun onPrepareFromSearch(query: String, playWhenReady: Boolean, extras: Bundle?) {
+            mediaSource.whenReady {
+                val metadataList = mediaSource.search(query, extras ?: Bundle.EMPTY)
+                if (metadataList.isNotEmpty()) {
+                    preparePlaylist(
+                        metadataList,
+                        metadataList[0],
+                        playWhenReady,
+                        playbackStartPositionMs= C.TIME_UNSET
+                    )
+                }
+            }
+        }
+
+        override fun onPrepareFromUri(uri: Uri, playWhenReady: Boolean, extras: Bundle?) = Unit
+
+        override fun onCommand(
+            player: Player,
+            controlDispatcher: ControlDispatcher,
+            command: String,
+            extras: Bundle?,
+            cb: ResultReceiver?
+        ) = false
+
+        /**
+         * Builds a playlist based on a [MediaMetadataCompat].
+         *
+         * TODO: Support building a playlist by artist, genre, etc...
+         *
+         * @param item Item to base the playlist on.
+         * @return a [List] of [MediaMetadataCompat] objects representing a playlist.
+         */
+        private fun buildPlaylist(item: MediaMetadataCompat): List<MediaMetadataCompat> =
+            mediaSource.filter { it.album == item.album }.sortedBy { it.trackNumber }
+    }
+
+    /**
      * Listen for notification events.
      */
     private inner class PlayerNotificationListener :
@@ -445,62 +590,6 @@ open class MusicService : MediaBrowserServiceCompat(), SessionAvailabilityListen
             ).show()
         }
     }
-
-    /**
-     * Called when a Cast session has started and the user wishes to control playback on a
-     * remote Cast receiver rather than play audio locally.
-     */
-    override fun onCastSessionAvailable() {
-        switchToPlayer(castPlayer)
-    }
-
-    /**
-     * Called when a Cast session has ended and the user wishes to control playback locally.
-     */
-    override fun onCastSessionUnavailable() {
-        switchToPlayer(exoPlayer)
-    }
-
-    private fun switchToPlayer(player: Player) {
-        if (this.currentPlayer == player) {
-            return
-        }
-
-        var playbackPositionMs = C.TIME_UNSET
-        var windowIndex = 0
-        var playWhenReady = false
-
-        val previousPlayer: Player = this.currentPlayer
-        // Save state from the previous player.
-        val playbackState = previousPlayer.playbackState
-        if (playbackState != Player.STATE_ENDED) {
-            playbackPositionMs = previousPlayer.currentPosition
-            windowIndex = previousPlayer.currentWindowIndex
-            playWhenReady = previousPlayer.playWhenReady
-        }
-        previousPlayer.stop(true)
-
-        when (player) {
-            exoPlayer -> mediaSessionConnector.connectToExoPlayer(this)
-            castPlayer -> mediaSessionConnector.connectToCastPlayer()
-            else -> throw IllegalStateException("Cannot switch playback to $player")
-        }
-
-        currentPlayer.seekTo(playbackPositionMs)
-    }
-}
-
-/**
- * Helper class to retrieve the the Metadata necessary for the ExoPlayer MediaSession connection
- * extension to call [MediaSessionCompat.setMetadata].
- */
-private class UampQueueNavigator(
-    mediaSession: MediaSessionCompat
-) : TimelineQueueNavigator(mediaSession) {
-    private val window = Timeline.Window()
-    override fun getMediaDescription(player: Player, windowIndex: Int): MediaDescriptionCompat =
-        player.currentTimeline
-            .getWindow(windowIndex, window).tag as MediaDescriptionCompat
 }
 
 /*
