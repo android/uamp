@@ -98,7 +98,7 @@ open class MusicService : MediaBrowserServiceCompat() {
 
     protected lateinit var mediaSession: MediaSessionCompat
     protected lateinit var mediaSessionConnector: MediaSessionConnector
-    private var currentItems : List<MediaMetadataCompat> = emptyList()
+    private var currentPlaylistItems: List<MediaMetadataCompat> = emptyList()
 
     /**
      * This must be `by lazy` because the source won't initially be ready.
@@ -109,9 +109,11 @@ open class MusicService : MediaBrowserServiceCompat() {
         BrowseTree(applicationContext, mediaSource)
     }
 
-    private val dataSourceFactory : DefaultDataSourceFactory by lazy {
+    private val dataSourceFactory: DefaultDataSourceFactory by lazy {
         DefaultDataSourceFactory(
-            /* context= */ this, Util.getUserAgent(/* context= */ this, UAMP_USER_AGENT), /* listener= */ null
+            /* context= */ this,
+            Util.getUserAgent(/* context= */ this, UAMP_USER_AGENT), /* listener= */
+            null
         )
     }
 
@@ -144,7 +146,7 @@ open class MusicService : MediaBrowserServiceCompat() {
      */
     private val castPlayer: CastPlayer by lazy {
         CastPlayer(CastContext.getSharedInstance(this)).apply {
-            setSessionAvailabilityListener(UampSessionAvailabilityListener())
+            setSessionAvailabilityListener(UampCastSessionAvailabilityListener())
             addListener(playerListener)
         }
     }
@@ -201,7 +203,10 @@ open class MusicService : MediaBrowserServiceCompat() {
         mediaSessionConnector.setPlaybackPreparer(UampPlaybackPreparer())
         mediaSessionConnector.setQueueNavigator(UampQueueNavigator(mediaSession))
 
-        switchToPlayer(/* previousPlayer= */ null, if (castPlayer.isCastSessionAvailable) castPlayer else exoPlayer)
+        switchToPlayer(
+            previousPlayer = null,
+            newPlayer = if (castPlayer.isCastSessionAvailable) castPlayer else exoPlayer
+        )
         notificationManager.showNotificationForPlayer(currentPlayer)
 
         packageValidator = PackageValidator(this, R.xml.allowed_media_browser_callers)
@@ -340,12 +345,20 @@ open class MusicService : MediaBrowserServiceCompat() {
         }
     }
 
-    private fun preparePlaylist(metadataList : List<MediaMetadataCompat>, itemToPlay : MediaMetadataCompat?, playWhenReady: Boolean, playbackStartPositionMs: Long) {
+    /**
+     * Load the supplied list of songs and the song to play into the current player.
+     */
+    private fun preparePlaylist(
+        metadataList: List<MediaMetadataCompat>,
+        itemToPlay: MediaMetadataCompat?,
+        playWhenReady: Boolean,
+        playbackStartPositionMs: Long
+    ) {
         // Since the playlist was probably based on some ordering (such as tracks
         // on an album), find which window index to play first so that the song the
         // user actually wants to hear plays first.
         val initialWindowIndex = if (itemToPlay == null) 0 else metadataList.indexOf(itemToPlay)
-        currentItems = metadataList
+        currentPlaylistItems = metadataList
 
         currentPlayer.playWhenReady = playWhenReady
         if (currentPlayer == exoPlayer) {
@@ -356,11 +369,16 @@ open class MusicService : MediaBrowserServiceCompat() {
             val items: Array<MediaQueueItem> = metadataList.map {
                 it.toMediaQueueItem()
             }.toTypedArray()
-            castPlayer.loadItems(items, initialWindowIndex, playbackStartPositionMs, Player.REPEAT_MODE_OFF)
+            castPlayer.loadItems(
+                items,
+                initialWindowIndex,
+                playbackStartPositionMs,
+                Player.REPEAT_MODE_OFF
+            )
         }
     }
 
-    private fun switchToPlayer(previousPlayer : Player?, newPlayer: Player) {
+    private fun switchToPlayer(previousPlayer: Player?, newPlayer: Player) {
         if (previousPlayer == newPlayer) {
             return
         }
@@ -369,18 +387,18 @@ open class MusicService : MediaBrowserServiceCompat() {
             val playbackState = previousPlayer.playbackState
             if (playbackState != Player.STATE_IDLE && playbackState != Player.STATE_ENDED) {
                 preparePlaylist(
-                    currentItems,
-                    currentItems.get(previousPlayer.currentWindowIndex),
+                    currentPlaylistItems,
+                    currentPlaylistItems.get(previousPlayer.currentWindowIndex),
                     previousPlayer.playWhenReady,
                     previousPlayer.currentPosition
                 )
             }
         }
         mediaSessionConnector.setPlayer(newPlayer)
-        previousPlayer?.stop(true)
+        previousPlayer?.stop(/* reset= */true)
     }
 
-    private inner class UampSessionAvailabilityListener : SessionAvailabilityListener {
+    private inner class UampCastSessionAvailabilityListener : SessionAvailabilityListener {
 
         /**
          * Called when a Cast session has started and the user wishes to control playback on a
@@ -402,7 +420,7 @@ open class MusicService : MediaBrowserServiceCompat() {
         mediaSession: MediaSessionCompat
     ) : TimelineQueueNavigator(mediaSession) {
         override fun getMediaDescription(player: Player, windowIndex: Int): MediaDescriptionCompat =
-            currentItems[windowIndex].description
+            currentPlaylistItems[windowIndex].description
     }
 
     private inner class UampPlaybackPreparer : MediaSessionConnector.PlaybackPreparer {
@@ -421,7 +439,11 @@ open class MusicService : MediaBrowserServiceCompat() {
 
         override fun onPrepare(playWhenReady: Boolean) = Unit
 
-        override fun onPrepareFromMediaId(mediaId: String, playWhenReady: Boolean, extras: Bundle?) {
+        override fun onPrepareFromMediaId(
+            mediaId: String,
+            playWhenReady: Boolean,
+            extras: Bundle?
+        ) {
             mediaSource.whenReady {
                 val itemToPlay: MediaMetadataCompat? = mediaSource.find { item ->
                     item.id == mediaId
@@ -430,7 +452,12 @@ open class MusicService : MediaBrowserServiceCompat() {
                     Log.w(TAG, "Content not found: MediaID=$mediaId")
                     // TODO: Notify caller of the error.
                 } else {
-                    preparePlaylist(buildPlaylist(itemToPlay), itemToPlay, playWhenReady, /* playbackStartPositionMs= */ C.TIME_UNSET)
+                    preparePlaylist(
+                        buildPlaylist(itemToPlay),
+                        itemToPlay,
+                        playWhenReady,
+                        playbackStartPositionMs= C.TIME_UNSET
+                    )
                 }
             }
         }
@@ -448,7 +475,11 @@ open class MusicService : MediaBrowserServiceCompat() {
                 val metadataList = mediaSource.search(query, extras ?: Bundle.EMPTY)
                 if (metadataList.isNotEmpty()) {
                     preparePlaylist(
-                        metadataList, metadataList[0], playWhenReady, /* playbackStartPositionMs= */ C.TIME_UNSET)
+                        metadataList,
+                        metadataList[0],
+                        playWhenReady,
+                        playbackStartPositionMs= C.TIME_UNSET
+                    )
                 }
             }
         }
