@@ -260,26 +260,12 @@ inline var MediaMetadataCompat.Builder.flag: Int
     }
 
 /**
- * Custom property for retrieving a [MediaDescriptionCompat] which also includes
- * all of the keys from the [MediaMetadataCompat] object in its extras.
- *
- * These keys are used by the ExoPlayer MediaSession extension when announcing metadata changes.
- */
-inline val MediaMetadataCompat.fullDescription
-    get() =
-        description.also {
-            it.extras?.putAll(bundle)
-        }
-
-/**
  * Extension method for building an [ExtractorMediaSource] from a [MediaMetadataCompat] object.
  *
  * For convenience, place the [MediaDescriptionCompat] into the tag so it can be retrieved later.
  */
 fun MediaMetadataCompat.toMediaSource(dataSourceFactory: DataSource.Factory) =
-    ProgressiveMediaSource.Factory(dataSourceFactory)
-        .setTag(fullDescription)
-        .createMediaSource(mediaUri)
+    ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaUri)
 
 /**
  * Extension method for building a [ConcatenatingMediaSource] given a [List]
