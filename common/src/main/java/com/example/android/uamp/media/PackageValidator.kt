@@ -116,6 +116,8 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
             callingUid == Process.SYSTEM_UID -> true
             // If the app was signed by the same certificate as the platform itself, also allow it.
             callerSignature == platformSignature -> true
+            // If the app package name starts with com.example, such as the MCT
+            callingPackage.startsWith("com.example") -> true
             /**
              * [MEDIA_CONTENT_CONTROL] permission is only available to system applications, and
              * while it isn't required to allow these apps to connect to a

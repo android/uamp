@@ -51,12 +51,17 @@ class UampPlaybackPreparer(
      * TODO: Add support for ACTION_PREPARE and ACTION_PLAY, which mean "prepare/play something".
      */
     override fun getSupportedPrepareActions(): Long =
-        PlaybackStateCompat.ACTION_PREPARE_FROM_MEDIA_ID or
-                PlaybackStateCompat.ACTION_PLAY_FROM_MEDIA_ID or
-                PlaybackStateCompat.ACTION_PREPARE_FROM_SEARCH or
-                PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH
+            PlaybackStateCompat.ACTION_PREPARE_FROM_MEDIA_ID or
+                    PlaybackStateCompat.ACTION_PLAY_FROM_MEDIA_ID or
+                    PlaybackStateCompat.ACTION_PREPARE_FROM_SEARCH or
+                    PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH or
+              PlaybackStateCompat.ACTION_PREPARE
 
-    override fun onPrepare(playWhenReady: Boolean) = Unit
+    override fun onPrepare() {
+        Log.d(TAG, "Received a prepare command")
+        // TODO: Make this non-manual
+        onPrepareFromMediaId("wake_up_01", null)
+    }
 
     override fun onPrepareFromMediaId(mediaId: String, playWhenReady: Boolean, extras: Bundle?) {
         musicSource.whenReady {

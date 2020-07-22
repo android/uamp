@@ -25,8 +25,10 @@ import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaBrowserCompat.MediaItem
 import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.session.MediaSessionCompat
+import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import android.widget.Toast
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.media.MediaBrowserServiceCompat
 import com.example.android.uamp.media.extensions.flag
@@ -36,6 +38,7 @@ import com.example.android.uamp.media.library.MEDIA_SEARCH_SUPPORTED
 import com.example.android.uamp.media.library.MusicSource
 import com.example.android.uamp.media.library.UAMP_BROWSABLE_ROOT
 import com.example.android.uamp.media.library.UAMP_EMPTY_ROOT
+import com.example.android.uamp.media.library.UAMP_RECENT_ROOT
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.ExoPlaybackException
 import com.google.android.exoplayer2.ExoPlayer
@@ -239,6 +242,22 @@ open class MusicService : MediaBrowserServiceCompat() {
         }
 
         return if (isKnownCaller) {
+            // If recent flag is present, return root for recents tree.
+
+            if(browserRootHints == null) {
+                Log.d(TAG, "Root Hints empty")
+            } else {
+                Log.d(TAG, "Root Hints:")
+                for(key in browserRootHints.keySet()) {
+                    Log.d(TAG, key)
+                }
+            }
+
+            browserRootHints?.let {
+                if(it.getBoolean(BrowserRoot.EXTRA_RECENT)) {
+                    return BrowserRoot(UAMP_RECENT_ROOT, rootExtras)
+                }
+            }
             // The caller is allowed to browse, so return the root.
             BrowserRoot(UAMP_BROWSABLE_ROOT, rootExtras)
         } else {
@@ -264,15 +283,18 @@ open class MusicService : MediaBrowserServiceCompat() {
         parentMediaId: String,
         result: Result<List<MediaItem>>
     ) {
+        Log.d(TAG, "Received onLoadChildren for $parentMediaId")
 
         // If the media source is ready, the results will be set synchronously here.
         val resultsSent = mediaSource.whenReady { successfullyInitialized ->
             if (successfullyInitialized) {
+                Log.d(TAG, "Sending ${browseTree[parentMediaId]?.size} children for parent $parentMediaId")
                 val children = browseTree[parentMediaId]?.map { item ->
                     MediaItem(item.description, item.flag)
                 }
                 result.sendResult(children)
             } else {
+                Log.d(TAG, "onLoadChildren for $parentMediaId had error")
                 mediaSession.sendSessionEvent(NETWORK_FAILURE, null)
                 result.sendResult(null)
             }

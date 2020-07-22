@@ -20,6 +20,7 @@ import android.content.Context
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaBrowserCompat.MediaItem
 import android.support.v4.media.MediaMetadataCompat
+import android.util.Log
 import com.example.android.uamp.media.MusicService
 import com.example.android.uamp.media.R
 import com.example.android.uamp.media.extensions.album
@@ -107,6 +108,12 @@ class BrowseTree(context: Context, musicSource: MusicSource) {
                 mediaIdToChildren[UAMP_RECOMMENDED_ROOT] = recommendedChildren
             }
         }
+
+        // Manually add one media item as the "most recently listened media item"
+        musicSource.elementAtOrNull(0)?.let{
+            Log.d(TAG, "Setting Recent MediaItem ${it.description.mediaId}")
+            mediaIdToChildren[UAMP_RECENT_ROOT] = mutableListOf(it)
+        }
     }
 
     /**
@@ -147,7 +154,10 @@ const val UAMP_BROWSABLE_ROOT = "/"
 const val UAMP_EMPTY_ROOT = "@empty@"
 const val UAMP_RECOMMENDED_ROOT = "__RECOMMENDED__"
 const val UAMP_ALBUMS_ROOT = "__ALBUMS__"
+const val UAMP_RECENT_ROOT = "//"
 
 const val MEDIA_SEARCH_SUPPORTED = "android.media.browse.SEARCH_SUPPORTED"
 
 const val RESOURCE_ROOT_URI = "android.resource://com.example.android.uamp.next/drawable/"
+
+private const val TAG = "BrowseTree"

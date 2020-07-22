@@ -40,4 +40,5 @@
     <!-- Browse Tree -->
     <string name="recommended_title">Recommended</string>
     <string name="albums_title">Albums</string>
+    <string name="recent_title">Recent</string>
 </resources>
