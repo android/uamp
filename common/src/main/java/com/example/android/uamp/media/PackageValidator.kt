@@ -51,7 +51,7 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
     private val context: Context
     private val packageManager: PackageManager
 
-    private val certificateWhitelist: Map<String, KnownCallerInfo>
+    private val certificateAllowList: Map<String, KnownCallerInfo>
     private val platformSignature: String
 
     private val callerChecked = mutableMapOf<String, Pair<Int, Boolean>>()
@@ -61,7 +61,7 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
         this.context = context.applicationContext
         this.packageManager = this.context.packageManager
 
-        certificateWhitelist = buildCertificateWhitelist(parser)
+        certificateAllowList = buildCertificateAllowList(parser)
         platformSignature = getSystemSignature()
     }
 
@@ -103,15 +103,15 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
         }
 
         val callerSignature = callerPackageInfo.signature
-        val isPackageInWhitelist = certificateWhitelist[callingPackage]?.signatures?.first {
+        val isPackageInAllowList = certificateAllowList[callingPackage]?.signatures?.first {
             it.signature == callerSignature
         } != null
 
         val isCallerKnown = when {
             // If it's our own app making the call, allow it.
             callingUid == Process.myUid() -> true
-            // If it's one of the apps on the whitelist, allow it.
-            isPackageInWhitelist -> true
+            // If it's one of the apps on the allow list, allow it.
+            isPackageInAllowList -> true
             // If the system is making the call, allow it.
             callingUid == Process.SYSTEM_UID -> true
             // If the app was signed by the same certificate as the platform itself, also allow it.
@@ -188,8 +188,8 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
 
     /**
      * Looks up the [PackageInfo] for a package name.
-     * This requests both the signatures (for checking if an app is on the whitelist) and
-     * the app's permissions, which allow for more flexibility in the whitelist.
+     * This requests both the signatures (for checking if an app is on the allow list) and
+     * the app's permissions, which allow for more flexibility in the allow list.
      *
      * @return [PackageInfo] for the package name or null if it's not found.
      */
@@ -219,9 +219,9 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
             getSignatureSha256(certificate)
         }
 
-    private fun buildCertificateWhitelist(parser: XmlResourceParser): Map<String, KnownCallerInfo> {
+    private fun buildCertificateAllowList(parser: XmlResourceParser): Map<String, KnownCallerInfo> {
 
-        val certificateWhitelist = LinkedHashMap<String, KnownCallerInfo>()
+        val certificateAllowList = LinkedHashMap<String, KnownCallerInfo>()
         try {
             var eventType = parser.next()
             while (eventType != XmlResourceParser.END_DOCUMENT) {
@@ -234,11 +234,11 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
 
                     callerInfo?.let { info ->
                         val packageName = info.packageName
-                        val existingCallerInfo = certificateWhitelist[packageName]
+                        val existingCallerInfo = certificateAllowList[packageName]
                         if (existingCallerInfo != null) {
                             existingCallerInfo.signatures += callerInfo.signatures
                         } else {
-                            certificateWhitelist[packageName] = callerInfo
+                            certificateAllowList[packageName] = callerInfo
                         }
                     }
                 }
@@ -251,7 +251,7 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
             Log.e(TAG, "Could not read allowed callers from XML.", ioException)
         }
 
-        return certificateWhitelist
+        return certificateAllowList
     }
 
     /**

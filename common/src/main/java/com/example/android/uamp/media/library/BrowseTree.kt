@@ -58,7 +58,7 @@ class BrowseTree(context: Context, musicSource: MusicSource) {
     private val mediaIdToChildren = mutableMapOf<String, MutableList<MediaMetadataCompat>>()
 
     /**
-     * Whether to allow clients which are unknown (non-whitelisted) to use search on this
+     * Whether to allow clients which are unknown (not on the allowed list) to use search on this
      * [BrowseTree].
      */
     val searchableByUnknownCaller = true
