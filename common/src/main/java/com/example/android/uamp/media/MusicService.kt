@@ -193,7 +193,7 @@ open class MusicService : MediaBrowserServiceCompat() {
 
         // The media library is built from a remote JSON file. We'll create the source here,
         // and then use a suspend function to perform the download off the main thread.
-        mediaSource = JsonSource(context = this, source = remoteJsonSource)
+        mediaSource = JsonSource(source = remoteJsonSource)
         serviceScope.launch {
             mediaSource.load()
         }
@@ -228,7 +228,7 @@ open class MusicService : MediaBrowserServiceCompat() {
          * The service will then remove itself as a foreground service, and will call
          * [stopSelf].
          */
-        currentPlayer.stop(true)
+        currentPlayer.stop(/* reset= */true)
     }
 
     override fun onDestroy() {
@@ -361,10 +361,11 @@ open class MusicService : MediaBrowserServiceCompat() {
         currentPlaylistItems = metadataList
 
         currentPlayer.playWhenReady = playWhenReady
+        currentPlayer.stop(/* reset= */ true)
         if (currentPlayer == exoPlayer) {
-            exoPlayer.seekTo(initialWindowIndex, playbackStartPositionMs)
             val mediaSource = metadataList.toMediaSource(dataSourceFactory)
             exoPlayer.prepare(mediaSource)
+            exoPlayer.seekTo(initialWindowIndex, playbackStartPositionMs)
         } else /* currentPlayer == castPlayer */ {
             val items: Array<MediaQueueItem> = metadataList.map {
                 it.toMediaQueueItem()
@@ -385,7 +386,11 @@ open class MusicService : MediaBrowserServiceCompat() {
         currentPlayer = newPlayer
         if (previousPlayer != null) {
             val playbackState = previousPlayer.playbackState
-            if (playbackState != Player.STATE_IDLE && playbackState != Player.STATE_ENDED) {
+            if (currentPlaylistItems.isEmpty()) {
+                // We are joining a playback session. Loading the session from the new player is
+                // not supported, so we stop playback.
+                currentPlayer.stop(/* reset= */true)
+            } else if (playbackState != Player.STATE_IDLE && playbackState != Player.STATE_ENDED) {
                 preparePlaylist(
                     currentPlaylistItems,
                     currentPlaylistItems.get(previousPlayer.currentWindowIndex),
@@ -456,7 +461,7 @@ open class MusicService : MediaBrowserServiceCompat() {
                         buildPlaylist(itemToPlay),
                         itemToPlay,
                         playWhenReady,
-                        playbackStartPositionMs= C.TIME_UNSET
+                        playbackStartPositionMs = C.TIME_UNSET
                     )
                 }
             }
@@ -478,7 +483,7 @@ open class MusicService : MediaBrowserServiceCompat() {
                         metadataList,
                         metadataList[0],
                         playWhenReady,
-                        playbackStartPositionMs= C.TIME_UNSET
+                        playbackStartPositionMs = C.TIME_UNSET
                     )
                 }
             }

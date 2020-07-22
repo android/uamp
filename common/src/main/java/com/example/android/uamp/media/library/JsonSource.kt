@@ -52,7 +52,7 @@ import java.util.concurrent.TimeUnit
  * The definition of the JSON is specified in the docs of [JsonMusic] in this file,
  * which is the object representation of it.
  */
-class JsonSource(context: Context, private val source: Uri) : AbstractMusicSource() {
+class JsonSource(private val source: Uri) : AbstractMusicSource() {
 
     private var catalog: List<MediaMetadataCompat> = emptyList()
 
@@ -87,7 +87,7 @@ class JsonSource(context: Context, private val source: Uri) : AbstractMusicSourc
             // Get the base URI to fix up relative references later.
             val baseUri = catalogUri.toString().removeSuffix(catalogUri.lastPathSegment ?: "")
 
-            musicCat.music.map { song ->
+            val mediaMetadataCompats = musicCat.music.map { song ->
                 // The JSON may have paths that are relative to the source of the JSON
                 // itself. We need to fix them up here to turn them into absolute paths.
                 catalogUri.scheme?.let { scheme ->
@@ -107,6 +107,10 @@ class JsonSource(context: Context, private val source: Uri) : AbstractMusicSourc
                     }
                     .build()
             }.toList()
+            // Add description keys to be used by the ExoPlayer MediaSession extension when
+            // announcing metadata changes.
+            mediaMetadataCompats.forEach { it.description.extras?.putAll(it.bundle) }
+            mediaMetadataCompats
         }
     }
 
@@ -121,7 +125,7 @@ class JsonSource(context: Context, private val source: Uri) : AbstractMusicSourc
     private fun downloadJson(catalogUri: Uri): JsonCatalog {
         val catalogConn = URL(catalogUri.toString())
         val reader = BufferedReader(InputStreamReader(catalogConn.openStream()))
-        return Gson().fromJson<JsonCatalog>(reader, JsonCatalog::class.java)
+        return Gson().fromJson(reader, JsonCatalog::class.java)
     }
 }
 
