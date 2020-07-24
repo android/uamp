@@ -33,8 +33,6 @@ import com.google.android.gms.dynamite.DynamiteModule
 
 class MainActivity : AppCompatActivity() {
 
-    //private val TAG = MainActivity::class.simpleName
-
     private lateinit var viewModel: MainActivityViewModel
     private var castContext: CastContext? = null
 
@@ -44,22 +42,6 @@ class MainActivity : AppCompatActivity() {
         // Initialize the Cast context. This is required so that the media route button can be
         // created in the AppBar
         castContext = CastContext.getSharedInstance(this)
-
-        // Getting the cast context later than onStart can cause device discovery not to take place.
-        try {
-            castContext = CastContext.getSharedInstance(this)
-        } catch (e: RuntimeException) {
-            var cause = e.cause
-            while (cause != null) {
-                if (cause is DynamiteModule.LoadingException) {
-                    setContentView(R.layout.cast_context_error)
-                    return
-                }
-                cause = cause.cause
-            }
-            throw e
-        }
-
 
         setContentView(R.layout.activity_main)
 
