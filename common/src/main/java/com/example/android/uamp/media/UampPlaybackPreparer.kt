@@ -16,6 +16,8 @@
 
 package com.example.android.uamp.media
 
+import android.app.Application
+import android.content.Context
 import android.net.Uri
 import android.os.Bundle
 import android.os.ResultReceiver
@@ -41,7 +43,8 @@ import com.google.android.exoplayer2.upstream.DataSource
 class UampPlaybackPreparer(
     private val musicSource: MusicSource,
     private val exoPlayer: ExoPlayer,
-    private val dataSourceFactory: DataSource.Factory
+    private val dataSourceFactory: DataSource.Factory,
+    private val context: Context
 ) : MediaSessionConnector.PlaybackPreparer {
 
     /**
@@ -57,10 +60,14 @@ class UampPlaybackPreparer(
                     PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH or
               PlaybackStateCompat.ACTION_PREPARE
 
-    override fun onPrepare() {
-        Log.d(TAG, "Received a prepare command")
-        // TODO: Make this non-manual
-        onPrepareFromMediaId("wake_up_01", null)
+    override fun onPrepare(playWhenReady: Boolean) {
+        val sharedPref = context.getSharedPreferences(
+            context.getString(R.string.most_recent_item),
+            Context.MODE_PRIVATE)
+        val recentId = sharedPref.getString(
+            context.getString(R.string.most_recent_key),
+            context.getString(R.string.most_recent_default))
+        onPrepareFromMediaId(recentId, playWhenReady, null)
     }
 
     override fun onPrepareFromMediaId(mediaId: String, playWhenReady: Boolean, extras: Bundle?) {

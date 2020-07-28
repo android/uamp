@@ -41,4 +41,9 @@
     <string name="recommended_title">Recommended</string>
     <string name="albums_title">Albums</string>
     <string name="recent_title">Recent</string>
+
+    <!-- Recently Played Item Tracking -->
+    <string name="most_recent_item">com.example.android.uamp.recent</string>
+    <string name="most_recent_key">MOST_RECENT_MEDIA_ITEM</string>
+    <string name="most_recent_default">wake_up_01</string>
 </resources>

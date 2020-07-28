@@ -20,7 +20,6 @@ import android.content.Context
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaBrowserCompat.MediaItem
 import android.support.v4.media.MediaMetadataCompat
-import android.util.Log
 import com.example.android.uamp.media.MusicService
 import com.example.android.uamp.media.R
 import com.example.android.uamp.media.extensions.album
@@ -95,6 +94,14 @@ class BrowseTree(context: Context, musicSource: MusicSource) {
         rootList += albumsMetadata
         mediaIdToChildren[UAMP_BROWSABLE_ROOT] = rootList
 
+        // Get Media ID of most recently played item
+        val sharedPref = context.getSharedPreferences(
+            context.getString(R.string.most_recent_item),
+            Context.MODE_PRIVATE)
+        val recentId = sharedPref.getString(
+            context.getString(R.string.most_recent_key),
+            context.getString(R.string.most_recent_default))
+
         musicSource.forEach { mediaItem ->
             val albumMediaId = mediaItem.album.urlEncoded
             val albumChildren = mediaIdToChildren[albumMediaId] ?: buildAlbumRoot(mediaItem)
@@ -107,12 +114,10 @@ class BrowseTree(context: Context, musicSource: MusicSource) {
                 recommendedChildren += mediaItem
                 mediaIdToChildren[UAMP_RECOMMENDED_ROOT] = recommendedChildren
             }
-        }
-
-        // Manually add one media item as the "most recently listened media item"
-        musicSource.elementAtOrNull(0)?.let{
-            Log.d(TAG, "Setting Recent MediaItem ${it.description.mediaId}")
-            mediaIdToChildren[UAMP_RECENT_ROOT] = mutableListOf(it)
+            // Add one media item as the "most recently listened media item"
+            if (mediaItem.id == recentId) {
+                mediaIdToChildren[UAMP_RECENT_ROOT] = mutableListOf(mediaItem)
+            }
         }
     }
 
@@ -154,10 +159,8 @@ const val UAMP_BROWSABLE_ROOT = "/"
 const val UAMP_EMPTY_ROOT = "@empty@"
 const val UAMP_RECOMMENDED_ROOT = "__RECOMMENDED__"
 const val UAMP_ALBUMS_ROOT = "__ALBUMS__"
-const val UAMP_RECENT_ROOT = "//"
+const val UAMP_RECENT_ROOT = "__RECENT__"
 
 const val MEDIA_SEARCH_SUPPORTED = "android.media.browse.SEARCH_SUPPORTED"
 
 const val RESOURCE_ROOT_URI = "android.resource://com.example.android.uamp.next/drawable/"
-
-private const val TAG = "BrowseTree"

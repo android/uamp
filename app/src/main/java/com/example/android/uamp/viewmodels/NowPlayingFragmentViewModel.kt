@@ -177,6 +177,16 @@ class NowPlayingFragmentViewModel(
                 NowPlayingMetadata.timestampToMSS(app, mediaMetadata.duration)
             )
             this.mediaMetadata.postValue(nowPlayingMetadata)
+
+            // Update most recent item in SharedPreferences
+            val appContext = app.applicationContext
+            val sharedPref = appContext.getSharedPreferences(
+                appContext.getString(R.string.most_recent_item),
+                Context.MODE_PRIVATE)
+            with (sharedPref.edit()) {
+                putString(appContext.getString(R.string.most_recent_key), mediaMetadata.id)
+                apply()
+            }
         }
 
         // Update the media button resource ID

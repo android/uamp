@@ -172,7 +172,8 @@ open class MusicService : MediaBrowserServiceCompat() {
             val playbackPreparer = UampPlaybackPreparer(
                 mediaSource,
                 exoPlayer,
-                dataSourceFactory
+                dataSourceFactory,
+                applicationContext
             )
 
             connector.setPlayer(exoPlayer)
@@ -243,16 +244,6 @@ open class MusicService : MediaBrowserServiceCompat() {
 
         return if (isKnownCaller) {
             // If recent flag is present, return root for recents tree.
-
-            if(browserRootHints == null) {
-                Log.d(TAG, "Root Hints empty")
-            } else {
-                Log.d(TAG, "Root Hints:")
-                for(key in browserRootHints.keySet()) {
-                    Log.d(TAG, key)
-                }
-            }
-
             browserRootHints?.let {
                 if(it.getBoolean(BrowserRoot.EXTRA_RECENT)) {
                     return BrowserRoot(UAMP_RECENT_ROOT, rootExtras)
@@ -283,18 +274,14 @@ open class MusicService : MediaBrowserServiceCompat() {
         parentMediaId: String,
         result: Result<List<MediaItem>>
     ) {
-        Log.d(TAG, "Received onLoadChildren for $parentMediaId")
-
         // If the media source is ready, the results will be set synchronously here.
         val resultsSent = mediaSource.whenReady { successfullyInitialized ->
             if (successfullyInitialized) {
-                Log.d(TAG, "Sending ${browseTree[parentMediaId]?.size} children for parent $parentMediaId")
                 val children = browseTree[parentMediaId]?.map { item ->
                     MediaItem(item.description, item.flag)
                 }
                 result.sendResult(children)
             } else {
-                Log.d(TAG, "onLoadChildren for $parentMediaId had error")
                 mediaSession.sendSessionEvent(NETWORK_FAILURE, null)
                 result.sendResult(null)
             }
