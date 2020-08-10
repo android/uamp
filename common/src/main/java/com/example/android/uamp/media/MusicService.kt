@@ -392,10 +392,10 @@ open class MusicService : MediaBrowserServiceCompat() {
                 currentPlayer.stop(/* reset= */true)
             } else if (playbackState != Player.STATE_IDLE && playbackState != Player.STATE_ENDED) {
                 preparePlaylist(
-                    currentPlaylistItems,
-                    currentPlaylistItems.get(previousPlayer.currentWindowIndex),
-                    previousPlayer.playWhenReady,
-                    previousPlayer.currentPosition
+                    metadataList = currentPlaylistItems,
+                    itemToPlay = currentPlaylistItems[previousPlayer.currentWindowIndex],
+                    playWhenReady = previousPlayer.playWhenReady,
+                    playbackStartPositionMs = previousPlayer.currentPosition
                 )
             }
         }
