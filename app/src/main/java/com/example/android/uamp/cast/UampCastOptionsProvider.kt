@@ -17,7 +17,7 @@
 package com.example.android.uamp.cast
 
 import android.content.Context
-import com.google.android.gms.cast.CastMediaControlIntent.DEFAULT_MEDIA_RECEIVER_APPLICATION_ID
+import com.google.android.exoplayer2.ext.cast.DefaultCastOptionsProvider.APP_ID_DEFAULT_RECEIVER_WITH_DRM
 import com.google.android.gms.cast.framework.CastOptions
 import com.google.android.gms.cast.framework.OptionsProvider
 import com.google.android.gms.cast.framework.SessionProvider
@@ -28,11 +28,8 @@ class UampCastOptionsProvider : OptionsProvider {
 
     override fun getCastOptions(context: Context?): CastOptions? {
         return CastOptions.Builder()
-            // Use the Default Media Receiver.
-            // See: https://developers.google.com/cast/docs/caf_receiver#default_media_receiver.
-            // If your content is DRM protected you can use the ExoPlayer default receiver app id
-            // which has a value of "A12D4273"
-            .setReceiverApplicationId(DEFAULT_MEDIA_RECEIVER_APPLICATION_ID)
+            // Use the Default Media Receiver with DRM support.
+            .setReceiverApplicationId(APP_ID_DEFAULT_RECEIVER_WITH_DRM)
             .setCastMediaOptions(
                 CastMediaOptions.Builder()
                     // We manage the media session and the notifications ourselves.
