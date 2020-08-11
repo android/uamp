@@ -21,15 +21,9 @@ import android.net.Uri
 import android.support.v4.media.MediaBrowserCompat.MediaItem
 import android.support.v4.media.MediaDescriptionCompat.STATUS_NOT_DOWNLOADED
 import android.support.v4.media.MediaMetadataCompat
-import com.bumptech.glide.Glide
-import com.bumptech.glide.RequestManager
-import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.bumptech.glide.request.RequestOptions
-import com.example.android.uamp.media.R
 import com.example.android.uamp.media.extensions.album
 import com.example.android.uamp.media.extensions.albumArtUri
 import com.example.android.uamp.media.extensions.artist
-import com.example.android.uamp.media.extensions.asAlbumArtContentUri
 import com.example.android.uamp.media.extensions.displayDescription
 import com.example.android.uamp.media.extensions.displayIconUri
 import com.example.android.uamp.media.extensions.displaySubtitle
@@ -58,14 +52,12 @@ import java.util.concurrent.TimeUnit
  * The definition of the JSON is specified in the docs of [JsonMusic] in this file,
  * which is the object representation of it.
  */
-class JsonSource(context: Context, private val source: Uri) : AbstractMusicSource() {
+class JsonSource(private val source: Uri) : AbstractMusicSource() {
 
     private var catalog: List<MediaMetadataCompat> = emptyList()
-    private val glide: RequestManager
 
     init {
         state = STATE_INITIALIZING
-        glide = Glide.with(context)
     }
 
     override fun iterator(): Iterator<MediaMetadataCompat> = catalog.iterator()
@@ -95,7 +87,7 @@ class JsonSource(context: Context, private val source: Uri) : AbstractMusicSourc
             // Get the base URI to fix up relative references later.
             val baseUri = catalogUri.toString().removeSuffix(catalogUri.lastPathSegment ?: "")
 
-            musicCat.music.map { song ->
+            val mediaMetadataCompats = musicCat.music.map { song ->
                 // The JSON may have paths that are relative to the source of the JSON
                 // itself. We need to fix them up here to turn them into absolute paths.
                 catalogUri.scheme?.let { scheme ->
@@ -107,24 +99,18 @@ class JsonSource(context: Context, private val source: Uri) : AbstractMusicSourc
                     }
                 }
 
-                // Block on downloading artwork.
-                val artFile = glide.applyDefaultRequestOptions(glideOptions)
-                    .downloadOnly()
-                    .load(song.image)
-                    .submit(NOTIFICATION_LARGE_ICON_SIZE, NOTIFICATION_LARGE_ICON_SIZE)
-                    .get()
-
-                // Expose file via Local URI
-                val artUri = artFile.asAlbumArtContentUri()
-
                 MediaMetadataCompat.Builder()
                     .from(song)
                     .apply {
-                        displayIconUri = artUri.toString() // Used by ExoPlayer and Notification
-                        albumArtUri = artUri.toString()
+                        displayIconUri = song.image // Used by ExoPlayer and Notification
+                        albumArtUri = song.image
                     }
                     .build()
             }.toList()
+            // Add description keys to be used by the ExoPlayer MediaSession extension when
+            // announcing metadata changes.
+            mediaMetadataCompats.forEach { it.description.extras?.putAll(it.bundle) }
+            mediaMetadataCompats
         }
     }
 
@@ -139,7 +125,7 @@ class JsonSource(context: Context, private val source: Uri) : AbstractMusicSourc
     private fun downloadJson(catalogUri: Uri): JsonCatalog {
         val catalogConn = URL(catalogUri.toString())
         val reader = BufferedReader(InputStreamReader(catalogConn.openStream()))
-        return Gson().fromJson<JsonCatalog>(reader, JsonCatalog::class.java)
+        return Gson().fromJson(reader, JsonCatalog::class.java)
     }
 }
 
@@ -231,9 +217,3 @@ class JsonMusic {
     var duration: Long = -1
     var site: String = ""
 }
-
-private const val NOTIFICATION_LARGE_ICON_SIZE = 144 // px
-
-private val glideOptions = RequestOptions()
-    .fallback(R.drawable.default_art)
-    .diskCacheStrategy(DiskCacheStrategy.RESOURCE)

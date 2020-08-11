@@ -20,11 +20,12 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
-import com.google.android.exoplayer2.ExoPlayer
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.request.RequestOptions
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import kotlinx.coroutines.CoroutineScope
@@ -42,11 +43,11 @@ const val NOW_PLAYING_NOTIFICATION_ID = 0xb339 // Arbitrary number used to ident
  */
 class UampNotificationManager(
     private val context: Context,
-    private val player: ExoPlayer,
     sessionToken: MediaSessionCompat.Token,
     notificationListener: PlayerNotificationManager.NotificationListener
 ) {
 
+    private var player: Player? = null
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
     private val notificationManager: PlayerNotificationManager
@@ -79,7 +80,7 @@ class UampNotificationManager(
         notificationManager.setPlayer(null)
     }
 
-    fun showNotification() {
+    fun showNotificationForPlayer(player: Player){
         notificationManager.setPlayer(player)
     }
 
@@ -122,16 +123,21 @@ class UampNotificationManager(
 
         private suspend fun resolveUriAsBitmap(uri: Uri): Bitmap? {
             return withContext(Dispatchers.IO) {
-                val parcelFileDescriptor =
-                    context.contentResolver.openFileDescriptor(uri, MODE_READ_ONLY)
-                        ?: return@withContext null
-                val fileDescriptor = parcelFileDescriptor.fileDescriptor
-                BitmapFactory.decodeFileDescriptor(fileDescriptor).apply {
-                    parcelFileDescriptor.close()
-                }
+                // Block on downloading artwork.
+                Glide.with(context).applyDefaultRequestOptions(glideOptions)
+                    .asBitmap()
+                    .load(uri)
+                    .submit(NOTIFICATION_LARGE_ICON_SIZE, NOTIFICATION_LARGE_ICON_SIZE)
+                    .get()
             }
         }
     }
 }
+
+private const val NOTIFICATION_LARGE_ICON_SIZE = 144 // px
+
+private val glideOptions = RequestOptions()
+    .fallback(R.drawable.default_art)
+    .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
 
 private const val MODE_READ_ONLY = "r"

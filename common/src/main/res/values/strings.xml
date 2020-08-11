@@ -37,6 +37,9 @@
         ]]>
     </string>
 
+    <!-- Cast menu item -->
+    <string name="media_route_menu_title">Cast</string>
+
     <!-- Browse Tree -->
     <string name="recommended_title">Recommended</string>
     <string name="albums_title">Albums</string>

@@ -18,6 +18,7 @@ package com.example.android.uamp
 
 import android.media.AudioManager
 import android.os.Bundle
+import android.view.Menu
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
@@ -26,12 +27,22 @@ import com.example.android.uamp.media.MusicService
 import com.example.android.uamp.utils.Event
 import com.example.android.uamp.utils.InjectorUtils
 import com.example.android.uamp.viewmodels.MainActivityViewModel
+import com.google.android.gms.cast.framework.CastButtonFactory
+import com.google.android.gms.cast.framework.CastContext
+import com.google.android.gms.dynamite.DynamiteModule
 
 class MainActivity : AppCompatActivity() {
+
     private lateinit var viewModel: MainActivityViewModel
+    private var castContext: CastContext? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Initialize the Cast context. This is required so that the media route button can be
+        // created in the AppBar
+        castContext = CastContext.getSharedInstance(this)
+
         setContentView(R.layout.activity_main)
 
         // Since UAMP is a music player, the volume controls should adjust the music volume while
@@ -78,6 +89,18 @@ class MainActivity : AppCompatActivity() {
                 navigateToMediaItem(mediaId)
             }
         })
+    }
+
+    @Override
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        super.onCreateOptionsMenu(menu)
+        menuInflater.inflate(R.menu.main_activity_menu, menu)
+
+        /**
+         * Set up a MediaRouteButton to allow the user to control the current media playback route
+         */
+        CastButtonFactory.setUpMediaRouteButton(this, menu, R.id.media_route_menu_item)
+        return true
     }
 
     private fun navigateToMediaItem(mediaId: String) {

@@ -24,6 +24,11 @@ import android.support.v4.media.MediaMetadataCompat
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DataSource
+import com.google.android.exoplayer2.util.MimeTypes
+import com.google.android.gms.cast.MediaInfo
+import com.google.android.gms.cast.MediaMetadata
+import com.google.android.gms.cast.MediaQueueItem
+import com.google.android.gms.common.images.WebImage
 
 /**
  * Useful extensions for [MediaMetadataCompat].
@@ -255,26 +260,12 @@ inline var MediaMetadataCompat.Builder.flag: Int
     }
 
 /**
- * Custom property for retrieving a [MediaDescriptionCompat] which also includes
- * all of the keys from the [MediaMetadataCompat] object in its extras.
- *
- * These keys are used by the ExoPlayer MediaSession extension when announcing metadata changes.
- */
-inline val MediaMetadataCompat.fullDescription
-    get() =
-        description.also {
-            it.extras?.putAll(bundle)
-        }
-
-/**
  * Extension method for building an [ExtractorMediaSource] from a [MediaMetadataCompat] object.
  *
  * For convenience, place the [MediaDescriptionCompat] into the tag so it can be retrieved later.
  */
 fun MediaMetadataCompat.toMediaSource(dataSourceFactory: DataSource.Factory) =
-    ProgressiveMediaSource.Factory(dataSourceFactory)
-        .setTag(fullDescription)
-        .createMediaSource(mediaUri)
+    ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaUri)
 
 /**
  * Extension method for building a [ConcatenatingMediaSource] given a [List]
@@ -291,8 +282,36 @@ fun List<MediaMetadataCompat>.toMediaSource(
     return concatenatingMediaSource
 }
 
+fun MediaMetadataCompat.toMediaQueueItem(): MediaQueueItem {
+    val metadata: MediaMetadata = toCastMediaMetadata()
+    val mediaInfo = MediaInfo.Builder(this.mediaUri.toString())
+            .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
+            .setContentType(MimeTypes.AUDIO_MPEG)
+            .setStreamDuration(this.duration)
+            .setMetadata(metadata)
+            .build()
+    return MediaQueueItem.Builder(mediaInfo).build()
+}
+
+private fun MediaMetadataCompat.toCastMediaMetadata(): MediaMetadata {
+    val mediaMetadata = MediaMetadata(MediaMetadata.MEDIA_TYPE_MUSIC_TRACK)
+    mediaMetadata.putString(MediaMetadata.KEY_TITLE, this.title)
+    mediaMetadata.putString(MediaMetadata.KEY_ARTIST, this.artist)
+    mediaMetadata.putString(MediaMetadata.KEY_ALBUM_TITLE, this.album)
+    mediaMetadata.addImage(WebImage(this.albumArtUri))
+    mediaMetadata.addImage(WebImage(this.displayIconUri))
+    mediaMetadata.putString(MediaMetadata.KEY_ALBUM_ARTIST, this.albumArtist)
+    mediaMetadata.putString(MediaMetadata.KEY_COMPOSER, this.composer)
+    this.date?.let { date -> mediaMetadata.putString(MediaMetadata.KEY_RELEASE_DATE, date) }
+    mediaMetadata.putInt(MediaMetadata.KEY_TRACK_NUMBER, this.trackNumber.toInt())
+    mediaMetadata.putInt(MediaMetadata.KEY_DISC_NUMBER, this.discNumber.toInt())
+    return mediaMetadata
+}
+
+
 /**
  * Custom property that holds whether an item is [MediaItem.FLAG_BROWSABLE] or
  * [MediaItem.FLAG_PLAYABLE].
  */
 const val METADATA_KEY_UAMP_FLAGS = "com.example.android.uamp.media.METADATA_KEY_UAMP_FLAGS"
+
