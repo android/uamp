@@ -18,7 +18,9 @@ package com.example.android.uamp.media
 
 import android.app.Notification
 import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import android.os.ResultReceiver
@@ -32,6 +34,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.media.MediaBrowserServiceCompat
+import androidx.media.MediaBrowserServiceCompat.BrowserRoot.EXTRA_RECENT
 import com.example.android.uamp.media.extensions.album
 import com.example.android.uamp.media.extensions.flag
 import com.example.android.uamp.media.extensions.id
@@ -45,6 +48,7 @@ import com.example.android.uamp.media.library.MEDIA_SEARCH_SUPPORTED
 import com.example.android.uamp.media.library.MusicSource
 import com.example.android.uamp.media.library.UAMP_BROWSABLE_ROOT
 import com.example.android.uamp.media.library.UAMP_EMPTY_ROOT
+import com.example.android.uamp.media.library.UAMP_RECENT_ROOT
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.ControlDispatcher
 import com.google.android.exoplayer2.ExoPlaybackException
@@ -52,8 +56,8 @@ import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.audio.AudioAttributes
-import com.google.android.exoplayer2.ext.cast.SessionAvailabilityListener
 import com.google.android.exoplayer2.ext.cast.CastPlayer
+import com.google.android.exoplayer2.ext.cast.SessionAvailabilityListener
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.ext.mediasession.TimelineQueueNavigator
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
@@ -151,6 +155,12 @@ open class MusicService : MediaBrowserServiceCompat() {
         }
     }
 
+    /**
+     * Store any data which must persist between restarts, such as the most recently played media
+     * item, in persistent storage.
+     */
+    private lateinit var persistentStorage: SharedPreferences
+
     @ExperimentalCoroutinesApi
     override fun onCreate() {
         super.onCreate()
@@ -210,6 +220,11 @@ open class MusicService : MediaBrowserServiceCompat() {
         notificationManager.showNotificationForPlayer(currentPlayer)
 
         packageValidator = PackageValidator(this, R.xml.allowed_media_browser_callers)
+
+        persistentStorage = applicationContext.getSharedPreferences(
+            PREFERENCES_NAME,
+            Context.MODE_PRIVATE
+        )
     }
 
     /**
@@ -271,8 +286,18 @@ open class MusicService : MediaBrowserServiceCompat() {
         }
 
         return if (isKnownCaller) {
-            // The caller is allowed to browse, so return the root.
-            BrowserRoot(UAMP_BROWSABLE_ROOT, rootExtras)
+
+            // The caller is allowed to browse, so by default return the root.
+            var browserRootPath = UAMP_BROWSABLE_ROOT
+
+            /**
+             * Treat the EXTRA_RECENT flag as a special case and return the root of a media tree
+             * which contains a single playable item (which will be obtained through a subsequent
+             * call to onLoadChildren from the caller).
+             */
+            val isRecentRequest = rootHints?.getBoolean(EXTRA_RECENT) ?: false
+            if (isRecentRequest) browserRootPath = UAMP_RECENT_ROOT
+            BrowserRoot(browserRootPath, rootExtras)
         } else {
             /**
              * Unknown caller. There are two main ways to handle this:
@@ -403,6 +428,14 @@ open class MusicService : MediaBrowserServiceCompat() {
         previousPlayer?.stop(/* reset= */true)
     }
 
+    private fun saveRecentMediaItemId(mediaId: String?) {
+        persistentStorage.edit().putString(PREFERENCES_RECENT_MEDIA_ID_KEY, mediaId).apply()
+    }
+
+    private fun loadRecentMediaItemId(): String? {
+        return persistentStorage.getString(PREFERENCES_RECENT_MEDIA_ID_KEY, null)
+    }
+
     private inner class UampCastSessionAvailabilityListener : SessionAvailabilityListener {
 
         /**
@@ -442,7 +475,12 @@ open class MusicService : MediaBrowserServiceCompat() {
                     PlaybackStateCompat.ACTION_PREPARE_FROM_SEARCH or
                     PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH
 
-        override fun onPrepare(playWhenReady: Boolean) = Unit
+        override fun onPrepare(playWhenReady: Boolean) {
+            val recentMediaId = loadRecentMediaItemId()
+            if (recentMediaId != null) {
+                onPrepareFromMediaId(recentMediaId, playWhenReady, null)
+            }
+        }
 
         override fun onPrepareFromMediaId(
             mediaId: String,
@@ -548,11 +586,19 @@ open class MusicService : MediaBrowserServiceCompat() {
                 Player.STATE_BUFFERING,
                 Player.STATE_READY -> {
                     notificationManager.showNotificationForPlayer(currentPlayer)
-                    // If playback is paused we remove the foreground state which allows the
-                    // notification to be dismissed. An alternative would be to provide a "close"
-                    // button in the notification which stops playback and clears the notification.
                     if (playbackState == Player.STATE_READY) {
-                        if (!playWhenReady) stopForeground(false)
+                        if (playWhenReady) {
+                            // If player is playing save the current media item in persistent
+                            // storage so that playback can be resumed between device reboots.
+                            // Search for "media resumption" for mor information.
+                            saveRecentMediaItemId(currentPlaylistItems[currentPlayer.currentWindowIndex].description.mediaId)
+                        } else {
+                            // If playback is paused we remove the foreground state which allows the
+                            // notification to be dismissed. An alternative would be to provide a
+                            // "close" button in the notification which stops playback and clears
+                            // the notification.
+                            stopForeground(false)
+                        }
                     }
                 }
                 else -> {
@@ -610,4 +656,7 @@ private const val CONTENT_STYLE_LIST = 1
 private const val CONTENT_STYLE_GRID = 2
 
 private const val UAMP_USER_AGENT = "uamp.next"
+private const val PREFERENCES_NAME = "uamp"
+private const val PREFERENCES_RECENT_MEDIA_ID_KEY = "recent_media_id"
+
 private const val TAG = "MusicService"
