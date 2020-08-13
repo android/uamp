@@ -54,7 +54,11 @@ import com.example.android.uamp.media.extensions.urlEncoded
  *  `browseTree["Album_A"]` would return "Song_1" and "Song_2". Since those are leaf nodes,
  *  requesting `browseTree["Song_1"]` would return null (there aren't any children of it).
  */
-class BrowseTree(context: Context, musicSource: MusicSource) {
+class BrowseTree(
+    val context: Context,
+    musicSource: MusicSource,
+    val recentMediaId: String? = null
+) {
     private val mediaIdToChildren = mutableMapOf<String, MutableList<MediaMetadataCompat>>()
 
     /**
@@ -106,6 +110,11 @@ class BrowseTree(context: Context, musicSource: MusicSource) {
                 recommendedChildren += mediaItem
                 mediaIdToChildren[UAMP_RECOMMENDED_ROOT] = recommendedChildren
             }
+
+            // If this was recently played, add it to the recent root.
+            if (mediaItem.id == recentMediaId) {
+                mediaIdToChildren[UAMP_RECENT_ROOT] = mutableListOf(mediaItem)
+            }
         }
     }
 
@@ -147,6 +156,7 @@ const val UAMP_BROWSABLE_ROOT = "/"
 const val UAMP_EMPTY_ROOT = "@empty@"
 const val UAMP_RECOMMENDED_ROOT = "__RECOMMENDED__"
 const val UAMP_ALBUMS_ROOT = "__ALBUMS__"
+const val UAMP_RECENT_ROOT = "__RECENT__"
 
 const val MEDIA_SEARCH_SUPPORTED = "android.media.browse.SEARCH_SUPPORTED"
 
