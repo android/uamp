@@ -92,7 +92,9 @@
             </intent-filter>
         </service>
 
-        <receiver android:name="androidx.mediarouter.media.MediaTransferReceiver" />
+        <receiver
+            android:exported="true"
+            android:name="androidx.mediarouter.media.MediaTransferReceiver" />
 
     </application>
 
