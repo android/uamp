@@ -134,10 +134,10 @@ class UampNotificationManager(
     }
 }
 
-private const val NOTIFICATION_LARGE_ICON_SIZE = 144 // px
+const val NOTIFICATION_LARGE_ICON_SIZE = 144 // px
 
 private val glideOptions = RequestOptions()
     .fallback(R.drawable.default_art)
-    .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+    .diskCacheStrategy(DiskCacheStrategy.DATA)
 
 private const val MODE_READ_ONLY = "r"

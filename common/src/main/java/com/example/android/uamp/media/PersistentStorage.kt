@@ -22,12 +22,15 @@ import android.net.Uri
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
 import android.support.v4.media.MediaDescriptionCompat
+import com.bumptech.glide.Glide
+import com.example.android.uamp.media.extensions.asAlbumArtContentUri
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class PersistentStorage private constructor(val context: Context) {
 
     /**
-     * Store any data which must persist between restarts, such as the most recently played song
-     * , in shared preferences.
+     * Store any data which must persist between restarts, such as the most recently played song.
      */
     private var preferences: SharedPreferences = context.getSharedPreferences(
         PREFERENCES_NAME,
@@ -45,13 +48,26 @@ class PersistentStorage private constructor(val context: Context) {
             }
     }
 
-    fun saveRecentSong(description: MediaDescriptionCompat) {
-        preferences.edit()
-            .putString(RECENT_SONG_MEDIA_ID_KEY, description.mediaId)
-            .putString(RECENT_SONG_TITLE_KEY, description.title.toString())
-            .putString(RECENT_SONG_SUBTITLE_KEY, description.subtitle.toString())
-            .putString(RECENT_SONG_ICON_URI_KEY, description.iconUri.toString())
-            .apply()
+    suspend fun saveRecentSong(description: MediaDescriptionCompat) {
+        withContext(Dispatchers.IO) {
+
+            /**
+             * After booting, Android will attempt to build static media controls for the most
+             * recently played song. Artwork for these media controls should not be loaded
+             * from the network as it may be too slow or unavailable immediately after boot. Instead
+             * we convert the iconUri to point to the Glide on-disk cache.
+             */
+            val localIconUri = Glide.with(context).asFile().load(description.iconUri)
+                .submit(NOTIFICATION_LARGE_ICON_SIZE, NOTIFICATION_LARGE_ICON_SIZE).get()
+                .asAlbumArtContentUri()
+
+            preferences.edit()
+                .putString(RECENT_SONG_MEDIA_ID_KEY, description.mediaId)
+                .putString(RECENT_SONG_TITLE_KEY, description.title.toString())
+                .putString(RECENT_SONG_SUBTITLE_KEY, description.subtitle.toString())
+                .putString(RECENT_SONG_ICON_URI_KEY, localIconUri.toString())
+                .apply()
+        }
     }
 
     fun loadRecentSong(): MediaBrowserCompat.MediaItem? {

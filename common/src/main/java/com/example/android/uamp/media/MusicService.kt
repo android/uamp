@@ -312,9 +312,7 @@ open class MusicService : MediaBrowserServiceCompat() {
          * If the caller requests the recent root, return the most recently played song.
          */
         if (parentMediaId == UAMP_RECENT_ROOT) {
-            val recentSong = storage.loadRecentSong()
-            val recentSongList = if (recentSong != null) listOf(recentSong) else null
-            result.sendResult(recentSongList)
+            result.sendResult(storage.loadRecentSong()?.let { song -> listOf(song) })
         } else {
             // If the media source is ready, the results will be set synchronously here.
             val resultsSent = mediaSource.whenReady { successfullyInitialized ->
@@ -578,8 +576,9 @@ open class MusicService : MediaBrowserServiceCompat() {
                             // If playing, save the current media item in persistent
                             // storage so that playback can be resumed between device reboots.
                             // Search for "media resumption" for more information.
-                            storage.saveRecentSong(currentPlaylistItems[currentPlayer.currentWindowIndex].description)
-                            //storage.saveRecentMediaItemId(currentPlaylistItems[currentPlayer.currentWindowIndex].description.mediaId)
+                            serviceScope.launch{
+                                storage.saveRecentSong(currentPlaylistItems[currentPlayer.currentWindowIndex].description)
+                            }
                         } else {
                             // If playback is paused we remove the foreground state which allows the
                             // notification to be dismissed. An alternative would be to provide a
