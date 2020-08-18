@@ -18,9 +18,7 @@ package com.example.android.uamp.media
 
 import android.app.Notification
 import android.app.PendingIntent
-import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import android.os.ResultReceiver
@@ -104,6 +102,8 @@ open class MusicService : MediaBrowserServiceCompat() {
     protected lateinit var mediaSessionConnector: MediaSessionConnector
     private var currentPlaylistItems: List<MediaMetadataCompat> = emptyList()
 
+    private lateinit var storage: PersistentStorage
+
     /**
      * This must be `by lazy` because the source won't initially be ready.
      * See [MusicService.onLoadChildren] to see where it's accessed (and first
@@ -154,12 +154,6 @@ open class MusicService : MediaBrowserServiceCompat() {
             addListener(playerListener)
         }
     }
-
-    /**
-     * Store any data which must persist between restarts, such as the most recently played media
-     * item, in persistent storage.
-     */
-    private lateinit var persistentStorage: SharedPreferences
 
     @ExperimentalCoroutinesApi
     override fun onCreate() {
@@ -221,10 +215,7 @@ open class MusicService : MediaBrowserServiceCompat() {
 
         packageValidator = PackageValidator(this, R.xml.allowed_media_browser_callers)
 
-        persistentStorage = applicationContext.getSharedPreferences(
-            PREFERENCES_NAME,
-            Context.MODE_PRIVATE
-        )
+        storage = PersistentStorage.getInstance(applicationContext)
     }
 
     /**
@@ -286,17 +277,12 @@ open class MusicService : MediaBrowserServiceCompat() {
         }
 
         return if (isKnownCaller) {
-
-            // The caller is allowed to browse, so by default return the root.
-            var browserRootPath = UAMP_BROWSABLE_ROOT
-
             /**
-             * Treat the EXTRA_RECENT flag as a special case and return the root of a media tree
-             * which contains a single playable item (which will be obtained through a subsequent
-             * call to onLoadChildren from the caller).
+             * By default return the browsable root. Treat the EXTRA_RECENT flag as a special case
+             * and return the recent root instead.
              */
             val isRecentRequest = rootHints?.getBoolean(EXTRA_RECENT) ?: false
-            if (isRecentRequest) browserRootPath = UAMP_RECENT_ROOT
+            val browserRootPath = if (isRecentRequest) UAMP_RECENT_ROOT else UAMP_BROWSABLE_ROOT
             BrowserRoot(browserRootPath, rootExtras)
         } else {
             /**
@@ -322,27 +308,36 @@ open class MusicService : MediaBrowserServiceCompat() {
         result: Result<List<MediaItem>>
     ) {
 
-        // If the media source is ready, the results will be set synchronously here.
-        val resultsSent = mediaSource.whenReady { successfullyInitialized ->
-            if (successfullyInitialized) {
-                val children = browseTree[parentMediaId]?.map { item ->
-                    MediaItem(item.description, item.flag)
+        /**
+         * If the caller requests the recent root, return the most recently played song.
+         */
+        if (parentMediaId == UAMP_RECENT_ROOT) {
+            val recentSong = storage.loadRecentSong()
+            val recentSongList = if (recentSong != null) listOf(recentSong) else null
+            result.sendResult(recentSongList)
+        } else {
+            // If the media source is ready, the results will be set synchronously here.
+            val resultsSent = mediaSource.whenReady { successfullyInitialized ->
+                if (successfullyInitialized) {
+                    val children = browseTree[parentMediaId]?.map { item ->
+                        MediaItem(item.description, item.flag)
+                    }
+                    result.sendResult(children)
+                } else {
+                    mediaSession.sendSessionEvent(NETWORK_FAILURE, null)
+                    result.sendResult(null)
                 }
-                result.sendResult(children)
-            } else {
-                mediaSession.sendSessionEvent(NETWORK_FAILURE, null)
-                result.sendResult(null)
             }
-        }
 
-        // If the results are not ready, the service must "detach" the results before
-        // the method returns. After the source is ready, the lambda above will run,
-        // and the caller will be notified that the results are ready.
-        //
-        // See [MediaItemFragmentViewModel.subscriptionCallback] for how this is passed to the
-        // UI/displayed in the [RecyclerView].
-        if (!resultsSent) {
-            result.detach()
+            // If the results are not ready, the service must "detach" the results before
+            // the method returns. After the source is ready, the lambda above will run,
+            // and the caller will be notified that the results are ready.
+            //
+            // See [MediaItemFragmentViewModel.subscriptionCallback] for how this is passed to the
+            // UI/displayed in the [RecyclerView].
+            if (!resultsSent) {
+                result.detach()
+            }
         }
     }
 
@@ -428,14 +423,6 @@ open class MusicService : MediaBrowserServiceCompat() {
         previousPlayer?.stop(/* reset= */true)
     }
 
-    private fun saveRecentMediaItemId(mediaId: String?) {
-        persistentStorage.edit().putString(PREFERENCES_RECENT_MEDIA_ID_KEY, mediaId).apply()
-    }
-
-    private fun loadRecentMediaItemId(): String? {
-        return persistentStorage.getString(PREFERENCES_RECENT_MEDIA_ID_KEY, null)
-    }
-
     private inner class UampCastSessionAvailabilityListener : SessionAvailabilityListener {
 
         /**
@@ -476,9 +463,9 @@ open class MusicService : MediaBrowserServiceCompat() {
                     PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH
 
         override fun onPrepare(playWhenReady: Boolean) {
-            val recentMediaId = loadRecentMediaItemId()
-            if (recentMediaId != null) {
-                onPrepareFromMediaId(recentMediaId, playWhenReady, null)
+            val recentSong = storage.loadRecentSong()
+            if (recentSong != null) {
+                onPrepareFromMediaId(recentSong.mediaId!!, playWhenReady, null)
             }
         }
 
@@ -588,10 +575,11 @@ open class MusicService : MediaBrowserServiceCompat() {
                     notificationManager.showNotificationForPlayer(currentPlayer)
                     if (playbackState == Player.STATE_READY) {
                         if (playWhenReady) {
-                            // If player is playing save the current media item in persistent
+                            // If playing, save the current media item in persistent
                             // storage so that playback can be resumed between device reboots.
-                            // Search for "media resumption" for mor information.
-                            saveRecentMediaItemId(currentPlaylistItems[currentPlayer.currentWindowIndex].description.mediaId)
+                            // Search for "media resumption" for more information.
+                            storage.saveRecentSong(currentPlaylistItems[currentPlayer.currentWindowIndex].description)
+                            //storage.saveRecentMediaItemId(currentPlaylistItems[currentPlayer.currentWindowIndex].description.mediaId)
                         } else {
                             // If playback is paused we remove the foreground state which allows the
                             // notification to be dismissed. An alternative would be to provide a
@@ -656,7 +644,5 @@ private const val CONTENT_STYLE_LIST = 1
 private const val CONTENT_STYLE_GRID = 2
 
 private const val UAMP_USER_AGENT = "uamp.next"
-private const val PREFERENCES_NAME = "uamp"
-private const val PREFERENCES_RECENT_MEDIA_ID_KEY = "recent_media_id"
 
 private const val TAG = "MusicService"

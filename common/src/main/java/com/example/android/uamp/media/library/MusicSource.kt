@@ -34,7 +34,7 @@ import com.example.android.uamp.media.extensions.title
  * Interface used by [MusicService] for looking up [MediaMetadataCompat] objects.
  *
  * Because Kotlin provides methods such as [Iterable.find] and [Iterable.filter],
- * this is a convient interface to have on sources.
+ * this is a convenient interface to have on sources.
  */
 interface MusicSource : Iterable<MediaMetadataCompat> {
 
