@@ -50,6 +50,9 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
+      
+        <meta-data android:name="com.android.automotive"
+            android:resource="@xml/automotive_app_desc"/>
 
         <activity
             android:name=".SignInActivity"
