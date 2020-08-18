@@ -224,6 +224,7 @@ open class MusicService : MediaBrowserServiceCompat() {
      * playback to continue and allow users to stop it with the notification.
      */
     override fun onTaskRemoved(rootIntent: Intent) {
+        saveRecentSongToStorage()
         super.onTaskRemoved(rootIntent)
 
         /**
@@ -421,6 +422,21 @@ open class MusicService : MediaBrowserServiceCompat() {
         previousPlayer?.stop(/* reset= */true)
     }
 
+    private fun saveRecentSongToStorage() {
+
+        // Obtain the current song details *before* saving them on a separate thread, otherwise
+        // the current player may have been unloaded by the time the save routine runs.
+        val description = currentPlaylistItems[currentPlayer.currentWindowIndex].description
+        val position = currentPlayer.currentPosition
+
+        serviceScope.launch {
+            storage.saveRecentSong(
+                description,
+                position
+            )
+        }
+    }
+
     private inner class UampCastSessionAvailabilityListener : SessionAvailabilityListener {
 
         /**
@@ -463,7 +479,11 @@ open class MusicService : MediaBrowserServiceCompat() {
         override fun onPrepare(playWhenReady: Boolean) {
             val recentSong = storage.loadRecentSong()
             if (recentSong != null) {
-                onPrepareFromMediaId(recentSong.mediaId!!, playWhenReady, null)
+                onPrepareFromMediaId(
+                    recentSong.mediaId!!,
+                    playWhenReady,
+                    recentSong.description.extras
+                )
             }
         }
 
@@ -480,11 +500,16 @@ open class MusicService : MediaBrowserServiceCompat() {
                     Log.w(TAG, "Content not found: MediaID=$mediaId")
                     // TODO: Notify caller of the error.
                 } else {
+
+                    val playbackStartPositionMs =
+                        extras?.getLong(MEDIA_DESCRIPTION_EXTRAS_START_PLAYBACK_POSITION_MS, C.TIME_UNSET)
+                            ?: C.TIME_UNSET
+
                     preparePlaylist(
                         buildPlaylist(itemToPlay),
                         itemToPlay,
                         playWhenReady,
-                        playbackStartPositionMs = C.TIME_UNSET
+                        playbackStartPositionMs
                     )
                 }
             }
@@ -572,14 +597,13 @@ open class MusicService : MediaBrowserServiceCompat() {
                 Player.STATE_READY -> {
                     notificationManager.showNotificationForPlayer(currentPlayer)
                     if (playbackState == Player.STATE_READY) {
-                        if (playWhenReady) {
-                            // If playing, save the current media item in persistent
-                            // storage so that playback can be resumed between device reboots.
-                            // Search for "media resumption" for more information.
-                            serviceScope.launch{
-                                storage.saveRecentSong(currentPlaylistItems[currentPlayer.currentWindowIndex].description)
-                            }
-                        } else {
+
+                        // When playing/paused save the current media item in persistent
+                        // storage so that playback can be resumed between device reboots.
+                        // Search for "media resumption" for more information.
+                        saveRecentSongToStorage()
+
+                        if (!playWhenReady) {
                             // If playback is paused we remove the foreground state which allows the
                             // notification to be dismissed. An alternative would be to provide a
                             // "close" button in the notification which stops playback and clears
@@ -643,5 +667,7 @@ private const val CONTENT_STYLE_LIST = 1
 private const val CONTENT_STYLE_GRID = 2
 
 private const val UAMP_USER_AGENT = "uamp.next"
+
+val MEDIA_DESCRIPTION_EXTRAS_START_PLAYBACK_POSITION_MS = "playback_start_position_ms"
 
 private const val TAG = "MusicService"
