@@ -21,28 +21,29 @@ buildscript {
         // App SDK versions.
         compileSdkVersion = 28
         minSdkVersion = 19
-        targetSdkVersion = 28
+        targetSdkVersion = 30
 
         // Dependency versions.
-        androidx_app_compat_version = '1.1.0-alpha05'
+        androidx_app_compat_version = '1.2.0'
         androidx_car_version = '1.0.0-alpha7'
-        androidx_core_ktx_version = '1.0.2'
+        androidx_core_ktx_version = '1.3.1'
         androidx_media_version = '1.0.1'
-        androidx_preference_version = '1.0.0'
-        androidx_test_runner_version = '1.1.1'
-        arch_lifecycle_version = '2.0.0'
-        constraint_layout_version = '1.1.3'
-        espresso_version = '3.1.1'
+        androidx_preference_version = '1.1.1'
+        androidx_test_runner_version = '1.3.0'
+        arch_lifecycle_version = '2.2.0'
+        constraint_layout_version = '2.0.1'
+        espresso_version = '3.3.0'
         exoplayer_version = '2.11.5'
         glide_version = '4.11.0'
         gms_strict_version_matcher_version = '1.0.3'
         gradle_version = '3.1.4'
         gson_version = '2.8.5'
-        junit_version = '4.12'
+        junit_version = '4.13'
         kotlin_version = '1.3.72'
         kotlin_coroutines_version = '1.1.0'
-        play_services_auth_version = '17.0.0'
-        recycler_view_version = '1.0.0'
+        multidex_version = '1.0.3'
+        play_services_auth_version = '18.1.0'
+        recycler_view_version = '1.1.0'
         robolectric_version = '4.2'
         test_runner_version = '1.1.0'
     }
@@ -52,7 +53,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.0.0'
+        classpath 'com.android.tools.build:gradle:4.0.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "com.google.android.gms:strict-version-matcher-plugin:$gms_strict_version_matcher_version"
 
