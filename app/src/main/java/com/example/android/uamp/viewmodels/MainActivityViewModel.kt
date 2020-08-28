@@ -78,8 +78,10 @@ class MainActivityViewModel(
      */
     fun mediaItemClicked(clickedItem: MediaItemData) {
         if (clickedItem.browsable) {
+            Log.d("nicole", "Browse to: $clickedItem")
             browseToItem(clickedItem)
         } else {
+            Log.d("nicole", "Play: $clickedItem")
             playMedia(clickedItem, pauseAllowed = false)
             showFragment(NowPlayingFragment.newInstance())
         }
@@ -103,6 +105,7 @@ class MainActivityViewModel(
      * observer in [MainActivity].
      */
     private fun browseToItem(mediaItem: MediaItemData) {
+        Log.d("nicole", "posting event to browse to $mediaItem")
         _navigateToMediaItem.value = Event(mediaItem.mediaId)
     }
 

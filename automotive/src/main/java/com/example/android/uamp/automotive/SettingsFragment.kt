@@ -20,7 +20,7 @@ import android.app.Application
 import android.content.ComponentName
 import android.os.Bundle
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.ViewModelProvider
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.example.android.uamp.common.MusicServiceConnection
@@ -34,8 +34,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.preferences, rootKey)
 
-        viewModel = ViewModelProviders
-            .of(this)
+        viewModel = ViewModelProvider(this)
             .get(SettingsFragmentViewModel::class.java)
     }
 

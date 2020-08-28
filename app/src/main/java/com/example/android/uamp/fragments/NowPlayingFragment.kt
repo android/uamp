@@ -22,8 +22,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
 import com.bumptech.glide.Glide
 import com.example.android.uamp.R
 import com.example.android.uamp.databinding.FragmentNowplayingBinding
@@ -36,8 +37,12 @@ import com.example.android.uamp.viewmodels.NowPlayingFragmentViewModel.NowPlayin
  * A fragment representing the current media item being played.
  */
 class NowPlayingFragment : Fragment() {
-    private lateinit var mainActivityViewModel: MainActivityViewModel
-    private lateinit var nowPlayingViewModel: NowPlayingFragmentViewModel
+    private val mainActivityViewModel by activityViewModels<MainActivityViewModel> {
+        InjectorUtils.provideMainActivityViewModel(requireContext())
+    }
+    private val nowPlayingViewModel by viewModels<NowPlayingFragmentViewModel> {
+        InjectorUtils.provideNowPlayingFragmentViewModel(requireContext())
+    }
 
     lateinit var binding: FragmentNowplayingBinding
 
@@ -59,22 +64,14 @@ class NowPlayingFragment : Fragment() {
         // Always true, but lets lint know that as well.
         val context = activity ?: return
 
-        // Inject our activity and view models into this fragment
-        mainActivityViewModel = ViewModelProviders
-            .of(context, InjectorUtils.provideMainActivityViewModel(context))
-            .get(MainActivityViewModel::class.java)
-        nowPlayingViewModel = ViewModelProviders
-            .of(context, InjectorUtils.provideNowPlayingFragmentViewModel(context))
-            .get(NowPlayingFragmentViewModel::class.java)
-
         // Attach observers to the LiveData coming from this ViewModel
-        nowPlayingViewModel.mediaMetadata.observe(this,
+        nowPlayingViewModel.mediaMetadata.observe(viewLifecycleOwner,
             Observer { mediaItem -> updateUI(view, mediaItem) })
-        nowPlayingViewModel.mediaButtonRes.observe(this,
+        nowPlayingViewModel.mediaButtonRes.observe(viewLifecycleOwner,
             Observer { res ->
                 binding.mediaButton.setImageResource(res)
             })
-        nowPlayingViewModel.mediaPosition.observe(this,
+        nowPlayingViewModel.mediaPosition.observe(viewLifecycleOwner,
             Observer { pos ->
                 binding.position.text = NowPlayingMetadata.timestampToMSS(context, pos)
             })
