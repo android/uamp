@@ -56,9 +56,7 @@ class MainActivity : AppCompatActivity() {
          * fragment swap.
          */
         viewModel.navigateToFragment.observe(this, Observer {
-            Log.d("nicole", "navigateToFragment: $it")
             it?.getContentIfNotHandled()?.let { fragmentRequest ->
-                Log.d("nicole", "handling: $fragmentRequest")
                 val transaction = supportFragmentManager.beginTransaction()
                 transaction.replace(
                     R.id.fragmentContainer, fragmentRequest.fragment, fragmentRequest.tag
@@ -85,9 +83,7 @@ class MainActivity : AppCompatActivity() {
          * the user has requested to browse to a different [MediaItemData].
          */
         viewModel.navigateToMediaItem.observe(this, Observer {
-            Log.d("nicole", "navigateToMediaItem: $it")
             it?.getContentIfNotHandled()?.let { mediaId ->
-                Log.d("nicole", "handle navigateToMediaItem: $it")
                 navigateToMediaItem(mediaId)
             }
         })
