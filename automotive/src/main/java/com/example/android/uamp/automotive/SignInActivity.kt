@@ -20,7 +20,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.ViewModelProvider
 
 class SignInActivity : AppCompatActivity() {
 
@@ -30,13 +30,12 @@ class SignInActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_sign_in)
 
-        viewModel = ViewModelProviders
-            .of(this)
+        viewModel = ViewModelProvider(this)
             .get(SignInActivityViewModel::class.java)
 
         viewModel.loggedIn.observe(this, Observer { loggedIn ->
             if (loggedIn == true) {
-                Toast.makeText(this, "Sign in successful", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.sign_in_success_message, Toast.LENGTH_SHORT).show()
                 finish()
             }
         })

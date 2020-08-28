@@ -24,9 +24,10 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.widget.Toolbar
+import androidx.core.content.ContextCompat
 import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.ViewModelProvider
 
 /**
  * Fragment that is used to facilitate PIN code sign-in. This fragment displayed a configurable
@@ -66,7 +67,7 @@ class PinCodeSignInFragment : Fragment() {
             requireActivity().supportFragmentManager.popBackStack()
         }
 
-        appIcon.setImageDrawable(context.getDrawable(R.drawable.aural_logo))
+        appIcon.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.aural_logo))
         primaryTextView.text = getString(R.string.pin_sign_in_primary_text)
         secondaryTextView.text = getString(R.string.pin_sign_in_secondary_text)
 
@@ -77,7 +78,7 @@ class PinCodeSignInFragment : Fragment() {
         )
         footerTextView.movementMethod = LinkMovementMethod.getInstance()
 
-        val pin = ViewModelProviders.of(requireActivity())
+        val pin = ViewModelProvider(requireActivity())
             .get(SignInActivityViewModel::class.java)
             .generatePin()
         setPin(pin)

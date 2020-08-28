@@ -65,6 +65,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
     implementation "androidx.appcompat:appcompat:$androidx_app_compat_version"
+    implementation "androidx.fragment:fragment-ktx:$fragment_version"
     implementation "androidx.recyclerview:recyclerview:$recycler_view_version"
 
     implementation "androidx.constraintlayout:constraintlayout:$constraint_layout_version"
