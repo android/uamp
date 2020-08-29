@@ -18,10 +18,11 @@ package com.example.android.uamp
 
 import android.media.AudioManager
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
 import com.example.android.uamp.fragments.MediaItemFragment
 import com.example.android.uamp.media.MusicService
 import com.example.android.uamp.utils.Event
@@ -29,11 +30,12 @@ import com.example.android.uamp.utils.InjectorUtils
 import com.example.android.uamp.viewmodels.MainActivityViewModel
 import com.google.android.gms.cast.framework.CastButtonFactory
 import com.google.android.gms.cast.framework.CastContext
-import com.google.android.gms.dynamite.DynamiteModule
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var viewModel: MainActivityViewModel
+    private val viewModel by viewModels<MainActivityViewModel> {
+        InjectorUtils.provideMainActivityViewModel(this)
+    }
     private var castContext: CastContext? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,10 +50,6 @@ class MainActivity : AppCompatActivity() {
         // Since UAMP is a music player, the volume controls should adjust the music volume while
         // in the app.
         volumeControlStream = AudioManager.STREAM_MUSIC
-
-        viewModel = ViewModelProviders
-            .of(this, InjectorUtils.provideMainActivityViewModel(this))
-            .get(MainActivityViewModel::class.java)
 
         /**
          * Observe [MainActivityViewModel.navigateToFragment] for [Event]s that request a

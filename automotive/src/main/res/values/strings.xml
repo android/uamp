@@ -44,6 +44,8 @@
     <string name="google_sign_in_button_label">Sign in with Google</string>
     <string name="sign_in_footer">By signing in with Aural, you agree to the &lt;a href=&quot;http://www.google.com&quot;&gt;Terms &amp; Conditions&lt;/a&gt; and &lt;a href=&quot;http://www.google.com&quot;&gt;Privacy policy&lt;/a&gt;</string>
     <string name="qr_code_url">https://chart.apis.google.com/chart?cht=qr&amp;chs=392x392&amp;chl=https://www.youtube.com/watch?v=8I8mCFYYfdk</string>
+    <string name="sign_in_success_message">Sign in successful</string>
+    <string name="sign_in_failed_message">Sign in failed with error code: %1$d</string>
 
     <string name="server_client_id">YOUR_SERVER_CLIENT_ID</string>
 </resources>
