@@ -193,6 +193,7 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
      *
      * @return [PackageInfo] for the package name or null if it's not found.
      */
+    @Suppress("deprecation")
     @SuppressLint("PackageManagerGetSignatures")
     private fun getPackageInfo(callingPackage: String): PackageInfo? =
         packageManager.getPackageInfo(
@@ -209,6 +210,7 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
      * If the app is not found, or if the app does not have exactly one signature, this method
      * returns `null` as the signature.
      */
+    @Suppress("deprecation")
     private fun getSignature(packageInfo: PackageInfo): String? =
         if (packageInfo.signatures == null || packageInfo.signatures.size != 1) {
             // Security best practices dictate that an app should be signed with exactly one (1)

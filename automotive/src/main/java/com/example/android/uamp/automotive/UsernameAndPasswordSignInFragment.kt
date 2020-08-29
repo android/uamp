@@ -26,9 +26,10 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.widget.Toolbar
+import androidx.core.content.ContextCompat
 import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 
@@ -68,7 +69,7 @@ class UsernameAndPasswordSignInFragment : Fragment() {
             requireActivity().supportFragmentManager.popBackStack()
         }
 
-        appIcon.setImageDrawable(context.getDrawable(R.drawable.aural_logo))
+        appIcon.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.aural_logo))
         primaryTextView.text = getString(R.string.username_and_password_sign_in_primary_text)
         passwordContainer.hint = getString(R.string.password_hint)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -92,7 +93,7 @@ class UsernameAndPasswordSignInFragment : Fragment() {
     }
 
     private fun onSignIn(userIdentifier: CharSequence, password: CharSequence) {
-        ViewModelProviders.of(requireActivity())
+        ViewModelProvider(requireActivity())
             .get(SignInActivityViewModel::class.java)
             .login(userIdentifier.toString(), password.toString())
     }

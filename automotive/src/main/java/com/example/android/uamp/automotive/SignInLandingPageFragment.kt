@@ -228,7 +228,7 @@ class SignInLandingPageFragment : Fragment() {
     private fun handleGoogleSignIn(completedTask: Task<GoogleSignInAccount>) {
         try {
             val account = completedTask.getResult(ApiException::class.java)
-            val idToken = account?.idToken
+            @Suppress("unused_variable") val idToken = account?.idToken
 
             // Send ID Token to server and validate.
 
@@ -236,7 +236,7 @@ class SignInLandingPageFragment : Fragment() {
             // The ApiException status code indicates the detailed failure reason.
             // Please refer to the GoogleSignInStatusCodes class reference for more information.
             Toast.makeText(
-                requireContext(), "Sign in failed with error code: " + e.statusCode,
+                requireContext(), getString(R.string.sign_in_failed_message, e.statusCode),
                 Toast.LENGTH_SHORT
             )
                 .show()
