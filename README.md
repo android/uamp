@@ -2,7 +2,7 @@ Universal Android Music Player Sample
 =====================================
 
 The goal of this sample is to show how to implement an audio media app that works
-across multiple form factors and provide a consistent user experience
+across multiple form factors and provides a consistent user experience
 on Android phones, tablets, Android Auto, Android Wear, Android TV, Google Cast devices,
 and with the Google Assistant. 
 
@@ -30,7 +30,7 @@ Support
 If you've found an error in this sample, please
 [file an issue](https://github.com/googlesamples/android-UniversalMusicPlayer/issues)
 
-Patches are encouraged, and may be submitted by forking this project and
+Patches are encouraged and may be submitted by forking this project and
 submitting a pull request through GitHub. Please see [CONTRIBUTING.md](CONTRIBUTING.md) for more
 details.
 
