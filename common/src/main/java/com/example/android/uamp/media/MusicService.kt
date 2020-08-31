@@ -478,11 +478,11 @@ open class MusicService : MediaBrowserServiceCompat() {
 
         override fun onPrepare(playWhenReady: Boolean) {
             val recentSong = storage.loadRecentSong()
-            if (recentSong != null) {
+            recentSong?.let {
                 onPrepareFromMediaId(
-                    recentSong.mediaId!!,
+                    it.mediaId!!,
                     playWhenReady,
-                    recentSong.description.extras
+                    it.description.extras
                 )
             }
         }
