@@ -477,14 +477,12 @@ open class MusicService : MediaBrowserServiceCompat() {
                     PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH
 
         override fun onPrepare(playWhenReady: Boolean) {
-            val recentSong = storage.loadRecentSong()
-            if (recentSong != null) {
-                onPrepareFromMediaId(
-                    recentSong.mediaId!!,
-                    playWhenReady,
-                    recentSong.description.extras
-                )
-            }
+            val recentSong = storage.loadRecentSong() ?: return
+            onPrepareFromMediaId(
+                recentSong.mediaId!!,
+                playWhenReady,
+                recentSong.description.extras
+            )
         }
 
         override fun onPrepareFromMediaId(
