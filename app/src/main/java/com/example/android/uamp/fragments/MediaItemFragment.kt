@@ -25,6 +25,8 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import com.example.android.uamp.MediaItemAdapter
+import com.example.android.uamp.common.gone
+import com.example.android.uamp.common.setVisibility
 import com.example.android.uamp.databinding.FragmentMediaitemListBinding
 import com.example.android.uamp.utils.InjectorUtils
 import com.example.android.uamp.viewmodels.MainActivityViewModel
@@ -75,13 +77,13 @@ class MediaItemFragment : Fragment() {
 
         mediaItemFragmentViewModel.mediaItems.observe(viewLifecycleOwner,
             Observer { list ->
-                binding.loadingSpinner.visibility =
-                    if (list?.isNotEmpty() == true) View.GONE else View.VISIBLE
+                binding.loadingSpinner.setVisibility(list?.isEmpty() == true)
                 listAdapter.submitList(list)
             })
         mediaItemFragmentViewModel.networkError.observe(viewLifecycleOwner,
-            Observer { error ->
-                binding.networkError.visibility = if (error) View.VISIBLE else View.GONE
+            Observer { networkError ->
+                binding.networkError.setVisibility(networkError)
+                binding.loadingSpinner.gone()
             })
 
         // Set the adapter
