@@ -43,9 +43,6 @@ class MainActivity : AppCompatActivity() {
         InjectorUtils.provideMainActivityViewModel(this)
     }
     private var castContext: CastContext? = null
-    private lateinit var selector: MediaRouteSelector
-    private lateinit var router: MediaRouter
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,16 +52,6 @@ class MainActivity : AppCompatActivity() {
         castContext = CastContext.getSharedInstance(this)
 
         setContentView(R.layout.activity_main)
-
-        router = MediaRouter.getInstance(this)
-        selector = MediaRouteSelector.Builder()
-            .addControlCategory(MediaControlIntent.CATEGORY_REMOTE_PLAYBACK)
-            .build()
-        router.routerParams = MediaRouterParams.Builder().setTransferToLocalEnabled(true).build()
-        router.addCallback(
-            selector, MediaRouterCallback(),
-            MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY
-        )
 
         // Since UAMP is a music player, the volume controls should adjust the music volume while
         // in the app.
@@ -132,20 +119,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun getBrowseFragment(mediaId: String): MediaItemFragment? {
         return supportFragmentManager.findFragmentByTag(mediaId) as MediaItemFragment?
-    }
-
-    private inner class MediaRouterCallback : MediaRouter.Callback() {
-        override fun onRouteSelected(
-            router: MediaRouter,
-            route: MediaRouter.RouteInfo,
-            reason: Int
-        ) {
-            if (reason == MediaRouter.UNSELECT_REASON_ROUTE_CHANGED) {
-                Log.d(TAG, "Unselected because route changed, continue playback")
-            } else if (reason == MediaRouter.UNSELECT_REASON_STOPPED) {
-                Log.d(TAG, "Unselected because route was stopped, stop playback")
-            }
-        }
     }
 }
 
