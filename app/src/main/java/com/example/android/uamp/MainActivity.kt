@@ -18,16 +18,10 @@ package com.example.android.uamp
 
 import android.media.AudioManager
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
-import androidx.mediarouter.media.MediaControlIntent
-import androidx.mediarouter.media.MediaRouteSelector
-import androidx.mediarouter.media.MediaRouter
-import androidx.mediarouter.media.MediaRouterParams
 import com.example.android.uamp.fragments.MediaItemFragment
 import com.example.android.uamp.media.MusicService
 import com.example.android.uamp.utils.Event
@@ -35,7 +29,6 @@ import com.example.android.uamp.utils.InjectorUtils
 import com.example.android.uamp.viewmodels.MainActivityViewModel
 import com.google.android.gms.cast.framework.CastButtonFactory
 import com.google.android.gms.cast.framework.CastContext
-
 
 class MainActivity : AppCompatActivity() {
 
@@ -121,5 +114,3 @@ class MainActivity : AppCompatActivity() {
         return supportFragmentManager.findFragmentByTag(mediaId) as MediaItemFragment?
     }
 }
-
-private const val TAG = "MainActivity"

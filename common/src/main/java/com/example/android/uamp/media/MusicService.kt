@@ -523,10 +523,7 @@ open class MusicService : MediaBrowserServiceCompat() {
                 } else {
 
                     val playbackStartPositionMs =
-                        extras?.getLong(
-                            MEDIA_DESCRIPTION_EXTRAS_START_PLAYBACK_POSITION_MS,
-                            C.TIME_UNSET
-                        )
+                        extras?.getLong(MEDIA_DESCRIPTION_EXTRAS_START_PLAYBACK_POSITION_MS, C.TIME_UNSET)
                             ?: C.TIME_UNSET
 
                     preparePlaylist(
