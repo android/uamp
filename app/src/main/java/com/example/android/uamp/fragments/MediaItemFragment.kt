@@ -81,7 +81,12 @@ class MediaItemFragment : Fragment() {
             })
         mediaItemFragmentViewModel.networkError.observe(viewLifecycleOwner,
             Observer { error ->
-                binding.networkError.visibility = if (error) View.VISIBLE else View.GONE
+                if (error) {
+                    binding.loadingSpinner.visibility = View.GONE
+                    binding.networkError.visibility = View.VISIBLE
+                } else {
+                    binding.networkError.visibility = View.GONE
+                }
             })
 
         // Set the adapter
