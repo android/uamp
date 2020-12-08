@@ -25,10 +25,11 @@ This sample uses the Gradle build system. To build this project, use the
 Support
 -------
 
+- Check out the [FAQs page](docs/FAQs.md)
 - Stack Overflow: http://stackoverflow.com/questions/tagged/android
 
 If you've found an error in this sample, please
-[file an issue](https://github.com/googlesamples/android-UniversalMusicPlayer/issues)
+[file an issue](https://github.com/android/UAMP/issues)
 
 Patches are encouraged and may be submitted by forking this project and
 submitting a pull request through GitHub. Please see [CONTRIBUTING.md](CONTRIBUTING.md) for more
