@@ -146,12 +146,23 @@ open class MusicService : MediaBrowserServiceCompat() {
     }
 
     /**
-     * Create a CastPlayer to handle communication with a Cast session.
+     * If Cast is available, create a CastPlayer to handle communication with a Cast session.
      */
-    private val castPlayer: CastPlayer by lazy {
-        CastPlayer(CastContext.getSharedInstance(this)).apply {
-            setSessionAvailabilityListener(UampCastSessionAvailabilityListener())
-            addListener(playerListener)
+    private val castPlayer: CastPlayer? by lazy {
+        try {
+            val castContext = CastContext.getSharedInstance(this)
+            CastPlayer(castContext).apply {
+                setSessionAvailabilityListener(UampCastSessionAvailabilityListener())
+                addListener(playerListener)
+            }
+        } catch (e : Exception) {
+            // We wouldn't normally catch the generic `Exception` however
+            // calling `CastContext.getSharedInstance` can throw various exceptions, all of which
+            // indicate that Cast is unavailable.
+            // Related internal bug b/68009560.
+            Log.i(TAG, "Cast is not available on this device. " +
+                    "Exception thrown when attempting to obtain CastContext. " + e.message)
+            null
         }
     }
 
@@ -209,7 +220,7 @@ open class MusicService : MediaBrowserServiceCompat() {
 
         switchToPlayer(
             previousPlayer = null,
-            newPlayer = if (castPlayer.isCastSessionAvailable) castPlayer else exoPlayer
+            newPlayer = if (castPlayer?.isCastSessionAvailable == true) castPlayer!! else exoPlayer
         )
         notificationManager.showNotificationForPlayer(currentPlayer)
 
@@ -389,7 +400,7 @@ open class MusicService : MediaBrowserServiceCompat() {
             val items: Array<MediaQueueItem> = metadataList.map {
                 it.toMediaQueueItem()
             }.toTypedArray()
-            castPlayer.loadItems(
+            castPlayer!!.loadItems(
                 items,
                 initialWindowIndex,
                 playbackStartPositionMs,
@@ -444,7 +455,7 @@ open class MusicService : MediaBrowserServiceCompat() {
          * remote Cast receiver rather than play audio locally.
          */
         override fun onCastSessionAvailable() {
-            switchToPlayer(currentPlayer, castPlayer)
+            switchToPlayer(currentPlayer, castPlayer!!)
         }
 
         /**
