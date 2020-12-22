@@ -35,4 +35,4 @@ fun File.asAlbumArtContentUri(): Uri {
         .build()
 }
 
-private const val AUTHORITY = "com.example.android.uamp.media.library.provider"
+private const val AUTHORITY = "com.example.android.uamp"
