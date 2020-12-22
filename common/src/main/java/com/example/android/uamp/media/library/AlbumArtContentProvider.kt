@@ -17,29 +17,64 @@
 package com.example.android.uamp.media.library
 
 import android.content.ContentProvider
+import android.content.ContentResolver
 import android.content.ContentValues
 import android.database.Cursor
 import android.net.Uri
 import android.os.ParcelFileDescriptor
+import android.util.Log
+import com.bumptech.glide.Glide
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileNotFoundException
 
 class AlbumArtContentProvider : ContentProvider() {
 
+    companion object {
+        private val uriMap = mutableMapOf<Uri, Uri>()
+
+        fun mapUri(uri: Uri): Uri {
+            val path = uri.encodedPath?.substring(1)?.replace('/', ':') ?: return Uri.EMPTY
+            val contentUri = Uri.Builder()
+                .scheme(ContentResolver.SCHEME_CONTENT)
+                .authority("com.example.android.uamp")
+                .path(path)
+                .build()
+            uriMap[contentUri] = uri
+            return contentUri
+        }
+    }
+
     override fun onCreate() = true
 
     override fun openFile(uri: Uri, mode: String): ParcelFileDescriptor? {
         val context = this.context ?: return null
-        val file = File(uri.path)
-        if (!file.exists()) {
-            throw FileNotFoundException(uri.path)
+        val remoteUri = uriMap[uri] ?: throw FileNotFoundException(uri.path)
+
+        val file = File(context.cacheDir, uri.path)
+        return if (!file.exists()) {
+            GlobalScope.launch(Dispatchers.IO) {
+                // Use Glide to download the album art
+                val cacheFile = Glide.with(context)
+                    .asFile()
+                    .load(remoteUri)
+                    .submit()
+                    .get()
+
+                // Rename the file Glide created to match our own scheme.
+                cacheFile.renameTo(file)
+
+                // Notify the caller that the artwork has been updated.
+                context.contentResolver.notifyChange(uri, null)
+            }
+
+            // Provide placeholder art until the correct art can be downloaded.
+            context.assets.openFd("default_art.png").parcelFileDescriptor
+        } else {
+            ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
         }
-        // Only allow access to files under cache path
-        val cachePath = context.cacheDir.path
-        if (!file.path.startsWith(cachePath)) {
-            throw FileNotFoundException()
-        }
-        return ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
     }
 
     override fun insert(uri: Uri, values: ContentValues?): Uri? = null

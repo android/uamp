@@ -98,12 +98,13 @@ class JsonSource(private val source: Uri) : AbstractMusicSource() {
                         song.image = baseUri + song.image
                     }
                 }
+                val imageUri = AlbumArtContentProvider.mapUri(Uri.parse(song.image))
 
                 MediaMetadataCompat.Builder()
                     .from(song)
                     .apply {
-                        displayIconUri = song.image // Used by ExoPlayer and Notification
-                        albumArtUri = song.image
+                        displayIconUri = imageUri.toString() // Used by ExoPlayer and Notification
+                        albumArtUri = imageUri.toString()
                     }
                     .build()
             }.toList()
