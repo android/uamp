@@ -22,11 +22,7 @@ import android.content.ContentValues
 import android.database.Cursor
 import android.net.Uri
 import android.os.ParcelFileDescriptor
-import android.util.Log
 import com.bumptech.glide.Glide
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileNotFoundException
 
@@ -53,28 +49,22 @@ class AlbumArtContentProvider : ContentProvider() {
         val context = this.context ?: return null
         val remoteUri = uriMap[uri] ?: throw FileNotFoundException(uri.path)
 
-        val file = File(context.cacheDir, uri.path)
-        return if (!file.exists()) {
-            GlobalScope.launch(Dispatchers.IO) {
-                // Use Glide to download the album art
-                val cacheFile = Glide.with(context)
-                    .asFile()
-                    .load(remoteUri)
-                    .submit()
-                    .get()
+        var file = File(context.cacheDir, uri.path)
 
-                // Rename the file Glide created to match our own scheme.
-                cacheFile.renameTo(file)
+        if (!file.exists()) {
+            // Use Glide to download the album art.
+            val cacheFile = Glide.with(context)
+                .asFile()
+                .load(remoteUri)
+                .submit()
+                .get()
 
-                // Notify the caller that the artwork has been updated.
-                context.contentResolver.notifyChange(uri, null)
-            }
+            // Rename the file Glide created to match our own scheme.
+            cacheFile.renameTo(file)
 
-            // Provide placeholder art until the correct art can be downloaded.
-            context.assets.openFd("default_art.png").parcelFileDescriptor
-        } else {
-            ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
+            file = cacheFile
         }
+        return ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
     }
 
     override fun insert(uri: Uri, values: ContentValues?): Uri? = null
