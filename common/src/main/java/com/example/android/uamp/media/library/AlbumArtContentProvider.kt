@@ -25,6 +25,7 @@ import android.os.ParcelFileDescriptor
 import com.bumptech.glide.Glide
 import java.io.File
 import java.io.FileNotFoundException
+import java.util.concurrent.TimeUnit
 
 class AlbumArtContentProvider : ContentProvider() {
 
@@ -57,7 +58,7 @@ class AlbumArtContentProvider : ContentProvider() {
                 .asFile()
                 .load(remoteUri)
                 .submit()
-                .get()
+                .get(DOWNLOAD_TIMEOUT_SECONDS, TimeUnit.SECONDS)
 
             // Rename the file Glide created to match our own scheme.
             cacheFile.renameTo(file)
@@ -89,3 +90,5 @@ class AlbumArtContentProvider : ContentProvider() {
     override fun getType(uri: Uri): String? = null
 
 }
+
+const val DOWNLOAD_TIMEOUT_SECONDS = 30L
