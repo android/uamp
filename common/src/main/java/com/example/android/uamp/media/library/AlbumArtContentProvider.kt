@@ -27,6 +27,9 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.util.concurrent.TimeUnit
 
+// The amount of time to wait for the album art file to download before timing out.
+const val DOWNLOAD_TIMEOUT_SECONDS = 30L
+
 class AlbumArtContentProvider : ContentProvider() {
 
     companion object {
@@ -90,5 +93,3 @@ class AlbumArtContentProvider : ContentProvider() {
     override fun getType(uri: Uri): String? = null
 
 }
-
-const val DOWNLOAD_TIMEOUT_SECONDS = 30L
