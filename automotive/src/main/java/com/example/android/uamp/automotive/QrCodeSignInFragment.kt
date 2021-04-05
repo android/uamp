@@ -18,15 +18,17 @@ package com.example.android.uamp.automotive
 
 import android.os.Bundle
 import android.text.method.LinkMovementMethod
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
-import androidx.appcompat.widget.Toolbar
+import androidx.core.content.ContextCompat.getDrawable
 import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
+import kotlinx.android.synthetic.main.qr_sign_in.app_icon
+import kotlinx.android.synthetic.main.qr_sign_in.footer
+import kotlinx.android.synthetic.main.qr_sign_in.primary_message
+import kotlinx.android.synthetic.main.qr_sign_in.qr_code
+import kotlinx.android.synthetic.main.qr_sign_in.secondary_message
+import kotlinx.android.synthetic.main.qr_sign_in.toolbar
 
 /**
  * Fragment that is used to facilitate QR code sign-in. Users scan a QR code rendered by this
@@ -35,47 +37,26 @@ import com.bumptech.glide.Glide
  * <p>This screen serves as a demo for UI best practices for QR code sign in. Sign in implementation
  * will be app specific and is not included.
  */
-class QrCodeSignInFragment : Fragment() {
-
-    private lateinit var toolbar: Toolbar
-    private lateinit var appIcon: ImageView
-    private lateinit var primaryTextView: TextView
-    private lateinit var secondaryTextView: TextView
-    private lateinit var qrCode: ImageView
-    private lateinit var footerTextView: TextView
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.qr_sign_in, container, false)
-    }
+class QrCodeSignInFragment : Fragment(R.layout.qr_sign_in) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val context = requireContext()
 
-        toolbar = view.findViewById(R.id.toolbar)
-        appIcon = view.findViewById(R.id.app_icon)
-        primaryTextView = view.findViewById(R.id.primary_message)
-        secondaryTextView = view.findViewById(R.id.secondary_message)
-        qrCode = view.findViewById(R.id.qr_code)
-        footerTextView = view.findViewById(R.id.footer)
-
         toolbar.setNavigationOnClickListener {
             requireActivity().supportFragmentManager.popBackStack()
         }
 
-        appIcon.setImageDrawable(context.getDrawable(R.drawable.aural_logo))
-        primaryTextView.text = getString(R.string.qr_sign_in_primary_text)
-        secondaryTextView.text = getString(R.string.qr_sign_in_secondary_text)
+        app_icon.setImageDrawable(getDrawable(requireContext(), R.drawable.aural_logo))
+        primary_message.text = getString(R.string.qr_sign_in_primary_text)
+        secondary_message.text = getString(R.string.qr_sign_in_secondary_text)
 
         // Links in footer text should be clickable.
-        footerTextView.text = HtmlCompat.fromHtml(
+        footer.text = HtmlCompat.fromHtml(
             context.getString(R.string.sign_in_footer),
             HtmlCompat.FROM_HTML_MODE_LEGACY
         )
-        footerTextView.movementMethod = LinkMovementMethod.getInstance()
+        footer.movementMethod = LinkMovementMethod.getInstance()
 
         setQrCode(getString(R.string.qr_code_url))
     }
@@ -86,6 +67,6 @@ class QrCodeSignInFragment : Fragment() {
      * @param code The QR code to display.
      */
     private fun setQrCode(url: String) {
-        Glide.with(this).load(url).into(qrCode)
+        Glide.with(this).load(url).into(qr_code)
     }
 }

@@ -18,20 +18,18 @@ package com.example.android.uamp.automotive
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
+import kotlinx.android.synthetic.main.activity_settings.toolbar
 
 /**
  * This class exposes application settings
  * for integration with MediaCenter in Android Automotive.
  */
 class SettingsActivity : AppCompatActivity() {
-    private lateinit var toolbar: Toolbar
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
 
-        toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
         supportActionBar?.setHomeButtonEnabled(true)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
