@@ -18,7 +18,7 @@ package com.example.android.uamp.automotive
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import kotlinx.android.synthetic.main.activity_settings.toolbar
+import com.example.android.uamp.automotive.databinding.ActivitySettingsBinding
 
 /**
  * This class exposes application settings
@@ -26,11 +26,14 @@ import kotlinx.android.synthetic.main.activity_settings.toolbar
  */
 class SettingsActivity : AppCompatActivity() {
 
+    private lateinit var binding: ActivitySettingsBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_settings)
+        binding = ActivitySettingsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        setSupportActionBar(toolbar)
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setHomeButtonEnabled(true)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
