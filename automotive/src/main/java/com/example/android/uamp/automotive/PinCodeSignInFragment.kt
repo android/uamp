@@ -36,7 +36,7 @@ import androidx.lifecycle.ViewModelProvider
  *<p>This screen serves as a demo for UI best practices for PIN code sign in. Sign in implementation
  * will be app specific and is not included.
  */
-class PinCodeSignInFragment : Fragment() {
+class PinCodeSignInFragment : Fragment(R.layout.pin_sign_in) {
 
     private lateinit var toolbar: Toolbar
     private lateinit var appIcon: ImageView
@@ -44,13 +44,6 @@ class PinCodeSignInFragment : Fragment() {
     private lateinit var secondaryTextView: TextView
     private lateinit var pinCodeContainer: ViewGroup
     private lateinit var footerTextView: TextView
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.pin_sign_in, container, false)
-    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
