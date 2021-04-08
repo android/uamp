@@ -34,43 +34,25 @@ import com.example.android.uamp.automotive.databinding.QrSignInBinding
  */
 class QrCodeSignInFragment : Fragment(R.layout.qr_sign_in) {
 
-    private var binding: QrSignInBinding? = null
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding = QrSignInBinding.bind(view)
+        val binding = QrSignInBinding.bind(view)
 
-        val context = requireContext()
-
-        binding?.toolbar?.setNavigationOnClickListener {
+        binding.toolbar.setNavigationOnClickListener {
             requireActivity().supportFragmentManager.popBackStack()
         }
 
-        binding?.appIcon?.setImageDrawable(getDrawable(requireContext(), R.drawable.aural_logo))
-        binding?.primaryMessage?.text = getString(R.string.qr_sign_in_primary_text)
-        binding?.secondaryMessage?.text = getString(R.string.qr_sign_in_secondary_text)
+        binding.appIcon.setImageDrawable(getDrawable(requireContext(), R.drawable.aural_logo))
+        binding.primaryMessage.text = getString(R.string.qr_sign_in_primary_text)
+        binding.secondaryMessage.text = getString(R.string.qr_sign_in_secondary_text)
 
         // Links in footer text should be clickable.
-        binding?.footer?.text = HtmlCompat.fromHtml(
-            context.getString(R.string.sign_in_footer),
+        binding.footer.text = HtmlCompat.fromHtml(
+            requireContext().getString(R.string.sign_in_footer),
             HtmlCompat.FROM_HTML_MODE_LEGACY
         )
-        binding?.footer?.movementMethod = LinkMovementMethod.getInstance()
+        binding.footer.movementMethod = LinkMovementMethod.getInstance()
 
-        setQrCode(getString(R.string.qr_code_url))
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        binding = null
-    }
-
-    /**
-     * Sets the QR code rendered on this sign in screen.
-     *
-     * @param code The QR code to display.
-     */
-    private fun setQrCode(url: String) {
-        binding?.qrCode?.let { Glide.with(this).load(url).into(it) }
+        Glide.with(this).load(getString(R.string.qr_code_url)).into(binding.qrCode)
     }
 }
