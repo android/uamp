@@ -618,6 +618,7 @@ open class MusicService : MediaBrowserServiceCompat() {
                             // "close" button in the notification which stops playback and clears
                             // the notification.
                             stopForeground(false)
+                            isForegroundService = false
                         }
                     }
                 }
