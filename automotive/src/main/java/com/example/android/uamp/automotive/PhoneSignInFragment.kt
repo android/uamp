@@ -18,56 +18,33 @@ package com.example.android.uamp.automotive
 
 import android.os.Bundle
 import android.text.method.LinkMovementMethod
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.TextView
-import androidx.appcompat.widget.Toolbar
+import androidx.core.content.ContextCompat
 import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
+import com.example.android.uamp.automotive.databinding.PhoneSignInBinding
 
 /**
  * Fragment that is used to facilitate phone sign-in. The fragment allows users to choose between
  * either the PIN or QR code sign-in flow.
  */
-class PhoneSignInFragment : Fragment() {
-
-    private lateinit var toolbar: Toolbar
-    private lateinit var appIcon: ImageView
-    private lateinit var primaryTextView: TextView
-    private lateinit var pinSignInButton: Button
-    private lateinit var qrCodeSignInButton: Button
-    private lateinit var footerTextView: TextView
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.phone_sign_in, container, false)
-    }
+class PhoneSignInFragment : Fragment(R.layout.phone_sign_in) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val context = requireContext()
 
-        toolbar = view.findViewById(R.id.toolbar)
-        appIcon = view.findViewById(R.id.app_icon)
-        primaryTextView = view.findViewById(R.id.primary_message)
-        pinSignInButton = view.findViewById(R.id.pin_sign_in_button)
-        qrCodeSignInButton = view.findViewById(R.id.qr_sign_in_button)
-        footerTextView = view.findViewById(R.id.footer)
+        val binding = PhoneSignInBinding.bind(view)
 
-        toolbar.setNavigationOnClickListener {
+        binding.toolbar.setNavigationOnClickListener {
             requireActivity().supportFragmentManager.popBackStack()
         }
 
         // Set up PIN sign in button.
-        appIcon.setImageDrawable(context.getDrawable(R.drawable.aural_logo))
-        primaryTextView.text = getString(R.string.phone_sign_in_primary_text)
-        pinSignInButton.text = getString(R.string.pin_sign_in_button_label)
-        pinSignInButton.setOnClickListener {
+        binding.appIcon.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.aural_logo))
+        binding.primaryMessage.text = getString(R.string.phone_sign_in_primary_text)
+        binding.pinSignInButton.text = getString(R.string.pin_sign_in_button_label)
+        binding.pinSignInButton.setOnClickListener {
             requireActivity().supportFragmentManager.beginTransaction()
                 .replace(R.id.sign_in_container, PinCodeSignInFragment())
                 .addToBackStack("landingPage")
@@ -75,8 +52,8 @@ class PhoneSignInFragment : Fragment() {
         }
 
         // Set up QR code sign in button.
-        qrCodeSignInButton.text = getString(R.string.qr_sign_in_button_label)
-        qrCodeSignInButton.setOnClickListener {
+        binding.qrSignInButton.text = getString(R.string.qr_sign_in_button_label)
+        binding.qrSignInButton.setOnClickListener {
             requireActivity().supportFragmentManager.beginTransaction()
                 .replace(R.id.sign_in_container, QrCodeSignInFragment())
                 .addToBackStack("landingPage")
@@ -84,10 +61,10 @@ class PhoneSignInFragment : Fragment() {
         }
 
         // Links in footer text should be clickable.
-        footerTextView.text = HtmlCompat.fromHtml(
+        binding.footer.text = HtmlCompat.fromHtml(
             context.getString(R.string.sign_in_footer),
             HtmlCompat.FROM_HTML_MODE_LEGACY
         )
-        footerTextView.movementMethod = LinkMovementMethod.getInstance()
+        binding.footer.movementMethod = LinkMovementMethod.getInstance()
     }
 }

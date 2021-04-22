@@ -20,14 +20,12 @@ import android.os.Bundle
 import android.text.method.LinkMovementMethod
 import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.TextView
-import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
 import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import com.example.android.uamp.automotive.databinding.PinSignInBinding
 
 /**
  * Fragment that is used to facilitate PIN code sign-in. This fragment displayed a configurable
@@ -38,64 +36,44 @@ import androidx.lifecycle.ViewModelProvider
  */
 class PinCodeSignInFragment : Fragment(R.layout.pin_sign_in) {
 
-    private lateinit var toolbar: Toolbar
-    private lateinit var appIcon: ImageView
-    private lateinit var primaryTextView: TextView
-    private lateinit var secondaryTextView: TextView
-    private lateinit var pinCodeContainer: ViewGroup
-    private lateinit var footerTextView: TextView
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val context = requireContext()
 
-        toolbar = view.findViewById(R.id.toolbar)
-        appIcon = view.findViewById(R.id.app_icon)
-        primaryTextView = view.findViewById(R.id.primary_message)
-        secondaryTextView = view.findViewById(R.id.secondary_message)
-        pinCodeContainer = view.findViewById(R.id.pin_code_container)
-        footerTextView = view.findViewById(R.id.footer)
+        val binding = PinSignInBinding.bind(view)
 
-        toolbar.setNavigationOnClickListener {
+        binding.toolbar.setNavigationOnClickListener {
             requireActivity().supportFragmentManager.popBackStack()
         }
 
-        appIcon.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.aural_logo))
-        primaryTextView.text = getString(R.string.pin_sign_in_primary_text)
-        secondaryTextView.text = getString(R.string.pin_sign_in_secondary_text)
+        binding.appIcon.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.aural_logo))
+        binding.primaryMessage.text = getString(R.string.pin_sign_in_primary_text)
+        binding.secondaryMessage.text = getString(R.string.pin_sign_in_secondary_text)
 
         // Links in footer text should be clickable.
-        footerTextView.text = HtmlCompat.fromHtml(
+        binding.footer.text = HtmlCompat.fromHtml(
             context.getString(R.string.sign_in_footer),
             HtmlCompat.FROM_HTML_MODE_LEGACY
         )
-        footerTextView.movementMethod = LinkMovementMethod.getInstance()
+        binding.footer.movementMethod = LinkMovementMethod.getInstance()
 
         val pin = ViewModelProvider(requireActivity())
             .get(SignInActivityViewModel::class.java)
             .generatePin()
-        setPin(pin)
-    }
 
-    /**
-     * Sets the PIN code rendered on this sign in screen.
-     *
-     * @param pin The PIN to display.
-     */
-    private fun setPin(pin: CharSequence) {
         // Remove existing PIN characters.
-        if (pinCodeContainer.childCount > 0) {
-            pinCodeContainer.removeAllViews()
+        if (binding.pinCodeContainer.childCount > 0) {
+            binding.pinCodeContainer.removeAllViews()
         }
 
         for (element in pin) {
             val pinItem = LayoutInflater.from(context).inflate(
                 R.layout.pin_item,
-                pinCodeContainer,
+                binding.pinCodeContainer,
                 false
             ) as TextView
             pinItem.text = element.toString()
-            pinCodeContainer.addView(pinItem)
+            binding.pinCodeContainer.addView(pinItem)
         }
     }
 }
