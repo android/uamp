@@ -16,7 +16,7 @@
   -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.android.uamp.media">
+    package="com.example.android.kplayer.media">
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -38,8 +38,8 @@
         </receiver>
 
         <provider
-            android:name=".library.AlbumArtContentProvider"
-            android:authorities="com.example.android.uamp"
+            android:name="com.example.android.kplayer.media.library.AlbumArtContentProvider"
+            android:authorities="com.example.android.kplayer"
             android:exported="true" />
 
     </application>

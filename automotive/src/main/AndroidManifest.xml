@@ -16,7 +16,7 @@
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.example.android.uamp.automotive">
+    package="com.example.android.kplayer.automotive">
 
     <!--
     Since this module contains code exclusive to Android Automotive, require the feature here.
@@ -55,7 +55,7 @@
             android:resource="@xml/automotive_app_desc" />
 
         <activity
-            android:name=".SignInActivity"
+            android:name="com.example.android.kplayer.automotive.SignInActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.ACTION_SIGN_IN" />
@@ -64,7 +64,7 @@
 
         <!-- Car compatible theme must use minSDK24 -->
         <activity
-            android:name=".SettingsActivity"
+            android:name="com.example.android.kplayer.automotive.SettingsActivity"
             android:label="@string/settings_label"
             android:theme="@style/AppTheme.Drawer">
             <intent-filter>
@@ -77,7 +77,7 @@
         extensions.
         -->
         <service
-            android:name=".AutomotiveMusicService"
+            android:name="com.example.android.kplayer.automotive.AutomotiveMusicService"
             android:enabled="true"
             android:exported="true"
             tools:ignore="ExportedService">

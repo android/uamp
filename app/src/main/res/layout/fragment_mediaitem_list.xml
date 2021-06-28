@@ -28,7 +28,7 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        tools:context="com.example.android.uamp.fragments.MediaItemFragment"
+        tools:context="com.example.android.kplayer.fragments.MediaItemFragment"
         tools:listitem="@layout/fragment_mediaitem" />
 
     <ProgressBar
