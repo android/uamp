@@ -112,6 +112,6 @@ class MainActivity : AppCompatActivity() {
     private fun isRootId(mediaId: String) = mediaId == viewModel.rootMediaId.value
 
     private fun getBrowseFragment(mediaId: String): MediaItemFragment? {
-        return supportFragmentManager.findFragmentByTag(mediaId) as MediaItemFragment?
+        return supportFragmentManager.findFragmentByTag(mediaId) as? MediaItemFragment
     }
 }
