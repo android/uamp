@@ -15,7 +15,7 @@ To get started with UAMP please read the [full guide](docs/FullGuide.md).
 Pre-requisites
 --------------
 
-- Android Studio 3.x
+- Android Studio 4.x
 
 Getting Started
 ---------------
