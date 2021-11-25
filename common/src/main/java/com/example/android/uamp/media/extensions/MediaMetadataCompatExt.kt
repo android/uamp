@@ -18,17 +18,12 @@ package com.example.android.uamp.media.extensions
 
 import android.graphics.Bitmap
 import android.net.Uri
+import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat.MediaItem
-import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
-import com.google.android.exoplayer2.source.ConcatenatingMediaSource
-import com.google.android.exoplayer2.source.ProgressiveMediaSource
-import com.google.android.exoplayer2.upstream.DataSource
+import com.example.android.uamp.media.library.JsonSource
+import com.google.android.exoplayer2.MediaMetadata
 import com.google.android.exoplayer2.util.MimeTypes
-import com.google.android.gms.cast.MediaInfo
-import com.google.android.gms.cast.MediaMetadata
-import com.google.android.gms.cast.MediaQueueItem
-import com.google.android.gms.common.images.WebImage
 
 /**
  * Useful extensions for [MediaMetadataCompat].
@@ -257,55 +252,39 @@ inline var MediaMetadataCompat.Builder.flag: Int
         putLong(METADATA_KEY_UAMP_FLAGS, value.toLong())
     }
 
-/**
- * Extension method for building an [ExtractorMediaSource] from a [MediaMetadataCompat] object.
- *
- * For convenience, place the [MediaDescriptionCompat] into the tag so it can be retrieved later.
- */
-fun MediaMetadataCompat.toMediaSource(dataSourceFactory: DataSource.Factory) =
-    ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(mediaUri)
-
-/**
- * Extension method for building a [ConcatenatingMediaSource] given a [List]
- * of [MediaMetadataCompat] objects.
- */
-fun List<MediaMetadataCompat>.toMediaSource(
-    dataSourceFactory: DataSource.Factory
-): ConcatenatingMediaSource {
-
-    val concatenatingMediaSource = ConcatenatingMediaSource()
-    forEach {
-        concatenatingMediaSource.addMediaSource(it.toMediaSource(dataSourceFactory))
-    }
-    return concatenatingMediaSource
+fun MediaMetadataCompat.toMediaItemMetadata(): com.google.android.exoplayer2.MediaMetadata {
+    return with(MediaMetadata.Builder()) {
+        setTitle(title)
+        setDisplayTitle(displayTitle)
+        setAlbumArtist(artist)
+        setAlbumTitle(album)
+        setComposer(composer)
+        setTrackNumber(trackNumber.toInt())
+        setTotalTrackCount(trackCount.toInt())
+        setDiscNumber(discNumber.toInt())
+        setWriter(writer)
+        setArtworkUri(albumArtUri)
+        val extras = Bundle()
+        getString(JsonSource.ORIGINAL_ARTWORK_URI_KEY)?.let {
+            // album art is a content:// URI. Keep the original for Cast.
+            extras.putString(
+                JsonSource.ORIGINAL_ARTWORK_URI_KEY,
+                getString(JsonSource.ORIGINAL_ARTWORK_URI_KEY)
+            )
+        }
+        extras.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration)
+        setExtras(extras)
+    }.build()
 }
 
-fun MediaMetadataCompat.toMediaQueueItem(): MediaQueueItem {
-    val metadata: MediaMetadata = toCastMediaMetadata()
-    val mediaInfo = MediaInfo.Builder(this.mediaUri.toString())
-            .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
-            .setContentType(MimeTypes.AUDIO_MPEG)
-            .setStreamDuration(this.duration)
-            .setMetadata(metadata)
-            .build()
-    return MediaQueueItem.Builder(mediaInfo).build()
+fun MediaMetadataCompat.toMediaItem(): com.google.android.exoplayer2.MediaItem {
+    return with(com.google.android.exoplayer2.MediaItem.Builder()) {
+        setMediaId(mediaUri.toString())
+        setUri(mediaUri)
+        setMimeType(MimeTypes.AUDIO_MPEG)
+        setMediaMetadata(toMediaItemMetadata())
+    }.build()
 }
-
-private fun MediaMetadataCompat.toCastMediaMetadata(): MediaMetadata {
-    val mediaMetadata = MediaMetadata(MediaMetadata.MEDIA_TYPE_MUSIC_TRACK)
-    mediaMetadata.putString(MediaMetadata.KEY_TITLE, this.title)
-    mediaMetadata.putString(MediaMetadata.KEY_ARTIST, this.artist)
-    mediaMetadata.putString(MediaMetadata.KEY_ALBUM_TITLE, this.album)
-    mediaMetadata.addImage(WebImage(this.albumArtUri))
-    mediaMetadata.addImage(WebImage(this.displayIconUri))
-    mediaMetadata.putString(MediaMetadata.KEY_ALBUM_ARTIST, this.albumArtist)
-    mediaMetadata.putString(MediaMetadata.KEY_COMPOSER, this.composer)
-    this.date?.let { date -> mediaMetadata.putString(MediaMetadata.KEY_RELEASE_DATE, date) }
-    mediaMetadata.putInt(MediaMetadata.KEY_TRACK_NUMBER, this.trackNumber.toInt())
-    mediaMetadata.putInt(MediaMetadata.KEY_DISC_NUMBER, this.discNumber.toInt())
-    return mediaMetadata
-}
-
 
 /**
  * Custom property that holds whether an item is [MediaItem.FLAG_BROWSABLE] or

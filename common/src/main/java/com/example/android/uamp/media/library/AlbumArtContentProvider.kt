@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit
 // The amount of time to wait for the album art file to download before timing out.
 const val DOWNLOAD_TIMEOUT_SECONDS = 30L
 
-class AlbumArtContentProvider : ContentProvider() {
+internal class AlbumArtContentProvider : ContentProvider() {
 
     companion object {
         private val uriMap = mutableMapOf<Uri, Uri>()
