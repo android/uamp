@@ -19,7 +19,7 @@
 buildscript {
     ext {
         // App SDK versions.
-        compileSdkVersion = 28
+        compileSdkVersion = 30
         minSdkVersion = 19
         targetSdkVersion = 30
 
@@ -33,7 +33,7 @@ buildscript {
         arch_lifecycle_version = '2.2.0'
         constraint_layout_version = '2.0.1'
         espresso_version = '3.3.0'
-        exoplayer_version = '2.11.5'
+        exoplayer_version = '2.16.0'
         fragment_version = '1.2.5'
         glide_version = '4.11.0'
         gms_strict_version_matcher_version = '1.0.3'

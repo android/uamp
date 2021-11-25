@@ -48,7 +48,7 @@ import java.security.NoSuchAlgorithmException
  *
  * For more information, see res/xml/allowed_media_browser_callers.xml.
  */
-class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
+internal class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
     private val context: Context
     private val packageManager: PackageManager
 

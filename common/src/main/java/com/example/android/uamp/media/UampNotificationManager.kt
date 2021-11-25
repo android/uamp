@@ -41,7 +41,7 @@ const val NOW_PLAYING_NOTIFICATION_ID = 0xb339 // Arbitrary number used to ident
  * A wrapper class for ExoPlayer's PlayerNotificationManager. It sets up the notification shown to
  * the user during audio playback and provides track metadata, such as track title and icon image.
  */
-class UampNotificationManager(
+internal class UampNotificationManager(
     private val context: Context,
     sessionToken: MediaSessionCompat.Token,
     notificationListener: PlayerNotificationManager.NotificationListener
@@ -57,23 +57,18 @@ class UampNotificationManager(
     init {
         val mediaController = MediaControllerCompat(context, sessionToken)
 
-        notificationManager = PlayerNotificationManager.createWithNotificationChannel(
-            context,
-            NOW_PLAYING_CHANNEL_ID,
-            R.string.notification_channel,
-            R.string.notification_channel_description,
-            NOW_PLAYING_NOTIFICATION_ID,
-            DescriptionAdapter(mediaController),
-            notificationListener
-        ).apply {
-
-            setMediaSessionToken(sessionToken)
-            setSmallIcon(R.drawable.ic_notification)
-
-            // Don't display the rewind or fast-forward buttons.
-            setRewindIncrementMs(0)
-            setFastForwardIncrementMs(0)
+        val builder = PlayerNotificationManager.Builder(context, NOW_PLAYING_NOTIFICATION_ID, NOW_PLAYING_CHANNEL_ID)
+        with (builder) {
+            setMediaDescriptionAdapter(DescriptionAdapter(mediaController))
+            setNotificationListener(notificationListener)
+            setChannelNameResourceId(R.string.notification_channel)
+            setChannelDescriptionResourceId(R.string.notification_channel_description)
         }
+        notificationManager = builder.build()
+        notificationManager.setMediaSessionToken(sessionToken)
+        notificationManager.setSmallIcon(R.drawable.ic_notification)
+        notificationManager.setUseRewindAction(false)
+        notificationManager.setUseFastForwardAction(false)
     }
 
     fun hideNotification() {

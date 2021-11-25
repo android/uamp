@@ -27,10 +27,8 @@ import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import androidx.core.content.edit
 import com.example.android.uamp.media.MusicService
-import com.google.android.exoplayer2.ControlDispatcher
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
-import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector.CommandReceiver
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 /** UAMP specific command for logging into the service. */
@@ -131,11 +129,10 @@ class AutomotiveMusicService : MusicService() {
      *
      * Suppress the warning because the original name, `cb` is not as clear as to its purpose.
      */
-    private inner class AutomotiveCommandReceiver : CommandReceiver {
+    private inner class AutomotiveCommandReceiver : MediaSessionConnector.CommandReceiver {
         @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
         override fun onCommand(
             player: Player,
-            controlDispatcher: ControlDispatcher,
             command: String,
             extras: Bundle?,
             callback: ResultReceiver?

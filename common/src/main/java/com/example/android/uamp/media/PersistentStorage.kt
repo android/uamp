@@ -28,7 +28,7 @@ import com.example.android.uamp.media.extensions.asAlbumArtContentUri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class PersistentStorage private constructor(val context: Context) {
+internal class PersistentStorage private constructor(val context: Context) {
 
     /**
      * Store any data which must persist between restarts, such as the most recently played song.
