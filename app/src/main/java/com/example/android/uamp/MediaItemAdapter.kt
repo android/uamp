@@ -46,14 +46,14 @@ class MediaItemAdapter(
         payloads: MutableList<Any>
     ) {
 
-        val mediaItem = getItem(position)
+        val itemData = getItem(position)
         var fullRefresh = payloads.isEmpty()
 
         if (payloads.isNotEmpty()) {
             payloads.forEach { payload ->
                 when (payload) {
                     PLAYBACK_RES_CHANGED -> {
-                        holder.playbackState.setImageResource(mediaItem.playbackRes)
+                        holder.playbackState.setImageResource(itemData.playbackRes)
                     }
                     // If the payload wasn't understood, refresh the full item (to be safe).
                     else -> fullRefresh = true
@@ -65,13 +65,13 @@ class MediaItemAdapter(
         // we might also do it if there was a payload that wasn't understood, just to ensure
         // there isn't a stale item.
         if (fullRefresh) {
-            holder.item = mediaItem
-            holder.titleView.text = mediaItem.title
-            holder.subtitleView.text = mediaItem.subtitle
-            holder.playbackState.setImageResource(mediaItem.playbackRes)
+            holder.item = itemData
+            holder.titleView.text = itemData.title
+            holder.subtitleView.text = itemData.subtitle
+            holder.playbackState.setImageResource(itemData.playbackRes)
 
             Glide.with(holder.albumArt)
-                .load(mediaItem.albumArtUri)
+                .load(itemData.mediaItem.mediaMetadata.artworkUri)
                 .placeholder(R.drawable.default_art)
                 .into(holder.albumArt)
         }

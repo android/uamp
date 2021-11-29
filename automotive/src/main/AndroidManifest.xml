@@ -66,23 +66,20 @@
         <activity
             android:name=".SettingsActivity"
             android:label="@string/settings_label"
-            android:theme="@style/AppTheme.Drawer">
+            android:theme="@style/AppTheme.Drawer"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.APPLICATION_PREFERENCES" />
             </intent-filter>
         </activity>
 
-        <!--
-        Declare the MediaBrowserService which supports Android Automotive specific
-        extensions.
-        -->
         <service
-            android:name=".AutomotiveMusicService"
+            android:name="com.example.android.uamp.automotive.AutomotiveMusicService"
             android:enabled="true"
             android:exported="true"
             tools:ignore="ExportedService">
-
             <intent-filter>
+                <action android:name="androidx.media3.session.MediaLibraryService"/>
                 <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
         </service>

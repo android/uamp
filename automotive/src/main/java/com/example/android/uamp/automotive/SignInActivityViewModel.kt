@@ -16,7 +16,6 @@
 
 package com.example.android.uamp.automotive
 
-import android.app.Activity
 import android.app.Application
 import android.content.ComponentName
 import android.os.Bundle
@@ -25,9 +24,12 @@ import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.media3.session.SessionResult
 import com.example.android.uamp.common.MusicServiceConnection
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.util.Random
-
 /**
  * Basic ViewModel for [SignInActivity].
  */
@@ -53,8 +55,10 @@ class SignInActivityViewModel(application: Application) : AndroidViewModel(appli
                 putString(LOGIN_EMAIL, email)
                 putString(LOGIN_PASSWORD, password)
             }
-            musicServiceConnection.sendCommand(LOGIN, loginParams) { resultCode, _ ->
-                _loggedIn.postValue(resultCode == Activity.RESULT_OK)
+            CoroutineScope(Dispatchers.Main).launch {
+                musicServiceConnection.sendCommand(LOGIN, loginParams) { resultCode, _ ->
+                    _loggedIn.postValue(resultCode == SessionResult.RESULT_SUCCESS)
+                }
             }
         }
     }

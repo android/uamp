@@ -203,17 +203,22 @@ class SignInLandingPageFragment : Fragment() {
     }
 
     private fun checkPlayServices(): Boolean {
-        val apiAvailability = GoogleApiAvailability.getInstance();
-        val resultCode = apiAvailability.isGooglePlayServicesAvailable(context);
-        if (resultCode != ConnectionResult.SUCCESS) {
-            if (apiAvailability.isUserResolvableError(resultCode)) {
-                apiAvailability.getErrorDialog(
-                    activity, resultCode, PLAY_SERVICES_RESOLUTION_REQUEST
-                ).show();
+        context?.let { context ->
+            val apiAvailability = GoogleApiAvailability.getInstance();
+            val resultCode = apiAvailability.isGooglePlayServicesAvailable(context);
+            if (resultCode != ConnectionResult.SUCCESS) {
+                activity?.let {
+                    if (apiAvailability.isUserResolvableError(resultCode)) {
+                        apiAvailability.getErrorDialog(
+                            it, resultCode, PLAY_SERVICES_RESOLUTION_REQUEST
+                        )?.show();
+                    }
+                }
+                return false;
             }
-            return false;
+            return true;
         }
-        return true;
+        return false
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

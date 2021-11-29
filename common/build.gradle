@@ -49,27 +49,28 @@ dependencies {
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_coroutines_version"
     api "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlin_coroutines_version"
-
-    api "androidx.media:media:$androidx_media_version"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-guava:$kotlin_coroutines_version"
 
     api "com.google.code.gson:gson:$gson_version"
 
-    // ExoPlayer dependencies
+    // AndroidX Media3  dependencies
 
-    // This allows UAMP to utilize a local version of ExoPlayer, which is particularly
-    // useful for extending the MediaSession extension, as well as for testing and
-    // customization. If the ":exoplayer-library-core" project is included, we assume
+    // This allows UAMP to utilize a local version of AndroidX Media3, which is particularly
+    // for testing and customization. If the ":media-lib-common" project is included, we assume
     // the others are included as well.
-    if (findProject(':exoplayer-library-core') != null) {
-        api project(':exoplayer-library-core')
-        api project(':exoplayer-library-ui')
-        api project(':exoplayer-extension-mediasession')
-        api project(':exoplayer-extension-cast')
+    if (findProject(':lib-common') != null) {
+        api project(':lib-common')
+        api project(':lib-exoplayer')
+        api project(':lib-datasource')
+        api project(':lib-ui')
+        api project(':lib-session')
+        api project(':lib-cast')
     } else {
-        api "com.google.android.exoplayer:exoplayer-core:$exoplayer_version"
-        api "com.google.android.exoplayer:exoplayer-ui:$exoplayer_version"
-        api "com.google.android.exoplayer:extension-mediasession:$exoplayer_version"
-        api "com.google.android.exoplayer:extension-cast:$exoplayer_version"
+        api "androidx.media3:media3-exoplayer:$androidx_media3_version"
+        api "androidx.media3:media3-datasource:$androidx_media3_version"
+        api "androidx.media3:media3-ui:$androidx_media3_version"
+        api "androidx.media3:media3-session:$androidx_media3_version"
+        api "androidx.media3:media3-cast:$androidx_media3_version"
     }
 
     // Glide dependencies

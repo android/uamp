@@ -1,35 +1,24 @@
-/*
- * Copyright 2019 Google Inc. All rights reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.example.android.uamp.automotive
 
-import android.accounts.AccountManager
-import android.app.Activity
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.os.ResultReceiver
-import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import androidx.core.content.edit
+import androidx.media3.common.MediaItem
+import androidx.media3.common.util.Util
+import androidx.media3.session.LibraryResult
+import androidx.media3.session.MediaConstants.EXTRAS_KEY_ERROR_RESOLUTION_ACTION_INTENT_COMPAT
+import androidx.media3.session.MediaConstants.EXTRAS_KEY_ERROR_RESOLUTION_ACTION_LABEL_COMPAT
+import androidx.media3.session.MediaSession
+import androidx.media3.session.SessionCommand
+import androidx.media3.session.SessionResult
 import com.example.android.uamp.media.MusicService
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import com.google.common.collect.ImmutableList
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
 
 /** UAMP specific command for logging into the service. */
 const val LOGIN = "com.example.android.uamp.automotive.COMMAND.LOGIN"
@@ -40,33 +29,81 @@ const val LOGOUT = "com.example.android.uamp.automotive.COMMAND.LOGOUT"
 const val LOGIN_EMAIL = "com.example.android.uamp.automotive.ARGS.LOGIN_EMAIL"
 const val LOGIN_PASSWORD = "com.example.android.uamp.automotive.ARGS.LOGIN_PASSWORD"
 
-typealias CommandHandler = (parameters: Bundle, callback: ResultReceiver?) -> Boolean
+class AutomotiveMusicService: MusicService() {
 
-/**
- * Android Automotive specific extensions for [MusicService].
- *
- * UAMP for Android Automotive OS requires the user to login in order to demonstrate
- * how authentication works on the system. If this doesn't apply to your application,
- * this class can be skipped in favor of its parent, [MusicService].
- *
- * If you'd like to support authentication, but not prevent using the system,
- * comment out the calls to [requireLogin].
- */
-class AutomotiveMusicService : MusicService() {
+    override fun getCallback(): MediaLibrarySession.MediaLibrarySessionCallback {
+        return AutomotiveCallback()
+    }
 
-    @ExperimentalCoroutinesApi
-    override fun onCreate() {
-        super.onCreate()
+    private inner class AutomotiveCallback() : MusicServiceCallback() {
 
-        // Register to handle login/logout commands.
-        mediaSessionConnector.registerCustomCommandReceiver(AutomotiveCommandReceiver())
+        override fun onConnect(
+            session: MediaSession,
+            controller: MediaSession.ControllerInfo
+        ): MediaSession.ConnectionResult {
+            val connectionResult = super.onConnect(session, controller)
+            val sessionCommands =
+                connectionResult.availableSessionCommands
+                    .buildUpon()
+                    .add(SessionCommand(LOGIN, Bundle()))
+                    .add(SessionCommand(LOGOUT, Bundle()))
+                    .build()
+            return MediaSession.ConnectionResult.accept(
+                sessionCommands, connectionResult.availablePlayerCommands)
+        }
 
-        // Require the user to be logged in for demonstration purposes.
-        if (!isAuthenticated()) {
-            requireLogin()
+        @SuppressLint("UnsafeOptInUsageError")
+        override fun onGetChildren(
+            session: MediaLibrarySession,
+            browser: MediaSession.ControllerInfo,
+            parentId: String,
+            page: Int,
+            pageSize: Int,
+            params: LibraryParams?
+        ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> {
+            return if (isAuthenticated()) {
+                super.onGetChildren(session, browser, parentId, page, pageSize, params)
+            } else {
+                Futures.immediateFuture(
+                    LibraryResult.ofError(
+                        LibraryResult.RESULT_ERROR_SESSION_AUTHENTICATION_EXPIRED,
+                        LibraryParams.Builder()
+                            .setExtras(getExpiredAuthenticationResolutionExtras()).build()
+                    )
+                )
+            }
+        }
+
+        override fun onCustomCommand(
+            session: MediaSession,
+            controller: MediaSession.ControllerInfo,
+            customCommand: SessionCommand,
+            args: Bundle
+        ): ListenableFuture<SessionResult> {
+            when (customCommand.customAction) {
+                LOGIN -> {
+                    onLogin(args.getString(LOGIN_EMAIL) ?: "", args.getString(LOGIN_PASSWORD) ?: "")
+                }
+                LOGOUT -> onLogout()
+                else -> {
+                    return Futures.immediateFuture(
+                        SessionResult(
+                            SessionResult.RESULT_ERROR_SESSION_AUTHENTICATION_EXPIRED,
+                            getExpiredAuthenticationResolutionExtras()
+                        )
+                    )
+                }
+            }
+            return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
         }
     }
 
+    /**
+     * Fakes the verification of email and password and authenticates the user. Use the
+     * authentication technique of your choice in your app.
+     *
+     * <p>Returns true if the user is supposed to be successfully authenticated.
+     */
     private fun onLogin(email: String, password: String): Boolean {
         Log.i(TAG, "User logged in: $email")
         getSharedPreferences(AutomotiveMusicService::class.java.name, Context.MODE_PRIVATE).edit {
@@ -84,100 +121,25 @@ class AutomotiveMusicService : MusicService() {
     }
 
     /**
-     * Verifies if the user has logged into the system.
-     * In a real system, credentials should probably be handled by the
-     * [AccountManager] APIs.
+     * Whether the user has been authenticated.
      */
     private fun isAuthenticated() =
         getSharedPreferences(AutomotiveMusicService::class.java.name, Context.MODE_PRIVATE)
             .contains(USER_TOKEN)
 
-    /**
-     * Sets [PlaybackStateCompat] values to indicate the user must login to continue.
-     *
-     * This routine sets the playback state and provides the resolution [PendingIntent]
-     * that Android Automotive OS requires.
-     */
-    private fun requireLogin() {
-        val loginIntent = Intent(this, SignInActivity::class.java)
-        val loginActivityPendingIntent = PendingIntent.getActivity(this, 0, loginIntent, 0)
-        val extras = Bundle().apply {
-            putString(ERROR_RESOLUTION_ACTION_LABEL, getString(R.string.error_login_button))
-            putParcelable(ERROR_RESOLUTION_ACTION_INTENT, loginActivityPendingIntent)
+    private fun getExpiredAuthenticationResolutionExtras(): Bundle {
+        return Bundle().also {
+            it.putString(
+                EXTRAS_KEY_ERROR_RESOLUTION_ACTION_LABEL_COMPAT,
+                getString(R.string.login_button_label))
+            val signInIntent = Intent(this, SignInActivity::class.java)
+            val flags = if (Util.SDK_INT >= 23) PendingIntent.FLAG_IMMUTABLE else 0
+            it.putParcelable(
+                EXTRAS_KEY_ERROR_RESOLUTION_ACTION_INTENT_COMPAT,
+                PendingIntent.getActivity(this, /* requestCode= */ 0, signInIntent, flags))
         }
-        mediaSessionConnector.setCustomErrorMessage(
-            getString(R.string.error_require_login),
-            PlaybackStateCompat.ERROR_CODE_AUTHENTICATION_EXPIRED,
-            extras
-        )
-    }
-
-    /**
-     * This is the entry point for custom commands received by ExoPlayer's
-     * [MediaSessionConnector.customCommandReceivers].
-     *
-     * The extension will call each [CommandReceiver] in turn. If the [CommandReceiver] can
-     * handle the command, it returns `true` to indicate the command's been handled and
-     * processing should stop. If the [CommandReceiver] cannot/doesn't want to handle the
-     * command, it should return `false`.
-     *
-     * We simplify this a bit by having our own [CommandHandler] that works with a single
-     * command (either "log in" or "log out"). Each of these returns true at the end of its
-     * processing.
-     *
-     * If the command received isn't either of our commands, we just return `false`.
-     *
-     * Suppress the warning because the original name, `cb` is not as clear as to its purpose.
-     */
-    private inner class AutomotiveCommandReceiver : MediaSessionConnector.CommandReceiver {
-        @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
-        override fun onCommand(
-            player: Player,
-            command: String,
-            extras: Bundle?,
-            callback: ResultReceiver?
-        ): Boolean =
-            when (command) {
-                LOGIN -> loginCommand(extras ?: Bundle.EMPTY, callback)
-                LOGOUT -> logoutCommand(extras ?: Bundle.EMPTY, callback)
-                else -> false
-            }
-    }
-
-    private val loginCommand: CommandHandler = { extras, callback ->
-        val email = extras.getString(LOGIN_EMAIL) ?: ""
-        val password = extras.getString(LOGIN_PASSWORD) ?: ""
-
-        if (onLogin(email, password)) {
-            // Updated state (including clearing the error) now that the user has logged in.
-            mediaSessionConnector.setCustomErrorMessage(null)
-            mediaSessionConnector.invalidateMediaSessionPlaybackState()
-
-            callback?.send(Activity.RESULT_OK, Bundle.EMPTY)
-        } else {
-            // Login is required - note this.
-            requireLogin()
-
-            callback?.send(Activity.RESULT_CANCELED, Bundle.EMPTY)
-        }
-        true
-    }
-
-    private val logoutCommand: CommandHandler = { _, callback ->
-        // Log the user out.
-        onLogout()
-
-        // Login is required - note this.
-        requireLogin()
-        callback?.send(Activity.RESULT_OK, Bundle.EMPTY)
-        true
     }
 }
 
 private const val TAG = "AutomotiveMusicService"
-private const val ERROR_RESOLUTION_ACTION_LABEL =
-    "android.media.extras.ERROR_RESOLUTION_ACTION_LABEL"
-private const val ERROR_RESOLUTION_ACTION_INTENT =
-    "android.media.extras.ERROR_RESOLUTION_ACTION_INTENT"
-
 private const val USER_TOKEN = "com.example.android.uamp.automotive.PREFS.USER_TOKEN"

@@ -18,12 +18,8 @@ package com.example.android.uamp.media.library
 
 import android.os.Bundle
 import android.provider.MediaStore
-import android.support.v4.media.MediaMetadataCompat
-import com.example.android.uamp.media.extensions.album
-import com.example.android.uamp.media.extensions.artist
-import com.example.android.uamp.media.extensions.genre
-import com.example.android.uamp.media.extensions.id
-import com.example.android.uamp.media.extensions.title
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -38,21 +34,25 @@ import org.robolectric.RobolectricTestRunner
 @RunWith(RobolectricTestRunner::class)
 class MusicSourceTest {
 
-    private val musicList = listOf<MediaMetadataCompat>(
-        MediaMetadataCompat.Builder().apply {
-            id = "ich_hasse_dich"
-            title = "Ich hasse dich"
-            album = "Speechless"
-            artist = "Jemand"
-            genre = "Folk"
+    private val musicList = listOf<MediaItem>(
+        MediaItem.Builder().apply {
+            setMediaId("ich_hasse_dich")
+            setMediaMetadata(MediaMetadata.Builder().apply {
+                setTitle("Ich hasse dich")
+                setAlbumTitle("Speechless")
+                setArtist("Jemand")
+                setGenre("Folk")
+            }.build())
         }.build(),
 
-        MediaMetadataCompat.Builder().apply {
-            id = "about_a_guy"
-            title = "About a Guy"
-            album = "Tales from the Render Farm"
-            artist = "7 Developers and a Pastry Chef"
-            genre = "Rock"
+        MediaItem.Builder().apply {
+            setMediaId("about_a_guy")
+            setMediaMetadata(MediaMetadata.Builder().apply {
+                setTitle("About a Guy")
+                setAlbumTitle("Tales from the Render Farm")
+                setArtist("7 Developers and a Pastry Chef")
+                setGenre("FoRocklk")
+            }.build())
         }.build()
     )
 
@@ -99,7 +99,7 @@ class MusicSourceTest {
         }
         val result = testSource.search(searchQuery, searchExtras)
         Assert.assertEquals(result.size, 1)
-        Assert.assertEquals(result[0].id, "about_a_guy")
+        Assert.assertEquals(result[0].mediaId, "about_a_guy")
     }
 
     @Test
@@ -116,7 +116,7 @@ class MusicSourceTest {
         }
         val result = testSource.search(searchQuery, searchExtras)
         Assert.assertEquals(result.size, 1)
-        Assert.assertEquals(result[0].id, "about_a_guy")
+        Assert.assertEquals(result[0].mediaId, "about_a_guy")
     }
 
     @Test
@@ -144,13 +144,13 @@ class MusicSourceTest {
         val searchExtras = Bundle.EMPTY
         val result = testSource.search(searchQuery, searchExtras)
         Assert.assertEquals(result.size, 1)
-        Assert.assertEquals(result[0].id, "ich_hasse_dich")
+        Assert.assertEquals(result[0].mediaId, "ich_hasse_dich")
     }
 }
 
 class TestMusicSource(
-    private val music: List<MediaMetadataCompat>
-) : AbstractMusicSource(), Iterable<MediaMetadataCompat> by music {
+    private val music: List<MediaItem>
+) : AbstractMusicSource(), Iterable<MediaItem> by music {
     override suspend fun load() = Unit
 
     fun prepare() {

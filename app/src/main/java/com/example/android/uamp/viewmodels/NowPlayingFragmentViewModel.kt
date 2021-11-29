@@ -17,30 +17,22 @@
 package com.example.android.uamp.viewmodels
 
 import android.app.Application
-import android.content.Context
-import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.text.TextUtils
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.media3.common.MediaItem
 import com.example.android.uamp.R
-import com.example.android.uamp.common.EMPTY_PLAYBACK_STATE
 import com.example.android.uamp.common.MusicServiceConnection
-import com.example.android.uamp.common.NOTHING_PLAYING
+import com.example.android.uamp.common.PlaybackState
 import com.example.android.uamp.fragments.NowPlayingFragment
-import com.example.android.uamp.media.extensions.albumArtUri
-import com.example.android.uamp.media.extensions.currentPlayBackPosition
-import com.example.android.uamp.media.extensions.displaySubtitle
-import com.example.android.uamp.media.extensions.duration
-import com.example.android.uamp.media.extensions.id
-import com.example.android.uamp.media.extensions.isPlaying
-import com.example.android.uamp.media.extensions.title
 
 /**
  * [ViewModel] for [NowPlayingFragment] which displays the album art in full size.
@@ -48,39 +40,17 @@ import com.example.android.uamp.media.extensions.title
  * resources.
  */
 class NowPlayingFragmentViewModel(
-    private val app: Application,
+    app: Application,
     musicServiceConnection: MusicServiceConnection
 ) : AndroidViewModel(app) {
 
-    /**
-     * Utility class used to represent the metadata necessary to display the
-     * media item currently being played.
-     */
-    data class NowPlayingMetadata(
-        val id: String,
-        val albumArtUri: Uri,
-        val title: String?,
-        val subtitle: String?,
-        val duration: String
-    ) {
-
-        companion object {
-            /**
-             * Utility method to convert milliseconds to a display of minutes and seconds
-             */
-            fun timestampToMSS(context: Context, position: Long): String {
-                val totalSeconds = Math.floor(position / 1E3).toInt()
-                val minutes = totalSeconds / 60
-                val remainingSeconds = totalSeconds - (minutes * 60)
-                return if (position < 0) context.getString(R.string.duration_unknown)
-                else context.getString(R.string.duration_format).format(minutes, remainingSeconds)
-            }
-        }
+    val mediaItem = MutableLiveData<MediaItem>().apply {
+        postValue(MediaItem.EMPTY)
     }
-
-    private var playbackState: PlaybackStateCompat = EMPTY_PLAYBACK_STATE
-    val mediaMetadata = MutableLiveData<NowPlayingMetadata>()
     val mediaPosition = MutableLiveData<Long>().apply {
+        postValue(0L)
+    }
+    val mediaDuration = MutableLiveData<Long>().apply {
         postValue(0L)
     }
     val mediaButtonRes = MutableLiveData<Int>().apply {
@@ -95,10 +65,8 @@ class NowPlayingFragmentViewModel(
      * so the correct [MediaItemData.playbackRes] is displayed on the active item.
      * (i.e.: play/pause button or blank)
      */
-    private val playbackStateObserver = Observer<PlaybackStateCompat> {
-        playbackState = it ?: EMPTY_PLAYBACK_STATE
-        val metadata = musicServiceConnection.nowPlaying.value ?: NOTHING_PLAYING
-        updateState(playbackState, metadata)
+    private val playbackStateObserver = Observer<PlaybackState> {
+        updateState(it, musicServiceConnection.nowPlaying.value!!)
     }
 
     /**
@@ -107,8 +75,8 @@ class NowPlayingFragmentViewModel(
      * old item (if there was one), both need to have their [MediaItemData.playbackRes]
      * changed. (i.e.: play/pause button or blank)
      */
-    private val mediaMetadataObserver = Observer<MediaMetadataCompat> {
-        updateState(playbackState, it)
+    private val nowPlayingObserver = Observer<MediaItem> {
+        updateState(musicServiceConnection.playbackState.value!!, it)
     }
 
     /**
@@ -127,22 +95,21 @@ class NowPlayingFragmentViewModel(
      */
     private val musicServiceConnection = musicServiceConnection.also {
         it.playbackState.observeForever(playbackStateObserver)
-        it.nowPlaying.observeForever(mediaMetadataObserver)
-        checkPlaybackPosition()
+        it.nowPlaying.observeForever(nowPlayingObserver)
+        checkPlaybackPosition(POSITION_UPDATE_INTERVAL_MILLIS)
     }
 
     /**
-     * Internal function that recursively calls itself every [POSITION_UPDATE_INTERVAL_MILLIS] ms
-     * to check the current playback position and updates the corresponding LiveData object when it
-     * has changed.
+     * Internal function that recursively calls itself to check the current playback position and
+     * updates the corresponding LiveData object when it has changed.
      */
-    private fun checkPlaybackPosition(): Boolean = handler.postDelayed({
-        val currPosition = playbackState.currentPlayBackPosition
+    private fun checkPlaybackPosition(delayMs: Long): Boolean = handler.postDelayed({
+        val currPosition = musicServiceConnection.player?.currentPosition ?: 0
         if (mediaPosition.value != currPosition)
             mediaPosition.postValue(currPosition)
         if (updatePosition)
-            checkPlaybackPosition()
-    }, POSITION_UPDATE_INTERVAL_MILLIS)
+            checkPlaybackPosition(1000 - (currPosition % 1000))
+    }, delayMs)
 
     /**
      * Since we use [LiveData.observeForever] above (in [musicServiceConnection]), we want
@@ -156,28 +123,23 @@ class NowPlayingFragmentViewModel(
 
         // Remove the permanent observers from the MusicServiceConnection.
         musicServiceConnection.playbackState.removeObserver(playbackStateObserver)
-        musicServiceConnection.nowPlaying.removeObserver(mediaMetadataObserver)
+        musicServiceConnection.nowPlaying.removeObserver(nowPlayingObserver)
 
         // Stop updating the position
         updatePosition = false
     }
 
     private fun updateState(
-        playbackState: PlaybackStateCompat,
-        mediaMetadata: MediaMetadataCompat
+        playbackState: PlaybackState,
+        mediaItem: MediaItem
     ) {
 
         // Only update media item once we have duration available
-        if (mediaMetadata.duration != 0L && mediaMetadata.id != null) {
-            val nowPlayingMetadata = NowPlayingMetadata(
-                mediaMetadata.id!!,
-                mediaMetadata.albumArtUri,
-                mediaMetadata.title?.trim(),
-                mediaMetadata.displaySubtitle?.trim(),
-                NowPlayingMetadata.timestampToMSS(app, mediaMetadata.duration)
-            )
-            this.mediaMetadata.postValue(nowPlayingMetadata)
+        if (playbackState.duration != 0L && !TextUtils.isEmpty(mediaItem.mediaId)) {
+            this.mediaItem.postValue(mediaItem)
         }
+
+        mediaDuration.postValue(playbackState.duration)
 
         // Update the media button resource ID
         mediaButtonRes.postValue(
@@ -200,5 +162,4 @@ class NowPlayingFragmentViewModel(
     }
 }
 
-private const val TAG = "NowPlayingFragmentVM"
-private const val POSITION_UPDATE_INTERVAL_MILLIS = 100L
+private const val POSITION_UPDATE_INTERVAL_MILLIS = 1L

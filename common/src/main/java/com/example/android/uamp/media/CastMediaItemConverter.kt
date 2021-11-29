@@ -1,23 +1,37 @@
 package com.example.android.uamp.media
 
+import android.annotation.SuppressLint
 import android.net.Uri
 import android.support.v4.media.MediaMetadataCompat
+import androidx.media3.cast.DefaultMediaItemConverter
+import androidx.media3.cast.MediaItemConverter
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MimeTypes
 import com.example.android.uamp.media.library.JsonSource
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.ext.cast.DefaultMediaItemConverter
-import com.google.android.exoplayer2.ext.cast.MediaItemConverter
-import com.google.android.exoplayer2.util.MimeTypes
 import com.google.android.gms.cast.MediaInfo
 import com.google.android.gms.cast.MediaMetadata
 import com.google.android.gms.cast.MediaQueueItem
 import com.google.android.gms.common.images.WebImage
 
-class CastMediaItemConverter : MediaItemConverter {
+/**
+ * A [MediaItemConverter] to convert from a [MediaItem] to a Cast [MediaQueueItem].
+ *
+ * It adds all audio specific metadata properties and creates a Cast metadata object of type
+ * [MediaMetadata.MEDIA_TYPE_MUSIC_TRACK].
+ *
+ * To create an artwork for Cast we can't use the standard [MediaItem#mediaMetadata#artworkUri]
+ * because UAMP uses a content provider to serve cached bitmaps. The URIs starting with `content://`
+ * are useless on a Cast device, so we need to use the original HTTP URI that the [JsonSource]
+ * stores in the metadata extra with key `JsonSource.ORIGINAL_ARTWORK_URI_KEY`.
+ */
+@SuppressLint("UnsafeOptInUsageError")
+internal class CastMediaItemConverter : MediaItemConverter {
 
     private val defaultMediaItemConverter = DefaultMediaItemConverter()
 
     override fun toMediaQueueItem(mediaItem: MediaItem): MediaQueueItem {
         val castMediaMetadata = MediaMetadata(MediaMetadata.MEDIA_TYPE_MUSIC_TRACK)
+        castMediaMetadata.putString("uamp.mediaid", mediaItem.mediaId)
         mediaItem.mediaMetadata.title?.let {
             castMediaMetadata.putString(MediaMetadata.KEY_TITLE, it.toString() )
         }
@@ -56,6 +70,9 @@ class CastMediaItemConverter : MediaItemConverter {
             mediaInfo.setStreamDuration(bundle.getLong(MediaMetadataCompat.METADATA_KEY_DURATION,0))
         }
         mediaInfo.setMetadata(castMediaMetadata)
+        defaultMediaItemConverter.toMediaQueueItem(mediaItem).customData?.let {
+            mediaInfo.setCustomData(it)
+        }
         return MediaQueueItem.Builder(mediaInfo.build()).build()
     }
 

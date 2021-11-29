@@ -16,7 +16,6 @@
 
 package com.example.android.uamp.media.extensions
 
-import android.net.Uri
 import java.net.URLEncoder
 import java.nio.charset.Charset
 import java.util.Locale
@@ -30,7 +29,7 @@ import java.util.Locale
  */
 fun String?.containsCaseInsensitive(other: String?) =
     if (this != null && other != null) {
-        toLowerCase(Locale.getDefault()).contains(other.toLowerCase(Locale.getDefault()))
+        lowercase(Locale.getDefault()).contains(other.lowercase(Locale.getDefault()))
     } else {
         this == other
     }
@@ -46,8 +45,3 @@ inline val String?.urlEncoded: String
         @Suppress("deprecation")
         URLEncoder.encode(this ?: "")
     }
-
-/**
- * Helper extension to convert a potentially null [String] to a [Uri] falling back to [Uri.EMPTY]
- */
-fun String?.toUri(): Uri = this?.let { Uri.parse(it) } ?: Uri.EMPTY

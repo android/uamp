@@ -18,11 +18,11 @@ package com.example.android.uamp
 
 import android.media.AudioManager
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
+import androidx.media3.common.MediaItem
 import com.example.android.uamp.fragments.MediaItemFragment
 import com.example.android.uamp.media.MusicService
 import com.example.android.uamp.utils.Event
@@ -67,13 +67,13 @@ class MainActivity : AppCompatActivity() {
         })
 
         /**
-         * Observe changes to the [MainActivityViewModel.rootMediaId]. When the app starts,
+         * Observe changes to the [MainActivityViewModel.rootMediaItem]. When the app starts,
          * and the UI connects to [MusicService], this will be updated and the app will show
          * the initial list of media items.
          */
-        viewModel.rootMediaId.observe(this,
-            Observer<String> { rootMediaId ->
-                rootMediaId?.let { navigateToMediaItem(it) }
+        viewModel.rootMediaItem.observe(this,
+            Observer<MediaItem> { rootMediaItem ->
+                rootMediaItem?.let { navigateToMediaItem(it.mediaId) }
             })
 
         /**
@@ -95,7 +95,9 @@ class MainActivity : AppCompatActivity() {
         /**
          * Set up a MediaRouteButton to allow the user to control the current media playback route
          */
-        CastButtonFactory.setUpMediaRouteButton(this, menu, R.id.media_route_menu_item)
+        menu?.let {
+            CastButtonFactory.setUpMediaRouteButton(this, menu, R.id.media_route_menu_item)
+        }
         return true
     }
 
@@ -109,7 +111,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun isRootId(mediaId: String) = mediaId == viewModel.rootMediaId.value
+    private fun isRootId(mediaId: String) = mediaId == viewModel.rootMediaItem.value?.mediaId
 
     private fun getBrowseFragment(mediaId: String): MediaItemFragment? {
         return supportFragmentManager.findFragmentByTag(mediaId) as? MediaItemFragment

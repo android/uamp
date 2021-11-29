@@ -70,6 +70,7 @@ dependencies {
 
     implementation "androidx.constraintlayout:constraintlayout:$constraint_layout_version"
     implementation "androidx.lifecycle:lifecycle-extensions:$arch_lifecycle_version"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-guava:$kotlin_coroutines_version"
 
     // Glide dependencies
     implementation "com.github.bumptech.glide:glide:$glide_version"
