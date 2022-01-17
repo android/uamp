@@ -12,7 +12,18 @@ import com.google.android.gms.cast.MediaMetadata
 import com.google.android.gms.cast.MediaQueueItem
 import com.google.android.gms.common.images.WebImage
 
-class CastMediaItemConverter : MediaItemConverter {
+/**
+ * A [MediaItemConverter] to convert from a [MediaItem] to a Cast [MediaQueueItem].
+ *
+ * It adds all audio specific metadata properties and creates a Cast metadata object of type
+ * [MediaMetadata.MEDIA_TYPE_MUSIC_TRACK].
+ *
+ * To create an artwork for Cast we can't use the standard [MediaItem#mediaMetadata#artworkUri]
+ * because UAMP uses a content provider to serve cached bitmaps. The URIs starting with `content://`
+ * are useless on a Cast device, so we need to use the original HTTP URI that the [JsonSource]
+ * stores in the metadata extra with key `JsonSource.ORIGINAL_ARTWORK_URI_KEY`.
+ */
+internal class CastMediaItemConverter : MediaItemConverter {
 
     private val defaultMediaItemConverter = DefaultMediaItemConverter()
 
@@ -53,7 +64,8 @@ class CastMediaItemConverter : MediaItemConverter {
             bundle.getString(JsonSource.ORIGINAL_ARTWORK_URI_KEY)?.let {
                 castMediaMetadata.addImage(WebImage(Uri.parse(it)))
             }
-            mediaInfo.setStreamDuration(bundle.getLong(MediaMetadataCompat.METADATA_KEY_DURATION,0))
+            mediaInfo.setStreamDuration(
+                bundle.getLong(MediaMetadataCompat.METADATA_KEY_DURATION,0))
         }
         mediaInfo.setMetadata(castMediaMetadata)
         return MediaQueueItem.Builder(mediaInfo.build()).build()
