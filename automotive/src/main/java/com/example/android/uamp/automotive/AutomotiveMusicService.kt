@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.core.content.edit
 import androidx.media3.common.MediaItem
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
 import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaConstants.EXTRAS_KEY_ERROR_RESOLUTION_ACTION_INTENT_COMPAT
@@ -31,7 +32,7 @@ const val LOGIN_PASSWORD = "com.example.android.uamp.automotive.ARGS.LOGIN_PASSW
 
 class AutomotiveMusicService: MusicService() {
 
-    override fun getCallback(): MediaLibrarySession.MediaLibrarySessionCallback {
+    override fun getCallback(): MediaLibrarySession.Callback {
         return AutomotiveCallback()
     }
 
@@ -127,6 +128,7 @@ class AutomotiveMusicService: MusicService() {
         getSharedPreferences(AutomotiveMusicService::class.java.name, Context.MODE_PRIVATE)
             .contains(USER_TOKEN)
 
+    @SuppressLint("UnsafeOptInUsageError")
     private fun getExpiredAuthenticationResolutionExtras(): Bundle {
         return Bundle().also {
             it.putString(

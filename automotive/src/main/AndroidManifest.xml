@@ -77,6 +77,7 @@
             android:name="com.example.android.uamp.automotive.AutomotiveMusicService"
             android:enabled="true"
             android:exported="true"
+            android:foregroundServiceType="mediaPlayback"
             tools:ignore="ExportedService">
             <intent-filter>
                 <action android:name="androidx.media3.session.MediaLibraryService"/>

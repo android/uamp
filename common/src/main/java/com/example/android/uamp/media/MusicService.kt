@@ -21,7 +21,6 @@ import android.app.PendingIntent
 import android.app.PendingIntent.FLAG_IMMUTABLE
 import android.app.PendingIntent.FLAG_UPDATE_CURRENT
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -31,29 +30,28 @@ import android.widget.Toast
 import androidx.media3.cast.CastPlayer
 import androidx.media3.cast.SessionAvailabilityListener
 import androidx.media3.common.AudioAttributes
+import androidx.media3.common.C
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
 import androidx.media3.common.Player.EVENT_MEDIA_ITEM_TRANSITION
 import androidx.media3.common.Player.EVENT_PLAY_WHEN_READY_CHANGED
 import androidx.media3.common.Player.EVENT_POSITION_DISCONTINUITY
+import androidx.media3.common.Player.Listener
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.util.EventLogger
+import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaLibraryService
+import androidx.media3.session.MediaSession
+import androidx.media3.session.SessionCommand
+import androidx.media3.session.SessionResult
 import com.example.android.uamp.media.library.BrowseTree
 import com.example.android.uamp.media.library.JsonSource
 import com.example.android.uamp.media.library.MEDIA_SEARCH_SUPPORTED
 import com.example.android.uamp.media.library.MusicSource
 import com.example.android.uamp.media.library.UAMP_BROWSABLE_ROOT
 import com.example.android.uamp.media.library.UAMP_RECENT_ROOT
-import androidx.media3.common.C
-import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaMetadata
-import androidx.media3.common.PlaybackException
-import androidx.media3.common.Player
-import androidx.media3.common.Player.Listener
-import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.util.EventLogger
-import androidx.media3.session.LibraryResult
-import androidx.media3.session.MediaSession
-import androidx.media3.session.MediaSession.MediaItemFiller
-import androidx.media3.session.SessionCommand
-import androidx.media3.session.SessionResult
 import com.google.android.gms.cast.framework.CastContext
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
@@ -128,7 +126,7 @@ open class MusicService : MediaLibraryService() {
         Uri.parse("https://storage.googleapis.com/uamp/catalog.json")
 
     private val uAmpAudioAttributes = AudioAttributes.Builder()
-        .setContentType(C.CONTENT_TYPE_MUSIC)
+        .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
         .setUsage(C.USAGE_MEDIA)
         .build()
 
@@ -175,7 +173,7 @@ open class MusicService : MediaLibraryService() {
     }
 
     /** @return the {@link MediaLibrarySessionCallback} to be used to build the media session. */
-    open fun getCallback(): MediaLibrarySession.MediaLibrarySessionCallback {
+    open fun getCallback(): MediaLibrarySession.Callback {
         return MusicServiceCallback()
     }
 
@@ -189,7 +187,6 @@ open class MusicService : MediaLibraryService() {
         mediaSession = with(MediaLibrarySession.Builder(
             this, replaceableForwardingPlayer, getCallback())) {
             setId(packageName)
-            setMediaItemFiller(UampMediaItemFiller())
             packageManager?.getLaunchIntentForPackage(packageName)?.let { sessionIntent ->
                 setSessionActivity(
                     PendingIntent.getActivity(
@@ -306,7 +303,7 @@ open class MusicService : MediaLibraryService() {
         }
     }
 
-    open inner class MusicServiceCallback: MediaLibrarySession.MediaLibrarySessionCallback {
+    open inner class MusicServiceCallback: MediaLibrarySession.Callback {
 
         override fun onGetLibraryRoot(
             session: MediaLibrarySession, browser: MediaSession.ControllerInfo, params: LibraryParams?
@@ -406,23 +403,14 @@ open class MusicService : MediaLibraryService() {
             }
         }
 
-        override fun onSetMediaUri(
-            session: MediaSession,
+        override fun onAddMediaItems(
+            mediaSession: MediaSession,
             controller: MediaSession.ControllerInfo,
-            uri: Uri,
-            extras: Bundle
-        ): Int {
-            val mediaId: String =
-                uri.getQueryParameter("id") ?: return SessionResult.RESULT_ERROR_BAD_VALUE
-            val mediaItem = browseTree.getMediaItemByMediaId(mediaId)
-                ?: return SessionResult.RESULT_ERROR_BAD_VALUE
-            serviceScope.launch {
-                replaceableForwardingPlayer.setMediaItem(mediaItem)
-                if (replaceableForwardingPlayer.playbackState == Player.STATE_IDLE) {
-                    replaceableForwardingPlayer.prepare()
-                }
+            mediaItems: MutableList<MediaItem>
+        ): ListenableFuture<MutableList<MediaItem>> {
+            return callWhenMusicSourceReady {
+                mediaItems.map { browseTree.getMediaItemByMediaId(it.mediaId)!! }.toMutableList()
             }
-            return SessionResult.RESULT_SUCCESS
         }
 
         override fun onCustomCommand(
@@ -456,18 +444,12 @@ open class MusicService : MediaLibraryService() {
     /** Listen for events from ExoPlayer. */
     @SuppressLint("UnsafeOptInUsageError")
     private inner class PlayerEventListener : Listener {
-        override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
-            // When playing/paused save the current media item in persistent
-            // storage so that playback can be resumed between device reboots.
-            // Search for "media resumption" for more information.
-            saveRecentSongToStorage()
-        }
-
         override fun onEvents(player: Player, events: Player.Events) {
             if (events.contains(EVENT_POSITION_DISCONTINUITY)
                 || events.contains(EVENT_MEDIA_ITEM_TRANSITION)
                 || events.contains(EVENT_PLAY_WHEN_READY_CHANGED)) {
                 currentMediaItemIndex = player.currentMediaItemIndex
+                saveRecentSongToStorage()
             }
         }
 
@@ -483,16 +465,6 @@ open class MusicService : MediaLibraryService() {
                 message,
                 Toast.LENGTH_LONG
             ).show()
-        }
-    }
-
-    inner class UampMediaItemFiller : MediaItemFiller {
-        override fun fillInLocalConfiguration(
-            session: MediaSession,
-            controller: MediaSession.ControllerInfo,
-            mediaItem: MediaItem
-        ): MediaItem {
-            return browseTree.getMediaItemByMediaId(mediaItem.mediaId)?: mediaItem
         }
     }
 }

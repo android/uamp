@@ -85,6 +85,7 @@
             android:name=".media.MusicService"
             android:enabled="true"
             android:exported="true"
+            android:foregroundServiceType="mediaPlayback"
             tools:ignore="ExportedService">
 
             <intent-filter>

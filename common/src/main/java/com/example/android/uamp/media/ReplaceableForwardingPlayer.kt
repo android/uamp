@@ -33,12 +33,10 @@ import androidx.media3.common.Player.EVENT_MEDIA_METADATA_CHANGED
 import androidx.media3.common.Player.EVENT_POSITION_DISCONTINUITY
 import androidx.media3.common.Player.EVENT_TIMELINE_CHANGED
 import androidx.media3.common.Timeline
-import androidx.media3.common.TrackGroupArray
-import androidx.media3.common.TrackSelectionArray
 import androidx.media3.common.TrackSelectionParameters
-import androidx.media3.common.TracksInfo
+import androidx.media3.common.Tracks
 import androidx.media3.common.VideoSize
-import androidx.media3.common.text.Cue
+import androidx.media3.common.text.CueGroup
 import java.util.ArrayDeque
 import kotlin.math.min
 
@@ -385,16 +383,8 @@ class ReplaceableForwardingPlayer(private var player: Player) : Player {
         playlist.clear()
     }
 
-    override fun getCurrentTrackGroups(): TrackGroupArray {
-        return player.currentTrackGroups
-    }
-
-    override fun getCurrentTrackSelections(): TrackSelectionArray {
-        return player.currentTrackSelections
-    }
-
-    override fun getCurrentTracksInfo(): TracksInfo {
-        return player.currentTracksInfo
+    override fun getCurrentTracks(): Tracks {
+        return player.currentTracks
     }
 
     override fun getTrackSelectionParameters(): TrackSelectionParameters {
@@ -589,7 +579,7 @@ class ReplaceableForwardingPlayer(private var player: Player) : Player {
         return player.videoSize
     }
 
-    override fun getCurrentCues(): MutableList<Cue> {
+    override fun getCurrentCues(): CueGroup {
         return player.currentCues
     }
 
