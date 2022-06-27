@@ -16,7 +16,6 @@
 
 package com.example.android.uamp.media.library
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
 import android.util.Log
@@ -143,7 +142,6 @@ class BrowseTree(
      * marking the item as [MediaMetadata.FOLDER_TYPE_ALBUMS], since it will have child
      * node(s) AKA at least 1 song.
      */
-    @SuppressLint("UnsafeOptInUsageError")
     private fun buildAlbumRoot(mediaItem: MediaItem): MutableList<MediaItem> {
         // Get or create the albums Category list.
         val rootList = mediaIdToChildren[UAMP_ALBUMS_ROOT] ?: mutableListOf()

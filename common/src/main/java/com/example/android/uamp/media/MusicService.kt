@@ -16,7 +16,6 @@
 
 package com.example.android.uamp.media
 
-import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.app.PendingIntent.FLAG_IMMUTABLE
 import android.app.PendingIntent.FLAG_UPDATE_CURRENT
@@ -27,6 +26,7 @@ import android.os.Bundle
 import android.os.ConditionVariable
 import android.util.Log
 import android.widget.Toast
+import androidx.annotation.OptIn
 import androidx.media3.cast.CastPlayer
 import androidx.media3.cast.SessionAvailabilityListener
 import androidx.media3.common.AudioAttributes
@@ -39,6 +39,7 @@ import androidx.media3.common.Player.EVENT_MEDIA_ITEM_TRANSITION
 import androidx.media3.common.Player.EVENT_PLAY_WHEN_READY_CHANGED
 import androidx.media3.common.Player.EVENT_POSITION_DISCONTINUITY
 import androidx.media3.common.Player.Listener
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.util.EventLogger
 import androidx.media3.session.LibraryResult
@@ -75,7 +76,7 @@ import kotlin.math.max
  * This class also handles playback for Cast sessions. When a Cast session is active, playback
  * commands are passed to a [CastPlayer].
  */
-@SuppressLint("UnsafeOptInUsageError")
+@OptIn(UnstableApi::class)
 open class MusicService : MediaLibraryService() {
 
     private val serviceJob = SupervisorJob()
@@ -130,7 +131,6 @@ open class MusicService : MediaLibraryService() {
         .setUsage(C.USAGE_MEDIA)
         .build()
 
-    @SuppressLint("UnsafeOptInUsageError")
     private val playerListener = PlayerEventListener()
 
     /**
@@ -442,7 +442,6 @@ open class MusicService : MediaLibraryService() {
     }
 
     /** Listen for events from ExoPlayer. */
-    @SuppressLint("UnsafeOptInUsageError")
     private inner class PlayerEventListener : Listener {
         override fun onEvents(player: Player, events: Player.Events) {
             if (events.contains(EVENT_POSITION_DISCONTINUITY)

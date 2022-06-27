@@ -15,12 +15,12 @@
  */
 package com.example.android.uamp.media
 
-import android.annotation.SuppressLint
 import android.os.Looper
 import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.TextureView
+import androidx.annotation.OptIn
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.DeviceInfo
 import androidx.media3.common.MediaItem
@@ -37,6 +37,7 @@ import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.Tracks
 import androidx.media3.common.VideoSize
 import androidx.media3.common.text.CueGroup
+import androidx.media3.common.util.UnstableApi
 import java.util.ArrayDeque
 import kotlin.math.min
 
@@ -44,7 +45,6 @@ import kotlin.math.min
  * A [Player] implementation that delegates to an actual [Player] implementation that is
  * replaceable by another instance by calling [setPlayer].
  */
-@SuppressLint("UnsafeOptInUsageError")
 class ReplaceableForwardingPlayer(private var player: Player) : Player {
 
     private val listeners: MutableList<Player.Listener> = arrayListOf()
@@ -295,10 +295,12 @@ class ReplaceableForwardingPlayer(private var player: Player) : Player {
         player.seekForward()
     }
 
+    @OptIn(UnstableApi::class)
     override fun hasPrevious(): Boolean {
         return player.hasPrevious()
     }
 
+    @OptIn(UnstableApi::class)
     override fun hasPreviousWindow(): Boolean {
         return player.hasPreviousWindow()
     }
@@ -307,10 +309,12 @@ class ReplaceableForwardingPlayer(private var player: Player) : Player {
         return player.hasPreviousMediaItem()
     }
 
+    @OptIn(UnstableApi::class)
     override fun previous() {
         player.previous()
     }
 
+    @OptIn(UnstableApi::class)
     override fun seekToPreviousWindow() {
         player.seekToPreviousWindow()
     }
@@ -327,10 +331,12 @@ class ReplaceableForwardingPlayer(private var player: Player) : Player {
         player.seekToPrevious()
     }
 
+    @OptIn(UnstableApi::class)
     override fun hasNext(): Boolean {
         return player.hasNext()
     }
 
+    @OptIn(UnstableApi::class)
     override fun hasNextWindow(): Boolean {
         return player.hasNextWindow()
     }
@@ -339,10 +345,12 @@ class ReplaceableForwardingPlayer(private var player: Player) : Player {
         return player.hasNextMediaItem()
     }
 
+    @OptIn(UnstableApi::class)
     override fun next() {
         player.next()
     }
 
+    @OptIn(UnstableApi::class)
     override fun seekToNextWindow() {
         player.seekToNextWindow()
     }
@@ -371,6 +379,7 @@ class ReplaceableForwardingPlayer(private var player: Player) : Player {
         player.stop()
     }
 
+    @OptIn(UnstableApi::class)
     override fun stop(reset: Boolean) {
         player.stop(reset)
         if (reset) {
@@ -407,6 +416,7 @@ class ReplaceableForwardingPlayer(private var player: Player) : Player {
         player.playlistMetadata = mediaMetadata
     }
 
+    @OptIn(UnstableApi::class)
     override fun getCurrentManifest(): Any? {
         return player.currentManifest
     }
@@ -419,6 +429,7 @@ class ReplaceableForwardingPlayer(private var player: Player) : Player {
         return player.currentPeriodIndex
     }
 
+    @OptIn(UnstableApi::class)
     override fun getCurrentWindowIndex(): Int {
         return player.currentWindowIndex
     }
@@ -427,6 +438,7 @@ class ReplaceableForwardingPlayer(private var player: Player) : Player {
         return player.currentMediaItemIndex
     }
 
+    @OptIn(UnstableApi::class)
     override fun getNextWindowIndex(): Int {
         return player.nextWindowIndex
     }
@@ -435,6 +447,7 @@ class ReplaceableForwardingPlayer(private var player: Player) : Player {
         return player.nextMediaItemIndex
     }
 
+    @OptIn(UnstableApi::class)
     override fun getPreviousWindowIndex(): Int {
         return player.previousWindowIndex
     }
@@ -475,6 +488,7 @@ class ReplaceableForwardingPlayer(private var player: Player) : Player {
         return player.totalBufferedDuration
     }
 
+    @OptIn(UnstableApi::class)
     override fun isCurrentWindowDynamic(): Boolean {
         return player.isCurrentWindowDynamic
     }
@@ -483,6 +497,7 @@ class ReplaceableForwardingPlayer(private var player: Player) : Player {
         return player.isCurrentMediaItemDynamic
     }
 
+    @OptIn(UnstableApi::class)
     override fun isCurrentWindowLive(): Boolean {
         return player.isCurrentWindowLive
     }
@@ -495,6 +510,7 @@ class ReplaceableForwardingPlayer(private var player: Player) : Player {
         return player.currentLiveOffset
     }
 
+    @OptIn(UnstableApi::class)
     override fun isCurrentWindowSeekable(): Boolean {
         return player.isCurrentWindowSeekable
     }

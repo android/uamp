@@ -16,7 +16,6 @@
 
 package com.example.android.uamp.common
 
-import android.annotation.SuppressLint
 import android.content.ComponentName
 import android.content.Context
 import android.os.Bundle
@@ -70,7 +69,6 @@ import kotlin.coroutines.CoroutineContext
  *  parameters, rather than private properties. They're only required to build the
  *  [MediaBrowserConnectionCallback] and [MediaBrowserCompat] objects.
  */
-@SuppressLint("UnsafeOptInUsageError")
 class MusicServiceConnection(context: Context, serviceComponent: ComponentName) {
 
     val rootMediaItem = MutableLiveData<MediaItem>()

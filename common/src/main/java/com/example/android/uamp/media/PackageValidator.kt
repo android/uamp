@@ -16,7 +16,6 @@
 
 package com.example.android.uamp.media
 
-import android.Manifest.permission.BIND_NOTIFICATION_LISTENER_SERVICE
 import android.Manifest.permission.MEDIA_CONTENT_CONTROL
 import android.annotation.SuppressLint
 import android.content.Context

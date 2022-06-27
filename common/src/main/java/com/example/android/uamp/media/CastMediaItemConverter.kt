@@ -1,12 +1,13 @@
 package com.example.android.uamp.media
 
-import android.annotation.SuppressLint
 import android.net.Uri
 import android.support.v4.media.MediaMetadataCompat
+import androidx.annotation.OptIn
 import androidx.media3.cast.DefaultMediaItemConverter
 import androidx.media3.cast.MediaItemConverter
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
+import androidx.media3.common.util.UnstableApi
 import com.example.android.uamp.media.library.JsonSource
 import com.google.android.gms.cast.MediaInfo
 import com.google.android.gms.cast.MediaMetadata
@@ -24,7 +25,7 @@ import com.google.android.gms.common.images.WebImage
  * are useless on a Cast device, so we need to use the original HTTP URI that the [JsonSource]
  * stores in the metadata extra with key `JsonSource.ORIGINAL_ARTWORK_URI_KEY`.
  */
-@SuppressLint("UnsafeOptInUsageError")
+@OptIn(UnstableApi::class)
 internal class CastMediaItemConverter : MediaItemConverter {
 
     private val defaultMediaItemConverter = DefaultMediaItemConverter()

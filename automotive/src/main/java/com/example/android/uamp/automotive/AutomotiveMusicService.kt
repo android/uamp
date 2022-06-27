@@ -1,11 +1,11 @@
 package com.example.android.uamp.automotive
 
-import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import androidx.annotation.OptIn
 import androidx.core.content.edit
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
@@ -53,7 +53,7 @@ class AutomotiveMusicService: MusicService() {
                 sessionCommands, connectionResult.availablePlayerCommands)
         }
 
-        @SuppressLint("UnsafeOptInUsageError")
+        @OptIn(UnstableApi::class)
         override fun onGetChildren(
             session: MediaLibrarySession,
             browser: MediaSession.ControllerInfo,
@@ -128,13 +128,13 @@ class AutomotiveMusicService: MusicService() {
         getSharedPreferences(AutomotiveMusicService::class.java.name, Context.MODE_PRIVATE)
             .contains(USER_TOKEN)
 
-    @SuppressLint("UnsafeOptInUsageError")
     private fun getExpiredAuthenticationResolutionExtras(): Bundle {
         return Bundle().also {
             it.putString(
                 EXTRAS_KEY_ERROR_RESOLUTION_ACTION_LABEL_COMPAT,
                 getString(R.string.login_button_label))
             val signInIntent = Intent(this, SignInActivity::class.java)
+            @OptIn(UnstableApi::class)
             val flags = if (Util.SDK_INT >= 23) PendingIntent.FLAG_IMMUTABLE else 0
             it.putParcelable(
                 EXTRAS_KEY_ERROR_RESOLUTION_ACTION_INTENT_COMPAT,
