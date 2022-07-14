@@ -20,10 +20,16 @@ import android.app.Application
 import android.content.ComponentName
 import android.os.Bundle
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.ViewModelProvider
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.example.android.uamp.common.MusicServiceConnection
+import com.example.android.uamp.media.MusicService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 /**
  * Preference fragment hosted by [SettingsActivity]. Handles events to various preference changes.
@@ -38,8 +44,8 @@ class SettingsFragment : PreferenceFragmentCompat() {
             .get(SettingsFragmentViewModel::class.java)
     }
 
-    override fun onPreferenceTreeClick(preference: Preference?): Boolean {
-        return when (preference?.key) {
+    override fun onPreferenceTreeClick(preference: Preference): Boolean {
+        return when (preference.key) {
             "logout" -> {
                 viewModel.logout()
                 requireActivity().finish()
@@ -63,7 +69,9 @@ class SettingsFragmentViewModel(application: Application) : AndroidViewModel(app
     )
 
     fun logout() {
-        // Logout is fire and forget.
-        musicServiceConnection.sendCommand(LOGOUT, null)
+        CoroutineScope(Dispatchers.Main).launch {
+            // Logout is fire and forget.
+            musicServiceConnection.sendCommand(LOGOUT, null)
+        }
     }
 }

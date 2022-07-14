@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Google Inc. All rights reserved.
+ * Copyright 2022 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,11 @@
 
 package com.example.android.uamp.media.extensions
 
-import android.content.ContentResolver
-import android.net.Uri
-import java.io.File
+import androidx.media3.common.Player
 
-/**
- * This file contains extension methods for the java.io.File class.
- */
+inline val Player.isPlayEnabled
+    get() = (availableCommands.contains(Player.COMMAND_PLAY_PAUSE)) &&
+            (!playWhenReady)
 
-/**
- * Returns a Content Uri for the AlbumArtContentProvider
- */
-fun File.asAlbumArtContentUri(): Uri {
-    return Uri.Builder()
-        .scheme(ContentResolver.SCHEME_CONTENT)
-        .authority(AUTHORITY)
-        .appendPath(this.path)
-        .build()
-}
-
-private const val AUTHORITY = "com.example.android.uamp"
+inline val Player.isEnded
+    get() = playbackState == Player.STATE_ENDED

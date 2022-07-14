@@ -51,11 +51,10 @@ internal class AlbumArtContentProvider : ContentProvider() {
 
     override fun openFile(uri: Uri, mode: String): ParcelFileDescriptor? {
         val context = this.context ?: return null
-        val remoteUri = uriMap[uri] ?: throw FileNotFoundException(uri.path)
 
-        var file = File(context.cacheDir, uri.path)
-
+        var file = File(context.cacheDir, uri.path!!)
         if (!file.exists()) {
+            val remoteUri = uriMap[uri] ?: throw FileNotFoundException(uri.path)
             // Use Glide to download the album art.
             val cacheFile = Glide.with(context)
                 .asFile()

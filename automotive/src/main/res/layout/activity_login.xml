@@ -25,11 +25,11 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:src="@drawable/ic_launcher_foreground"
-        android:tint="@color/colorPrimary"
         app:layout_constraintBottom_toTopOf="@+id/email"
         app:layout_constraintLeft_toLeftOf="@id/email"
         app:layout_constraintRight_toRightOf="@id/email"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/colorPrimary" />
 
     <EditText
         android:id="@+id/email"

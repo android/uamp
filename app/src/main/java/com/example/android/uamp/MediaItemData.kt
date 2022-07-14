@@ -16,9 +16,7 @@
 
 package com.example.android.uamp
 
-import android.net.Uri
-import android.support.v4.media.MediaBrowserCompat
-import android.support.v4.media.MediaBrowserCompat.MediaItem
+import androidx.media3.common.MediaItem
 import androidx.recyclerview.widget.DiffUtil
 import com.example.android.uamp.viewmodels.MediaItemFragmentViewModel
 
@@ -26,18 +24,18 @@ import com.example.android.uamp.viewmodels.MediaItemFragmentViewModel
  * Data class to encapsulate properties of a [MediaItem].
  *
  * If an item is [browsable] it means that it has a list of child media items that
- * can be retrieved by passing the mediaId to [MediaBrowserCompat.subscribe].
+ * can be retrieved by passing the mediaId to [MusicServiceConnection].
  *
  * Objects of this class are built from [MediaItem]s in
  * [MediaItemFragmentViewModel.subscriptionCallback].
  */
 data class MediaItemData(
-    val mediaId: String,
-    val title: String,
-    val subtitle: String,
-    val albumArtUri: Uri,
+    val mediaItem: MediaItem,
     val browsable: Boolean,
-    var playbackRes: Int
+    var playbackRes: Int,
+    val parentMediaId: String?,
+    val title: String = mediaItem.mediaMetadata.title?.toString()?: "",
+    val subtitle: String = mediaItem.mediaMetadata.artist?.toString()?: ""
 ) {
 
     companion object {
@@ -71,10 +69,11 @@ data class MediaItemData(
                 oldItem: MediaItemData,
                 newItem: MediaItemData
             ): Boolean =
-                oldItem.mediaId == newItem.mediaId
+                oldItem.mediaItem.mediaId == newItem.mediaItem.mediaId
 
             override fun areContentsTheSame(oldItem: MediaItemData, newItem: MediaItemData) =
-                oldItem.mediaId == newItem.mediaId && oldItem.playbackRes == newItem.playbackRes
+                oldItem.mediaItem.mediaId == newItem.mediaItem.mediaId
+                        && oldItem.playbackRes == newItem.playbackRes
 
             override fun getChangePayload(oldItem: MediaItemData, newItem: MediaItemData) =
                 if (oldItem.playbackRes != newItem.playbackRes) {

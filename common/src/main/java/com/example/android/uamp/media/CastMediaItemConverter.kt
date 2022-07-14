@@ -2,11 +2,13 @@ package com.example.android.uamp.media
 
 import android.net.Uri
 import android.support.v4.media.MediaMetadataCompat
+import androidx.annotation.OptIn
+import androidx.media3.cast.DefaultMediaItemConverter
+import androidx.media3.cast.MediaItemConverter
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MimeTypes
+import androidx.media3.common.util.UnstableApi
 import com.example.android.uamp.media.library.JsonSource
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.ext.cast.DefaultMediaItemConverter
-import com.google.android.exoplayer2.ext.cast.MediaItemConverter
-import com.google.android.exoplayer2.util.MimeTypes
 import com.google.android.gms.cast.MediaInfo
 import com.google.android.gms.cast.MediaMetadata
 import com.google.android.gms.cast.MediaQueueItem
@@ -23,12 +25,14 @@ import com.google.android.gms.common.images.WebImage
  * are useless on a Cast device, so we need to use the original HTTP URI that the [JsonSource]
  * stores in the metadata extra with key `JsonSource.ORIGINAL_ARTWORK_URI_KEY`.
  */
+@OptIn(UnstableApi::class)
 internal class CastMediaItemConverter : MediaItemConverter {
 
     private val defaultMediaItemConverter = DefaultMediaItemConverter()
 
     override fun toMediaQueueItem(mediaItem: MediaItem): MediaQueueItem {
         val castMediaMetadata = MediaMetadata(MediaMetadata.MEDIA_TYPE_MUSIC_TRACK)
+        castMediaMetadata.putString("uamp.mediaid", mediaItem.mediaId)
         mediaItem.mediaMetadata.title?.let {
             castMediaMetadata.putString(MediaMetadata.KEY_TITLE, it.toString() )
         }
@@ -64,10 +68,12 @@ internal class CastMediaItemConverter : MediaItemConverter {
             bundle.getString(JsonSource.ORIGINAL_ARTWORK_URI_KEY)?.let {
                 castMediaMetadata.addImage(WebImage(Uri.parse(it)))
             }
-            mediaInfo.setStreamDuration(
-                bundle.getLong(MediaMetadataCompat.METADATA_KEY_DURATION,0))
+            mediaInfo.setStreamDuration(bundle.getLong(MediaMetadataCompat.METADATA_KEY_DURATION,0))
         }
         mediaInfo.setMetadata(castMediaMetadata)
+        defaultMediaItemConverter.toMediaQueueItem(mediaItem).customData?.let {
+            mediaInfo.setCustomData(it)
+        }
         return MediaQueueItem.Builder(mediaInfo.build()).build()
     }
 

@@ -19,26 +19,44 @@ package com.example.android.uamp.common
 import android.content.ComponentName
 import android.content.Context
 import android.os.Bundle
-import android.os.Handler
-import android.os.ResultReceiver
 import android.support.v4.media.MediaBrowserCompat
-import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
-import android.support.v4.media.session.PlaybackStateCompat
 import androidx.lifecycle.MutableLiveData
-import androidx.media.MediaBrowserServiceCompat
-import com.example.android.uamp.common.MusicServiceConnection.MediaBrowserConnectionCallback
-import com.example.android.uamp.media.NETWORK_FAILURE
-import com.example.android.uamp.media.extensions.id
+import androidx.media3.common.C
+import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS
+import androidx.media3.common.PlaybackException.ERROR_CODE_IO_CLEARTEXT_NOT_PERMITTED
+import androidx.media3.common.PlaybackException.ERROR_CODE_IO_INVALID_HTTP_CONTENT_TYPE
+import androidx.media3.common.PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED
+import androidx.media3.common.PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT
+import androidx.media3.common.Player
+import androidx.media3.common.Player.EVENT_MEDIA_ITEM_TRANSITION
+import androidx.media3.common.Player.EVENT_MEDIA_METADATA_CHANGED
+import androidx.media3.common.Player.EVENT_PLAYBACK_STATE_CHANGED
+import androidx.media3.common.Player.EVENT_PLAY_WHEN_READY_CHANGED
+import androidx.media3.session.MediaBrowser
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionCommand
+import androidx.media3.session.SessionToken
+import com.example.android.uamp.media.MusicService
+import com.google.common.collect.ImmutableList
+import com.google.common.util.concurrent.MoreExecutors
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.guava.await
+import kotlinx.coroutines.launch
+import kotlin.coroutines.CoroutineContext
 
 /**
- * Class that manages a connection to a [MediaBrowserServiceCompat] instance, typically a
+ * Class that manages a connection to a [MediaLibraryService] instance, typically a
  * [MusicService] or one of its subclasses.
  *
  * Typically it's best to construct/inject dependencies either using DI or, as UAMP does,
  * using [InjectorUtils] in the app module. There are a few difficulties for that here:
- * - [MediaBrowserCompat] is a final class, so mocking it directly is difficult.
+ * - [MediaBrowser] is a final class, so mocking it directly is difficult.
  * - A [MediaBrowserConnectionCallback] is a parameter into the construction of
  *   a [MediaBrowserCompat], and provides callbacks to this class.
  * - [MediaBrowserCompat.ConnectionCallback.onConnected] is the best place to construct
@@ -52,124 +70,100 @@ import com.example.android.uamp.media.extensions.id
  *  [MediaBrowserConnectionCallback] and [MediaBrowserCompat] objects.
  */
 class MusicServiceConnection(context: Context, serviceComponent: ComponentName) {
-    val isConnected = MutableLiveData<Boolean>()
-        .apply { postValue(false) }
+
+    val rootMediaItem = MutableLiveData<MediaItem>()
+        .apply { postValue(MediaItem.EMPTY) }
+    val playbackState = MutableLiveData<PlaybackState>()
+        .apply { postValue(EMPTY_PLAYBACK_STATE) }
+    val nowPlaying = MutableLiveData<MediaItem>()
+        .apply { postValue(NOTHING_PLAYING) }
+    val player: Player? get() = browser
+
     val networkFailure = MutableLiveData<Boolean>()
         .apply { postValue(false) }
 
-    val rootMediaId: String get() = mediaBrowser.root
+    private var browser: MediaBrowser? = null
+    private val playerListener: PlayerListener = PlayerListener()
 
-    val playbackState = MutableLiveData<PlaybackStateCompat>()
-        .apply { postValue(EMPTY_PLAYBACK_STATE) }
-    val nowPlaying = MutableLiveData<MediaMetadataCompat>()
-        .apply { postValue(NOTHING_PLAYING) }
+    private val coroutineContext: CoroutineContext = Dispatchers.Main
+    private val scope = CoroutineScope(coroutineContext + SupervisorJob())
 
-    val transportControls: MediaControllerCompat.TransportControls
-        get() = mediaController.transportControls
-
-    private val mediaBrowserConnectionCallback = MediaBrowserConnectionCallback(context)
-    private val mediaBrowser = MediaBrowserCompat(
-        context,
-        serviceComponent,
-        mediaBrowserConnectionCallback, null
-    ).apply { connect() }
-    private lateinit var mediaController: MediaControllerCompat
-
-    fun subscribe(parentId: String, callback: MediaBrowserCompat.SubscriptionCallback) {
-        mediaBrowser.subscribe(parentId, callback)
+    init {
+        scope.launch {
+            val newBrowser =
+                MediaBrowser.Builder(context, SessionToken(context, serviceComponent))
+                    .setListener(BrowserListener())
+                    .buildAsync()
+                    .await()
+            newBrowser.addListener(playerListener)
+            browser = newBrowser
+            rootMediaItem.postValue(
+                newBrowser.getLibraryRoot(/* params= */ null).await().value
+            )
+            newBrowser.currentMediaItem?.let {
+                nowPlaying.postValue(it)
+            }
+        }
     }
 
-    fun unsubscribe(parentId: String, callback: MediaBrowserCompat.SubscriptionCallback) {
-        mediaBrowser.unsubscribe(parentId, callback)
+    suspend fun getChildren(parentId: String): ImmutableList<MediaItem> {
+        return this.browser?.getChildren(parentId, 0, 100, null)?.await()?.value
+            ?: ImmutableList.of()
     }
 
-    fun sendCommand(command: String, parameters: Bundle?) =
+    suspend fun sendCommand(command: String, parameters: Bundle?):Boolean =
         sendCommand(command, parameters) { _, _ -> }
 
-    fun sendCommand(
+    suspend fun sendCommand(
         command: String,
         parameters: Bundle?,
         resultCallback: ((Int, Bundle?) -> Unit)
-    ) = if (mediaBrowser.isConnected) {
-        mediaController.sendCommand(command, parameters, object : ResultReceiver(Handler()) {
-            override fun onReceiveResult(resultCode: Int, resultData: Bundle?) {
-                resultCallback(resultCode, resultData)
-            }
-        })
+    ):Boolean = if (browser?.isConnected == true) {
+        val args = parameters ?: Bundle()
+        browser?.sendCustomCommand(SessionCommand(command, args), args)?.await()?.let {
+            resultCallback(it.resultCode, it.extras)
+        }
         true
     } else {
         false
     }
 
-    private inner class MediaBrowserConnectionCallback(private val context: Context) :
-        MediaBrowserCompat.ConnectionCallback() {
-        /**
-         * Invoked after [MediaBrowserCompat.connect] when the request has successfully
-         * completed.
-         */
-        override fun onConnected() {
-            // Get a MediaController for the MediaSession.
-            mediaController = MediaControllerCompat(context, mediaBrowser.sessionToken).apply {
-                registerCallback(MediaControllerCallback())
-            }
-
-            isConnected.postValue(true)
+    fun release() {
+        rootMediaItem.postValue(MediaItem.EMPTY)
+        nowPlaying.postValue(NOTHING_PLAYING)
+        browser?.let {
+            it.removeListener(playerListener)
+            it.release()
         }
-
-        /**
-         * Invoked when the client is disconnected from the media browser.
-         */
-        override fun onConnectionSuspended() {
-            isConnected.postValue(false)
-        }
-
-        /**
-         * Invoked when the connection to the media browser failed.
-         */
-        override fun onConnectionFailed() {
-            isConnected.postValue(false)
-        }
+        instance = null
     }
 
-    private inner class MediaControllerCallback : MediaControllerCompat.Callback() {
-
-        override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
-            playbackState.postValue(state ?: EMPTY_PLAYBACK_STATE)
-        }
-
-        override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
-            // When ExoPlayer stops we will receive a callback with "empty" metadata. This is a
-            // metadata object which has been instantiated with default values. The default value
-            // for media ID is null so we assume that if this value is null we are not playing
-            // anything.
-            nowPlaying.postValue(
-                if (metadata?.id == null) {
-                    NOTHING_PLAYING
-                } else {
-                    metadata
-                }
+    private fun updatePlaybackState(player: Player) {
+        playbackState.postValue(
+            PlaybackState(
+                player.playbackState,
+                player.playWhenReady,
+                player.duration
             )
-        }
+        )
+    }
 
-        override fun onQueueChanged(queue: MutableList<MediaSessionCompat.QueueItem>?) {
+    private fun updateNowPlaying(player: Player) {
+        val mediaItem = player.currentMediaItem ?: MediaItem.EMPTY
+        if (mediaItem == MediaItem.EMPTY) {
+            return
         }
-
-        override fun onSessionEvent(event: String?, extras: Bundle?) {
-            super.onSessionEvent(event, extras)
-            when (event) {
-                NETWORK_FAILURE -> networkFailure.postValue(true)
-            }
-        }
-
-        /**
-         * Normally if a [MediaBrowserServiceCompat] drops its connection the callback comes via
-         * [MediaControllerCompat.Callback] (here). But since other connection status events
-         * are sent to [MediaBrowserCompat.ConnectionCallback], we catch the disconnect here and
-         * send it on to the other callback.
-         */
-        override fun onSessionDestroyed() {
-            mediaBrowserConnectionCallback.onConnectionSuspended()
-        }
+        // The current media item from the CastPlayer may have lost some information.
+        val mediaItemFuture = browser!!.getItem(mediaItem.mediaId)
+        mediaItemFuture.addListener(
+            Runnable {
+                val fullMediaItem = mediaItemFuture.get().value ?: return@Runnable
+                nowPlaying.postValue(
+                    mediaItem.buildUpon().setMediaMetadata(fullMediaItem.mediaMetadata).build()
+                )
+            },
+            MoreExecutors.directExecutor()
+        )
     }
 
     companion object {
@@ -183,15 +177,58 @@ class MusicServiceConnection(context: Context, serviceComponent: ComponentName) 
                     .also { instance = it }
             }
     }
+
+    private inner class BrowserListener : MediaBrowser.Listener {
+        override fun onDisconnected(controller: MediaController) {
+            release()
+        }
+    }
+
+    private inner class PlayerListener : Player.Listener {
+        override fun onEvents(player: Player, events: Player.Events) {
+            if (events.contains(EVENT_PLAY_WHEN_READY_CHANGED)
+                || events.contains(EVENT_PLAYBACK_STATE_CHANGED)
+                || events.contains(EVENT_MEDIA_ITEM_TRANSITION)) {
+                updatePlaybackState(player)
+                if (player.playbackState != Player.STATE_IDLE) {
+                    networkFailure.postValue(false)
+                }
+            }
+            if (events.contains(EVENT_MEDIA_METADATA_CHANGED)
+                || events.contains(EVENT_MEDIA_ITEM_TRANSITION)
+                || events.contains(EVENT_PLAY_WHEN_READY_CHANGED)) {
+                updateNowPlaying(player)
+            }
+        }
+
+        override fun onPlayerErrorChanged(error: PlaybackException?) {
+            when(error?.errorCode) {
+                ERROR_CODE_IO_BAD_HTTP_STATUS,
+                ERROR_CODE_IO_INVALID_HTTP_CONTENT_TYPE,
+                ERROR_CODE_IO_CLEARTEXT_NOT_PERMITTED,
+                ERROR_CODE_IO_NETWORK_CONNECTION_FAILED,
+                ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT -> {
+                    networkFailure.postValue(true)
+                }
+            }
+        }
+    }
+}
+
+class PlaybackState(
+    private val playbackState: Int = Player.STATE_IDLE,
+    private val playWhenReady: Boolean = false,
+    val duration: Long = C.TIME_UNSET) {
+    val isPlaying: Boolean
+        get() {
+            return (playbackState == Player.STATE_BUFFERING
+                    || playbackState == Player.STATE_READY)
+                    && playWhenReady
+        }
 }
 
 @Suppress("PropertyName")
-val EMPTY_PLAYBACK_STATE: PlaybackStateCompat = PlaybackStateCompat.Builder()
-    .setState(PlaybackStateCompat.STATE_NONE, 0, 0f)
-    .build()
+val EMPTY_PLAYBACK_STATE: PlaybackState = PlaybackState()
 
 @Suppress("PropertyName")
-val NOTHING_PLAYING: MediaMetadataCompat = MediaMetadataCompat.Builder()
-    .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, "")
-    .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, 0)
-    .build()
+val NOTHING_PLAYING: MediaItem = MediaItem.EMPTY

@@ -40,3 +40,16 @@ if (extraSettings.exists()) {
 }
 
 include ':app', ':common', ':automotive'
+
+// You can link directly to a local AndroidX Media3 Git repository that you cloned locally.
+// Set `androidx.media3.dir` to the path to the root dir of the repository in `local.properties`.
+File localPropertyFile = new File(rootDir.toString() + '/local.properties')
+if (localPropertyFile.canRead()) {
+    Properties properties = new Properties()
+    properties.load(localPropertyFile.newDataInputStream())
+    String androidxMediaSourceRepositoryDir= properties.getProperty("androidx.media3.dir", null)
+    if (androidxMediaSourceRepositoryDir != null) {
+        gradle.ext.androidxMediaModulePrefix = ''
+        apply from: file("$androidxMediaSourceRepositoryDir/core_settings.gradle")
+    }
+}

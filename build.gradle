@@ -19,33 +19,32 @@
 buildscript {
     ext {
         // App SDK versions.
-        compileSdkVersion = 30
+        compileSdkVersion = 31
         minSdkVersion = 19
-        targetSdkVersion = 30
+        targetSdkVersion = 31
 
         // Dependency versions.
-        androidx_app_compat_version = '1.2.0'
+        androidx_app_compat_version = '1.4.1'
         androidx_car_version = '1.0.0-alpha7'
-        androidx_core_ktx_version = '1.3.1'
-        androidx_media_version = '1.0.1'
-        androidx_preference_version = '1.1.1'
-        androidx_test_runner_version = '1.3.0'
+        androidx_media_version = '1.5.0'
+        androidx_media3_version =  '1.0.0-beta01'
+        androidx_preference_version = '1.2.0'
+        androidx_test_runner_version = '1.4.0'
         arch_lifecycle_version = '2.2.0'
-        constraint_layout_version = '2.0.1'
-        espresso_version = '3.3.0'
-        exoplayer_version = '2.16.0'
-        fragment_version = '1.2.5'
-        glide_version = '4.11.0'
+        constraint_layout_version = '2.1.3'
+        espresso_version = '3.4.0'
+        fragment_version = '1.4.1'
+        glide_version = '4.12.0'
         gms_strict_version_matcher_version = '1.0.3'
         gradle_version = '3.1.4'
-        gson_version = '2.8.5'
-        junit_version = '4.13'
-        kotlin_version = '1.3.72'
-        kotlin_coroutines_version = '1.1.0'
+        gson_version = '2.8.6'
+        junit_version = '4.13.2'
+        kotlin_version = '1.6.10'
+        kotlin_coroutines_version = '1.5.2'
         multidex_version = '1.0.3'
-        play_services_auth_version = '18.1.0'
+        play_services_auth_version = '20.1.0'
         recycler_view_version = '1.1.0'
-        robolectric_version = '4.2'
+        robolectric_version = '4.7.3'
         test_runner_version = '1.1.0'
     }
 
@@ -54,7 +53,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.0.1'
+        classpath 'com.android.tools.build:gradle:7.0.4'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "com.google.android.gms:strict-version-matcher-plugin:$gms_strict_version_matcher_version"
 
@@ -67,6 +66,11 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+    }
+    String homeDir = System.getProperty("user.home")
+    if (homeDir.startsWith("/usr/local/google")) {
+        String buildOutRootDir = "${homeDir}/.uampBuildOut"
+        buildDir = "${buildOutRootDir}/${project.name}/build"
     }
 }
 

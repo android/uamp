@@ -25,15 +25,18 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import androidx.media3.common.C
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
 import com.example.android.uamp.MainActivity
 import com.example.android.uamp.MediaItemData
 import com.example.android.uamp.common.MusicServiceConnection
 import com.example.android.uamp.fragments.NowPlayingFragment
-import com.example.android.uamp.media.extensions.id
+import com.example.android.uamp.media.extensions.isEnded
 import com.example.android.uamp.media.extensions.isPlayEnabled
-import com.example.android.uamp.media.extensions.isPlaying
-import com.example.android.uamp.media.extensions.isPrepared
 import com.example.android.uamp.utils.Event
+import kotlinx.coroutines.launch
 
 /**
  * Small [ViewModel] that watches a [MusicServiceConnection] to become connected
@@ -43,13 +46,11 @@ class MainActivityViewModel(
     private val musicServiceConnection: MusicServiceConnection
 ) : ViewModel() {
 
-    val rootMediaId: LiveData<String> =
-        Transformations.map(musicServiceConnection.isConnected) { isConnected ->
-            if (isConnected) {
-                musicServiceConnection.rootMediaId
-            } else {
-                null
-            }
+    private lateinit var lastBrowsableMediaId: String
+
+    val rootMediaItem: LiveData<MediaItem> =
+        Transformations.map(musicServiceConnection.rootMediaItem) { rootMediaItem ->
+            if (rootMediaItem != MediaItem.EMPTY) rootMediaItem else null
         }
 
     /**
@@ -80,7 +81,7 @@ class MainActivityViewModel(
         if (clickedItem.browsable) {
             browseToItem(clickedItem)
         } else {
-            playMedia(clickedItem, pauseAllowed = false)
+            playMedia(clickedItem.mediaItem, false, clickedItem.parentMediaId)
             showFragment(NowPlayingFragment.newInstance())
         }
     }
@@ -102,60 +103,64 @@ class MainActivityViewModel(
      * This posts a browse [Event] that will be handled by the
      * observer in [MainActivity].
      */
-    private fun browseToItem(mediaItem: MediaItemData) {
-        _navigateToMediaItem.value = Event(mediaItem.mediaId)
+    private fun browseToItem(mediaItemData: MediaItemData) {
+        if (mediaItemData.browsable) {
+            lastBrowsableMediaId = mediaItemData.mediaItem.mediaId
+        }
+        _navigateToMediaItem.value = Event(mediaItemData.mediaItem.mediaId)
     }
 
     /**
-     * This method takes a [MediaItemData] and does one of the following:
-     * - If the item is *not* the active item, then play it directly.
-     * - If the item *is* the active item, check whether "pause" is a permitted command. If it is,
-     *   then pause playback, otherwise send "play" to resume playback.
+     * Play media.
+     *
+     * @param mediaItem The media item to play.
+     * @param pauseThenPlaying Whether to pause playing when the item is already being played.
+     * @param parentMediaId The media item to load the its children and set them as playlist.
      */
-    fun playMedia(mediaItem: MediaItemData, pauseAllowed: Boolean = true) {
+    fun playMedia(
+        mediaItem: MediaItem,
+        pauseThenPlaying: Boolean = true,
+        parentMediaId: String? = null
+    ) {
         val nowPlaying = musicServiceConnection.nowPlaying.value
-        val transportControls = musicServiceConnection.transportControls
+        val player = musicServiceConnection.player?: return
 
-        val isPrepared = musicServiceConnection.playbackState.value?.isPrepared ?: false
-        if (isPrepared && mediaItem.mediaId == nowPlaying?.id) {
-            musicServiceConnection.playbackState.value?.let { playbackState ->
-                when {
-                    playbackState.isPlaying ->
-                        if (pauseAllowed) transportControls.pause() else Unit
-                    playbackState.isPlayEnabled -> transportControls.play()
-                    else -> {
-                        Log.w(
-                            TAG, "Playable item clicked but neither play nor pause are enabled!" +
-                                    " (mediaId=${mediaItem.mediaId})"
-                        )
-                    }
+        val isPrepared = player.playbackState != Player.STATE_IDLE
+        if (isPrepared && mediaItem.mediaId == nowPlaying?.mediaId) {
+            when {
+                player.isPlaying ->
+                    if (pauseThenPlaying) player.pause() else Unit
+                player.isPlayEnabled -> player.play()
+                player.isEnded -> player.seekTo(C.TIME_UNSET)
+                else -> {
+                    Log.w(
+                        TAG, "Playable item clicked but neither play nor pause are enabled!" +
+                                " (mediaId=${mediaItem.mediaId})"
+                    )
                 }
             }
         } else {
-            transportControls.playFromMediaId(mediaItem.mediaId, null)
-        }
-    }
-
-    fun playMediaId(mediaId: String) {
-        val nowPlaying = musicServiceConnection.nowPlaying.value
-        val transportControls = musicServiceConnection.transportControls
-
-        val isPrepared = musicServiceConnection.playbackState.value?.isPrepared ?: false
-        if (isPrepared && mediaId == nowPlaying?.id) {
-            musicServiceConnection.playbackState.value?.let { playbackState ->
-                when {
-                    playbackState.isPlaying -> transportControls.pause()
-                    playbackState.isPlayEnabled -> transportControls.play()
-                    else -> {
-                        Log.w(
-                            TAG, "Playable item clicked but neither play nor pause are enabled!" +
-                                    " (mediaId=$mediaId)"
-                        )
-                    }
+            viewModelScope.launch {
+                var playlist: MutableList<MediaItem> = arrayListOf()
+                // load the children of the parent if requested
+                parentMediaId?.let {
+                    playlist = musicServiceConnection.getChildren(parentMediaId).let { children ->
+                        children.filter {
+                            it.mediaMetadata.isPlayable ?: false
+                        }
+                    }.toMutableList()
                 }
+                if (playlist.isEmpty()) {
+                    playlist.add(mediaItem)
+                }
+                val indexOf = playlist.indexOf(mediaItem)
+                val startWindowIndex = if (indexOf >= 0) indexOf else 0
+                player.setMediaItems(
+                    playlist, startWindowIndex, /* startPositionMs= */ C.TIME_UNSET
+                )
+                player.prepare()
+                player.play()
             }
-        } else {
-            transportControls.playFromMediaId(mediaId, null)
         }
     }
 

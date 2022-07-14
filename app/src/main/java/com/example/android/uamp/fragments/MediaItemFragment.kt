@@ -50,7 +50,6 @@ class MediaItemFragment : Fragment() {
 
     companion object {
         fun newInstance(mediaId: String): MediaItemFragment {
-
             return MediaItemFragment().apply {
                 arguments = Bundle().apply {
                     putString(MEDIA_ID_ARG, mediaId)
