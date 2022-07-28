@@ -18,6 +18,7 @@ package com.example.android.uamp.media.library
 
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.MimeTypes
@@ -143,8 +144,10 @@ fun MediaMetadata.Builder.from(jsonMusic: JsonMusic): MediaMetadata.Builder {
     // The duration from the JSON is given in seconds, but the rest of the code works in
     // milliseconds. Here's where we convert to the proper units.
     val durationMs = TimeUnit.SECONDS.toMillis(jsonMusic.duration)
+    Log.d("DURATIONMS", durationMs.toString())
     val bundle = Bundle()
     bundle.putLong("durationMs", durationMs)
+    setExtras(bundle)
     return this
 }
 

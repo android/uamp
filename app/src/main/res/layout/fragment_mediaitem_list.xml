@@ -14,37 +14,43 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+<androidx.compose.ui.platform.ComposeView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"/>
+<!--<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
+<!--    xmlns:app="http://schemas.android.com/apk/res-auto"-->
+<!--    xmlns:tools="http://schemas.android.com/tools"-->
+<!--    android:layout_width="match_parent"-->
+<!--    android:layout_height="match_parent">-->
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/list"
-        android:name="com.example.android.uamp.MediaItemFragment"
-        style="@style/MediaItemList"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        tools:context="com.example.android.uamp.fragments.MediaItemFragment"
-        tools:listitem="@layout/fragment_mediaitem" />
+<!--    <androidx.recyclerview.widget.RecyclerView-->
+<!--        android:id="@+id/list"-->
+<!--        android:name="com.example.android.uamp.MediaItemFragment"-->
+<!--        style="@style/MediaItemList"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="match_parent"-->
+<!--        android:orientation="vertical"-->
+<!--        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"-->
+<!--        tools:context="com.example.android.uamp.fragments.MediaItemFragment"-->
+<!--        tools:listitem="@layout/fragment_mediaitem" />-->
 
-    <ProgressBar
-        android:id="@+id/loadingSpinner"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center" />
+<!--    <ProgressBar-->
+<!--        android:id="@+id/loadingSpinner"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_gravity="center" />-->
 
-    <ImageView
-        android:id="@+id/networkError"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        android:layout_gravity="center"
-        android:visibility="gone"
-        app:srcCompat="@drawable/ic_signal_wifi_off_black_24dp"
-        app:tint="@color/colorAccent" />
+<!--    <ImageView-->
+<!--        android:id="@+id/networkError"-->
+<!--        android:layout_width="64dp"-->
+<!--        android:layout_height="64dp"-->
+<!--        android:layout_gravity="center"-->
+<!--        android:visibility="gone"-->
+<!--        app:srcCompat="@drawable/ic_signal_wifi_off_black_24dp"-->
+<!--        app:tint="@color/colorAccent" />-->
 
-</FrameLayout>
+<!--</FrameLayout>-->
 

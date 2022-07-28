@@ -47,6 +47,10 @@ android {
     buildFeatures {
         viewBinding true
         dataBinding true
+        compose true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion compose_version
     }
 
     buildTypes {
@@ -72,7 +76,20 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-extensions:$arch_lifecycle_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-guava:$kotlin_coroutines_version"
 
+    //Compose dependencies
+    implementation "androidx.compose.runtime:runtime:$compose_version"
+    implementation "androidx.compose.ui:ui:$compose_version"
+    implementation "androidx.compose.foundation:foundation:$compose_version"
+    implementation "androidx.compose.foundation:foundation-layout:$compose_version"
+    implementation "androidx.compose.material:material:$compose_version"
+    implementation "androidx.compose.runtime:runtime-livedata:$compose_version"
+    implementation "androidx.compose.ui:ui-tooling:$compose_version"
+    implementation "com.google.android.material:compose-theme-adapter:1.1.5"
+    implementation "io.coil-kt:coil-compose:2.1.0"
+
     // Glide dependencies
     implementation "com.github.bumptech.glide:glide:$glide_version"
     kapt "com.github.bumptech.glide:compiler:$glide_version"
+
+
 }

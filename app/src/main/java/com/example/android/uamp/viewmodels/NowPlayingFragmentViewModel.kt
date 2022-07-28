@@ -53,9 +53,11 @@ class NowPlayingFragmentViewModel(
     val mediaDuration = MutableLiveData<Long>().apply {
         postValue(0L)
     }
+    // Painter resource for the play/pause button in the playback navbar
     val mediaButtonRes = MutableLiveData<Int>().apply {
         postValue(R.drawable.ic_album_black_24dp)
     }
+    val isPlaying = MutableLiveData<Boolean>(false)
 
     private var updatePosition = true
     private val handler = Handler(Looper.getMainLooper())
@@ -131,7 +133,7 @@ class NowPlayingFragmentViewModel(
 
     private fun updateState(
         playbackState: PlaybackState,
-        mediaItem: MediaItem
+        mediaItem: MediaItem,
     ) {
 
         // Only update media item once we have duration available
@@ -141,7 +143,9 @@ class NowPlayingFragmentViewModel(
 
         mediaDuration.postValue(playbackState.duration)
 
-        // Update the media button resource ID
+        isPlaying.postValue(playbackState.isPlaying)
+
+        //Update the media button resource ID
         mediaButtonRes.postValue(
             when (playbackState.isPlaying) {
                 true -> R.drawable.ic_pause_black_24dp

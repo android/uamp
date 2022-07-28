@@ -20,12 +20,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
-import com.example.android.uamp.MediaItemAdapter
-import com.example.android.uamp.databinding.FragmentMediaitemListBinding
+import com.example.android.uamp.theme.UAMPTheme
 import com.example.android.uamp.utils.InjectorUtils
 import com.example.android.uamp.viewmodels.MainActivityViewModel
 import com.example.android.uamp.viewmodels.MediaItemFragmentViewModel
@@ -42,11 +42,11 @@ class MediaItemFragment : Fragment() {
     }
 
     private lateinit var mediaId: String
-    private lateinit var binding: FragmentMediaitemListBinding
+//    private lateinit var binding: FragmentMediaitemListBinding
 
-    private val listAdapter = MediaItemAdapter { clickedItem ->
-        mainActivityViewModel.mediaItemClicked(clickedItem)
-    }
+//    private val listAdapter = MediaItemAdapter { clickedItem ->
+//        mainActivityViewModel.mediaItemClicked(clickedItem)
+//    }
 
     companion object {
         fun newInstance(mediaId: String): MediaItemFragment {
@@ -58,39 +58,55 @@ class MediaItemFragment : Fragment() {
         }
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        mediaId = arguments?.getString(MEDIA_ID_ARG) ?: return
+
+    }
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        binding = FragmentMediaitemListBinding.inflate(inflater, container, false)
-        return binding.root
-    }
-
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-
-        // Always true, but lets lint know that as well.
-        mediaId = arguments?.getString(MEDIA_ID_ARG) ?: return
-
-        mediaItemFragmentViewModel.mediaItems.observe(viewLifecycleOwner,
-            Observer { list ->
-                binding.loadingSpinner.visibility =
-                    if (list?.isNotEmpty() == true) View.GONE else View.VISIBLE
-                listAdapter.submitList(list)
-            })
-        mediaItemFragmentViewModel.networkError.observe(viewLifecycleOwner,
-            Observer { error ->
-                if (error) {
-                    binding.loadingSpinner.visibility = View.GONE
-                    binding.networkError.visibility = View.VISIBLE
-                } else {
-                    binding.networkError.visibility = View.GONE
+    ): ComposeView {
+        return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                UAMPTheme {
+                    // Redirect to compose
+                    MediaItemDescription(mediaItemFragmentViewModel, mainActivityViewModel)
                 }
-            })
+            }
+        }
 
-        // Set the adapter
-        binding.list.adapter = listAdapter
+
+//
+//    override fun onActivityCreated(savedInstanceState: Bundle?) {
+//        super.onActivityCreated(savedInstanceState)
+//
+//        // Always true, but lets lint know that as well.
+//        mediaId = arguments?.getString(MEDIA_ID_ARG) ?: return
+//    }
+//
+//        mediaItemFragmentViewModel.mediaItems.observe(viewLifecycleOwner,
+//            Observer { list ->
+//                binding.loadingSpinner.visibility =
+//                    if (list?.isNotEmpty() == true) View.GONE else View.VISIBLE
+//                listAdapter.submitList(list)
+//            })
+//        mediaItemFragmentViewModel.networkError.observe(viewLifecycleOwner,
+//            Observer { error ->
+//                if (error) {
+//                    binding.loadingSpinner.visibility = View.GONE
+//                    binding.networkError.visibility = View.VISIBLE
+//                } else {
+//                    binding.networkError.visibility = View.GONE
+//                }
+//            })
+//
+//        // Set the adapter
+//        binding.list.adapter = listAdapter
+
     }
+
 }
 
-private const val MEDIA_ID_ARG = "com.example.android.uamp.fragments.MediaItemFragment.MEDIA_ID"
+private val MEDIA_ID_ARG = "com.example.android.uamp.fragments.MediaItemFragment.MEDIA_ID"

@@ -47,6 +47,7 @@ class MainActivityViewModel(
 ) : ViewModel() {
 
     private lateinit var lastBrowsableMediaId: String
+    var playbackState = musicServiceConnection.playbackState
 
     val rootMediaItem: LiveData<MediaItem> =
         Transformations.map(musicServiceConnection.rootMediaItem) { rootMediaItem ->

@@ -18,7 +18,6 @@ package com.example.android.uamp
 
 import android.media.AudioManager
 import android.os.Bundle
-import android.view.Menu
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
@@ -28,7 +27,6 @@ import com.example.android.uamp.media.MusicService
 import com.example.android.uamp.utils.Event
 import com.example.android.uamp.utils.InjectorUtils
 import com.example.android.uamp.viewmodels.MainActivityViewModel
-import com.google.android.gms.cast.framework.CastButtonFactory
 import com.google.android.gms.cast.framework.CastContext
 
 class MainActivity : AppCompatActivity() {
@@ -87,19 +85,19 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    @Override
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        super.onCreateOptionsMenu(menu)
-        menuInflater.inflate(R.menu.main_activity_menu, menu)
-
-        /**
-         * Set up a MediaRouteButton to allow the user to control the current media playback route
-         */
-        menu?.let {
-            CastButtonFactory.setUpMediaRouteButton(this, menu, R.id.media_route_menu_item)
-        }
-        return true
-    }
+//    @Override
+//    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+//        super.onCreateOptionsMenu(menu)
+//        menuInflater.inflate(R.menu.main_activity_menu, menu)
+//
+//        /**
+//         * Set up a MediaRouteButton to allow the user to control the current media playback route
+//         */
+//        menu?.let {
+//            CastButtonFactory.setUpMediaRouteButton(this, menu, R.id.media_route_menu_item)
+//        }
+//        return true
+//    }
 
     private fun navigateToMediaItem(mediaId: String) {
         var fragment: MediaItemFragment? = getBrowseFragment(mediaId)
