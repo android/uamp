@@ -12,14 +12,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
+import androidx.compose.material.TopAppBar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -65,16 +71,6 @@ private fun NowPlaying(
     nowPlayingFragmentViewModel: NowPlayingFragmentViewModel,
     mainActivityViewModel: MainActivityViewModel
 ) {
-    val playArrow = painterResource(id = R.drawable.ic_play_arrow_black_24dp)
-    val pause = painterResource(id = R.drawable.ic_pause_black_24dp)
-    //val buttonRes = nowPlayingFragmentViewModel.mediaButtonRes
-    val title = mediaItem.mediaMetadata.title.toString()
-    val artist = mediaItem.mediaMetadata.artist.toString()
-
-
-    //val duration = nowPlayingFragmentViewModel.mediaDuration.value
-    //val position = nowPlayingFragmentViewModel.mediaPosition.value
-    //mainActivityViewModel.playMedia(mediaItem)
 
 
     val position: Long? by nowPlayingFragmentViewModel.mediaPosition.observeAsState(0)
@@ -91,14 +87,43 @@ private fun NowPlaying(
     val durationMinute = (duration!!.div(1000)).div(60)
     val durationSecond = "%02d".format((duration!!.div(1000)).mod(60))
 
-
-
+    val buttonHeight = dimensionResource(id = R.dimen.exo_media_button_height)
     val buttonWidth = dimensionResource(id = R.dimen.exo_media_button_width)
     val margins = dimensionResource(id = R.dimen.text_margin)
 
     val mediaItemArtwork = mediaItem.mediaMetadata.artworkUri
 
+
+
     Column() {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
+        ) {
+            TopAppBar(
+                title = { Text("") },
+                navigationIcon = {
+                    IconButton(onClick = { /* doSomething() */ }) {
+                        Icon(Icons.Filled.Settings, contentDescription = null)
+                    }
+                },
+                backgroundColor = Color.White
+            )
+            //AppBar()
+//            Button(
+//                onClick = {
+//
+//                },
+//                colors = ButtonDefaults.buttonColors(backgroundColor = Color.White),
+//                border = BorderStroke(1.dp, Color.Black)
+//            ) {
+//
+//                Image(
+//                    painter = painterResource(id = R.drawable.baseline_settings_24),
+//                    contentDescription = null
+//                )
+//            }
+        }
 
         AsyncImage(
             model = mediaItemArtwork,
@@ -115,7 +140,7 @@ private fun NowPlaying(
                 modifier = Modifier
                     //.fillMaxWidth()
                     .width(buttonWidth)
-                    .clickable {
+                    .clickable(){
                         mainActivityViewModel.playMedia(
                             mediaItem
                         )
@@ -158,6 +183,18 @@ private fun NowPlaying(
     }
 
 }
+//@Composable
+//fun AppBar(){
+//    TopAppBar(
+//        title = { Text("") },
+//        navigationIcon = {
+//            IconButton(onClick = { /* doSomething() */ }) {
+//                Icon(Icons.Filled.Settings, contentDescription = null)
+//            }
+//        },
+//        backgroundColor = Color.White
+//    )
+//}
 
 //@Preview
 //@Composable

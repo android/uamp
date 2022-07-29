@@ -53,7 +53,7 @@ class NowPlayingFragmentViewModel(
     val mediaDuration = MutableLiveData<Long>().apply {
         postValue(0L)
     }
-    // Painter resource for the play/pause button in the playback navbar
+    // Painter resource for the play/pause button in the playback bar
     val mediaButtonRes = MutableLiveData<Int>().apply {
         postValue(R.drawable.ic_album_black_24dp)
     }
@@ -160,7 +160,7 @@ class NowPlayingFragmentViewModel(
     ) : ViewModelProvider.NewInstanceFactory() {
 
         @Suppress("unchecked_cast")
-        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
             return NowPlayingFragmentViewModel(app, musicServiceConnection) as T
         }
     }
