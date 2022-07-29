@@ -36,6 +36,7 @@ import com.example.android.uamp.R
 import com.example.android.uamp.viewmodels.MainActivityViewModel
 import com.example.android.uamp.viewmodels.NowPlayingFragmentViewModel
 
+
 @Composable //stateful
 fun NowPlayingDescription(
     nowPlayingFragmentViewModel: NowPlayingFragmentViewModel,
@@ -76,7 +77,6 @@ private fun NowPlaying(
     val position: Long? by nowPlayingFragmentViewModel.mediaPosition.observeAsState(0)
     val duration: Long? by nowPlayingFragmentViewModel.mediaDuration.observeAsState(0)
     val buttonRes: Int? by nowPlayingFragmentViewModel.mediaButtonRes.observeAsState()
-    //val isPlaying by nowPlayingFragmentViewModel.isPlaying.observeAsState()
 
     Log.d("DURATION", "${duration}")
     Log.d("POSITION", "${position}")
@@ -87,7 +87,6 @@ private fun NowPlaying(
     val durationMinute = (duration!!.div(1000)).div(60)
     val durationSecond = "%02d".format((duration!!.div(1000)).mod(60))
 
-    val buttonHeight = dimensionResource(id = R.dimen.exo_media_button_height)
     val buttonWidth = dimensionResource(id = R.dimen.exo_media_button_width)
     val margins = dimensionResource(id = R.dimen.text_margin)
 
@@ -109,20 +108,6 @@ private fun NowPlaying(
                 },
                 backgroundColor = Color.White
             )
-            //AppBar()
-//            Button(
-//                onClick = {
-//
-//                },
-//                colors = ButtonDefaults.buttonColors(backgroundColor = Color.White),
-//                border = BorderStroke(1.dp, Color.Black)
-//            ) {
-//
-//                Image(
-//                    painter = painterResource(id = R.drawable.baseline_settings_24),
-//                    contentDescription = null
-//                )
-//            }
         }
 
         AsyncImage(
@@ -138,9 +123,8 @@ private fun NowPlaying(
                 painter = painterResource(id = buttonRes!!),
                 contentDescription = null,
                 modifier = Modifier
-                    //.fillMaxWidth()
                     .width(buttonWidth)
-                    .clickable(){
+                    .clickable{
                         mainActivityViewModel.playMedia(
                             mediaItem
                         )
@@ -181,25 +165,5 @@ private fun NowPlaying(
             }
         }
     }
-
 }
-//@Composable
-//fun AppBar(){
-//    TopAppBar(
-//        title = { Text("") },
-//        navigationIcon = {
-//            IconButton(onClick = { /* doSomething() */ }) {
-//                Icon(Icons.Filled.Settings, contentDescription = null)
-//            }
-//        },
-//        backgroundColor = Color.White
-//    )
-//}
-
-//@Preview
-//@Composable
-//private fun NowPlayingPreview() {
-//    NowPlaying()
-//}
-
 
