@@ -1,8 +1,10 @@
 package com.example.android.uamp.fragments
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Icon
@@ -23,18 +25,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.android.uamp.R
 
 @Composable
-fun SettingsScreenDescription() {
+fun SettingsScreenDescription(navController: NavController) {
     val mCheckedValue = remember { mutableStateOf(false) }
-    Column(verticalArrangement = Arrangement.Center) {
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .background(color = colorResource(id = R.color.nowPlayingWhiteBackground))) {
         TopAppBar(
-            title = { Text("Settings") },
+            title = { Text("Settings", style = MaterialTheme.typography.h5) },
             navigationIcon = {
-                IconButton(onClick = { /* doSomething() */ }) {
+                IconButton(onClick = { navController.navigate("nowplaying") }) {
                     Icon(Icons.Filled.ArrowBack, contentDescription = null)
                 }
             },
@@ -50,7 +54,7 @@ fun SettingsScreenDescription() {
             ) {
                 Text(
                     text = "Enable Spatial Audio", modifier = Modifier
-                        .weight(2f), style = MaterialTheme.typography.subtitle1
+                        .weight(2f)
                 )
                 Switch(
                     checked = mCheckedValue.value,
@@ -66,30 +70,13 @@ fun SettingsScreenDescription() {
 
         }
     }
-
-
-//    val mCheckedState = remember { mutableStateOf(false) }
-//
-//    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-//        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-//            Text(text = "Enable Spatial Audio", modifier = Modifier.weight(2f))
-//
-//            Switch(checked = mCheckedState.value,
-//                    onCheckedChange = { mCheckedState.value = it }
-//            )
-//        }
-//        Text(text = "Spatial Audio Report: ")
-//    }
-
-
 }
 
 @Composable
 fun SpatialAudioOutput() {
     Column(verticalArrangement = Arrangement.SpaceBetween) {
         Text(
-            text = "Spatial Audio Output:",
-            style = MaterialTheme.typography.subtitle2
+            text = "Spatial Audio Output:"
         )
         Surface() {
             Column(verticalArrangement = Arrangement.SpaceBetween) {
@@ -97,7 +84,8 @@ fun SpatialAudioOutput() {
                     Text(
                         text = "canBeSpatialized: ",
                         modifier = Modifier.weight(1f),
-                        fontStyle = FontStyle.Italic
+                        fontStyle = FontStyle.Italic,
+                        style = MaterialTheme.typography.h6
                     )
                     Text(text = "placeholder")
                 }
@@ -105,7 +93,8 @@ fun SpatialAudioOutput() {
                     Text(
                         text = "getImmersiveAudioLevel: ",
                         modifier = Modifier.weight(1f),
-                        fontStyle = FontStyle.Italic
+                        fontStyle = FontStyle.Italic,
+                        style = MaterialTheme.typography.h6
                     )
                     Text(text = "placeholder")
                 }
@@ -113,7 +102,8 @@ fun SpatialAudioOutput() {
                     Text(
                         text = "isAvailable: ",
                         modifier = Modifier.weight(1f),
-                        fontStyle = FontStyle.Italic
+                        fontStyle = FontStyle.Italic,
+                        style = MaterialTheme.typography.h6
                     )
                     Text(text = "placeholder")
                 }
@@ -121,7 +111,8 @@ fun SpatialAudioOutput() {
                     Text(
                         text = "isEnabled: ",
                         modifier = Modifier.weight(1f),
-                        fontStyle = FontStyle.Italic
+                        fontStyle = FontStyle.Italic,
+                        style = MaterialTheme.typography.h6
                     )
                     Text(text = "placeholder")
                 }
@@ -129,7 +120,8 @@ fun SpatialAudioOutput() {
                     Text(
                         text = "isHeadTrackerAvailable: ",
                         modifier = Modifier.weight(1f),
-                        fontStyle = FontStyle.Italic
+                        fontStyle = FontStyle.Italic,
+                        style = MaterialTheme.typography.h6
                     )
                     Text(text = "placeholder")
                 }
@@ -140,8 +132,8 @@ fun SpatialAudioOutput() {
 
 }
 
-@Preview
-@Composable
-fun SettingsScreenPreview() {
-    SettingsScreenDescription()
-}
+//@Preview
+//@Composable
+//fun SettingsScreenPreview() {
+//    SettingsScreenDescription()
+//}

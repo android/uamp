@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -31,6 +32,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.android.uamp.R
 import com.example.android.uamp.viewmodels.MainActivityViewModel
@@ -40,11 +42,12 @@ import com.example.android.uamp.viewmodels.NowPlayingFragmentViewModel
 @Composable //stateful
 fun NowPlayingDescription(
     nowPlayingFragmentViewModel: NowPlayingFragmentViewModel,
-    mainActivityViewModel: MainActivityViewModel
+    mainActivityViewModel: MainActivityViewModel,
+    navController: NavController
 ) {
     val currentMediaItem by nowPlayingFragmentViewModel.mediaItem.observeAsState()
     currentMediaItem?.let { mediaItem ->
-        NowPlayingDescription(mediaItem, nowPlayingFragmentViewModel, mainActivityViewModel)
+        NowPlayingDescription(mediaItem, nowPlayingFragmentViewModel, mainActivityViewModel, navController)
     }
 }
 
@@ -54,13 +57,14 @@ fun NowPlayingDescription(
 private fun NowPlayingDescription(
     mediaItem: MediaItem,
     nowPlayingFragmentViewModel: NowPlayingFragmentViewModel,
-    mainActivityViewModel: MainActivityViewModel
+    mainActivityViewModel: MainActivityViewModel,
+    navController: NavController
 ) {
     if (mediaItem.equals(null)) {
         Text(text = "Media Item is null")
     } else {
         Surface() {
-            NowPlaying(mediaItem, nowPlayingFragmentViewModel, mainActivityViewModel)
+            NowPlaying(mediaItem, nowPlayingFragmentViewModel, mainActivityViewModel, navController)
         }
     }
 }
@@ -70,9 +74,24 @@ private fun NowPlayingDescription(
 private fun NowPlaying(
     mediaItem: MediaItem,
     nowPlayingFragmentViewModel: NowPlayingFragmentViewModel,
-    mainActivityViewModel: MainActivityViewModel
+    mainActivityViewModel: MainActivityViewModel,
+    navController: NavController
 ) {
 
+//    val navController = rememberNavController()
+//
+//    NavHost(navController = navController, startDestination = "nowplaying") {
+//        composable(route = "nowplaying") {
+//            NowPlaying(
+//                mediaItem = mediaItem,
+//                nowPlayingFragmentViewModel = nowPlayingFragmentViewModel,
+//                mainActivityViewModel =mainActivityViewModel
+//            )
+//        }
+//        composable(route = "settings") {
+//            SettingsScreenDescription()
+//        }
+//    }
 
     val position: Long? by nowPlayingFragmentViewModel.mediaPosition.observeAsState(0)
     val duration: Long? by nowPlayingFragmentViewModel.mediaDuration.observeAsState(0)
@@ -94,7 +113,7 @@ private fun NowPlaying(
 
 
 
-    Column() {
+    Column(modifier = Modifier.fillMaxSize()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End
@@ -102,7 +121,7 @@ private fun NowPlaying(
             TopAppBar(
                 title = { Text("") },
                 navigationIcon = {
-                    IconButton(onClick = { /* doSomething() */ }) {
+                    IconButton(onClick = { navController.navigate("settings"){ launchSingleTop = true} }) {
                         Icon(Icons.Filled.Settings, contentDescription = null)
                     }
                 },
@@ -124,7 +143,7 @@ private fun NowPlaying(
                 contentDescription = null,
                 modifier = Modifier
                     .width(buttonWidth)
-                    .clickable{
+                    .clickable {
                         mainActivityViewModel.playMedia(
                             mediaItem
                         )
@@ -166,4 +185,5 @@ private fun NowPlaying(
         }
     }
 }
+
 

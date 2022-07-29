@@ -20,11 +20,15 @@ import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.compose.material.Scaffold
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.android.uamp.R
 import com.example.android.uamp.databinding.FragmentNowplayingBinding
 import com.example.android.uamp.theme.UAMPTheme
@@ -69,9 +73,20 @@ class NowPlayingFragment : Fragment() {
                 setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
                 setContent {
                     UAMPTheme {
-                    // Redirect to compose
-                        NowPlayingDescription(nowPlayingViewModel, mainActivityViewModel)
-                  }
+                        // Redirect to compose
+                        Scaffold() {
+                            val navController = rememberNavController()
+
+                            NavHost(navController = navController, startDestination = "nowplaying") {
+                                composable(route = "nowplaying") {
+                                    NowPlayingDescription(nowPlayingViewModel, mainActivityViewModel, navController)
+                                }
+                                composable(route = "settings") {
+                                    SettingsScreenDescription(navController)
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
