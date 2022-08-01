@@ -16,6 +16,7 @@
 
 package com.example.android.uamp.viewmodels
 
+import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -33,6 +34,7 @@ import com.example.android.uamp.MainActivity
 import com.example.android.uamp.MediaItemData
 import com.example.android.uamp.common.MusicServiceConnection
 import com.example.android.uamp.fragments.NowPlayingFragment
+import com.example.android.uamp.media.ACTION_TOGGLE_SPATIALIZATION
 import com.example.android.uamp.media.extensions.isEnded
 import com.example.android.uamp.media.extensions.isPlayEnabled
 import com.example.android.uamp.utils.Event
@@ -163,6 +165,12 @@ class MainActivityViewModel(
                 player.play()
             }
         }
+    }
+
+    suspend fun toggleSpatialization(enable: Boolean){
+        val bundle = Bundle()
+        bundle.putBoolean("EXTRAS_TOGGLE_SPATIALIZATION", enable)
+        musicServiceConnection.sendCommand(ACTION_TOGGLE_SPATIALIZATION, bundle)
     }
 
     class Factory(

@@ -1,5 +1,8 @@
 package com.example.android.uamp.fragments
 
+import android.media.AudioAttributes
+import android.media.AudioFormat
+import android.media.AudioManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,15 +26,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewModelScope
+import androidx.media3.common.C
 import androidx.navigation.NavController
 import com.example.android.uamp.R
+import com.example.android.uamp.viewmodels.MainActivityViewModel
+import kotlinx.coroutines.launch
 
 @Composable
-fun SettingsScreenDescription(navController: NavController) {
+fun SettingsScreenDescription(mainActivityViewModel: MainActivityViewModel, navController: NavController) {
     val mCheckedValue = remember { mutableStateOf(false) }
+    val audioManager =
+        ContextCompat.getSystemService(LocalContext.current, AudioManager::class.java)
+
     Column(modifier = Modifier
         .fillMaxSize()
         .background(color = colorResource(id = R.color.nowPlayingWhiteBackground))) {
@@ -58,7 +70,10 @@ fun SettingsScreenDescription(navController: NavController) {
                 )
                 Switch(
                     checked = mCheckedValue.value,
-                    onCheckedChange = { mCheckedValue.value = it },
+                    onCheckedChange = {
+                        mCheckedValue.value = it
+                        toggleSpatialAudio(mainActivityViewModel, mCheckedValue.value)
+                    },
                     colors = SwitchDefaults.colors(
                         checkedTrackColor = colorResource(id = R.color.colorPrimaryDark),
                         checkedThumbColor = Color.White,
@@ -66,14 +81,30 @@ fun SettingsScreenDescription(navController: NavController) {
                     ),
                 )
             }
-            SpatialAudioOutput()
-
+            SpatialAudioOutput(audioManager = audioManager!!)
         }
     }
 }
 
 @Composable
-fun SpatialAudioOutput() {
+fun SpatialAudioOutput(audioManager: AudioManager) {
+
+    val spatializer = audioManager.spatializer
+
+    val attributes = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(
+        C.AUDIO_CONTENT_TYPE_UNKNOWN).setAllowedCapturePolicy(C.ALLOW_CAPTURE_BY_ALL).build()
+    val audioFormat = AudioFormat.Builder()
+        .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+        .setChannelMask(AudioFormat.CHANNEL_OUT_5POINT1)
+        .build()
+
+    val canBeSpatialized = spatializer.canBeSpatialized(attributes, audioFormat)
+    val getImmersiveAudioLevel = spatializer.immersiveAudioLevel
+    val isEnabled = spatializer.isEnabled
+    val isAvailable = spatializer.isAvailable
+    // Added in API level 33, not available?
+    val isHeadTrackerAvailable = spatializer.isHeadTrackerAvailable
+
     Column(verticalArrangement = Arrangement.SpaceBetween) {
         Text(
             text = "Spatial Audio Output:"
@@ -87,7 +118,7 @@ fun SpatialAudioOutput() {
                         fontStyle = FontStyle.Italic,
                         style = MaterialTheme.typography.h6
                     )
-                    Text(text = "placeholder")
+                    Text(text = canBeSpatialized.toString())
                 }
                 Row() {
                     Text(
@@ -96,7 +127,7 @@ fun SpatialAudioOutput() {
                         fontStyle = FontStyle.Italic,
                         style = MaterialTheme.typography.h6
                     )
-                    Text(text = "placeholder")
+                    Text(text = getImmersiveAudioLevel.toString())
                 }
                 Row() {
                     Text(
@@ -105,7 +136,7 @@ fun SpatialAudioOutput() {
                         fontStyle = FontStyle.Italic,
                         style = MaterialTheme.typography.h6
                     )
-                    Text(text = "placeholder")
+                    Text(text = isAvailable.toString())
                 }
                 Row() {
                     Text(
@@ -114,7 +145,7 @@ fun SpatialAudioOutput() {
                         fontStyle = FontStyle.Italic,
                         style = MaterialTheme.typography.h6
                     )
-                    Text(text = "placeholder")
+                    Text(text = isEnabled.toString())
                 }
                 Row() {
                     Text(
@@ -123,14 +154,17 @@ fun SpatialAudioOutput() {
                         fontStyle = FontStyle.Italic,
                         style = MaterialTheme.typography.h6
                     )
-                    Text(text = "placeholder")
+                    Text(text = isHeadTrackerAvailable.toString())
                 }
             }
         }
-
     }
-
 }
+
+fun toggleSpatialAudio(mainActivityViewModel: MainActivityViewModel, enable: Boolean){
+    mainActivityViewModel.viewModelScope.launch { mainActivityViewModel.toggleSpatialization(enable) }
+}
+
 
 //@Preview
 //@Composable

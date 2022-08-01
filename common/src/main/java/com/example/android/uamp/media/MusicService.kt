@@ -126,10 +126,9 @@ open class MusicService : MediaLibraryService() {
     private val remoteJsonSource: Uri =
         Uri.parse("https://storage.googleapis.com/uamp/catalog.json")
 
-    private val uAmpAudioAttributes = AudioAttributes.Builder()
+    private val uAmpAudioAttributesBuilder = AudioAttributes.Builder()
         .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
         .setUsage(C.USAGE_MEDIA)
-        .build()
 
     private val playerListener = PlayerEventListener()
 
@@ -139,11 +138,11 @@ open class MusicService : MediaLibraryService() {
      */
     private val exoPlayer: Player by lazy {
         val player = ExoPlayer.Builder(this).build().apply {
-            setAudioAttributes(uAmpAudioAttributes, true)
+            setAudioAttributes(uAmpAudioAttributesBuilder.build(), true)
             setHandleAudioBecomingNoisy(true)
             addListener(playerListener)
         }
-        player.addAnalyticsListener(EventLogger(null, "exoplayer-uamp"))
+        player.addAnalyticsListener(EventLogger("exoplayer-uamp"))
         player
     }
 
@@ -305,6 +304,20 @@ open class MusicService : MediaLibraryService() {
 
     open inner class MusicServiceCallback: MediaLibrarySession.Callback {
 
+        override fun onConnect(
+            session: MediaSession,
+            controller: MediaSession.ControllerInfo
+        ): MediaSession.ConnectionResult {
+            val connectionResult = super.onConnect(session, controller)
+            val sessionCommands =
+                connectionResult.availableSessionCommands
+                    .buildUpon()
+                    // Add custom commands
+                    .add(SessionCommand(ACTION_TOGGLE_SPATIALIZATION, Bundle()))
+                    .build()
+            return MediaSession.ConnectionResult.accept(
+                sessionCommands, connectionResult.availablePlayerCommands)
+        }
         override fun onGetLibraryRoot(
             session: MediaLibrarySession, browser: MediaSession.ControllerInfo, params: LibraryParams?
         ): ListenableFuture<LibraryResult<MediaItem>> {
@@ -419,6 +432,17 @@ open class MusicService : MediaLibraryService() {
             customCommand: SessionCommand,
             args: Bundle
         ): ListenableFuture<SessionResult> {
+            if(customCommand.customAction == ACTION_TOGGLE_SPATIALIZATION){
+                val enable = customCommand.customExtras.getBoolean("EXTRAS_TOGGLE_SPATIALIZATION")
+                Log.d("SPATIAL AUDIO TOGGLE: ", enable.toString())
+                if(enable)
+                    uAmpAudioAttributesBuilder.setSpatializationBehavior(C.SPATIALIZATION_BEHAVIOR_AUTO)
+                else
+                    uAmpAudioAttributesBuilder.setSpatializationBehavior(C.SPATIALIZATION_BEHAVIOR_NEVER)
+
+                (exoPlayer as ExoPlayer).setAudioAttributes(uAmpAudioAttributesBuilder.build(), true)
+                return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
+            }
             return Futures.immediateFuture(SessionResult(SessionResult.RESULT_ERROR_NOT_SUPPORTED))
         }
     }
@@ -474,6 +498,9 @@ private const val CONTENT_STYLE_PLAYABLE_HINT = "android.media.browse.CONTENT_ST
 private const val CONTENT_STYLE_SUPPORTED = "android.media.browse.CONTENT_STYLE_SUPPORTED"
 private const val CONTENT_STYLE_LIST = 1
 private const val CONTENT_STYLE_GRID = 2
+
+const val ACTION_TOGGLE_SPATIALIZATION = "com.example.android.uamp.ACTION_TOGGLE_SPATIALIZATION"
+const val EXTRAS_TOGGLE_SPATIALIZATION = "com.example.android.uamp.EXTRAS_TOGGLE_SPATIALIZATION"
 
 const val MEDIA_DESCRIPTION_EXTRAS_START_PLAYBACK_POSITION_MS = "playback_start_position_ms"
 

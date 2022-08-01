@@ -77,22 +77,6 @@ private fun NowPlaying(
     mainActivityViewModel: MainActivityViewModel,
     navController: NavController
 ) {
-
-//    val navController = rememberNavController()
-//
-//    NavHost(navController = navController, startDestination = "nowplaying") {
-//        composable(route = "nowplaying") {
-//            NowPlaying(
-//                mediaItem = mediaItem,
-//                nowPlayingFragmentViewModel = nowPlayingFragmentViewModel,
-//                mainActivityViewModel =mainActivityViewModel
-//            )
-//        }
-//        composable(route = "settings") {
-//            SettingsScreenDescription()
-//        }
-//    }
-
     val position: Long? by nowPlayingFragmentViewModel.mediaPosition.observeAsState(0)
     val duration: Long? by nowPlayingFragmentViewModel.mediaDuration.observeAsState(0)
     val buttonRes: Int? by nowPlayingFragmentViewModel.mediaButtonRes.observeAsState()
@@ -110,8 +94,6 @@ private fun NowPlaying(
     val margins = dimensionResource(id = R.dimen.text_margin)
 
     val mediaItemArtwork = mediaItem.mediaMetadata.artworkUri
-
-
 
     Column(modifier = Modifier.fillMaxSize()) {
         Row(

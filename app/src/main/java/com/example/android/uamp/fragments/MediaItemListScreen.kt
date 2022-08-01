@@ -30,7 +30,6 @@ fun MediaItemDescription(
     mediaItemFragmentViewModel: MediaItemFragmentViewModel,
     mainActivityViewModel: MainActivityViewModel
 ) {
-
     val currentMediaItems by mediaItemFragmentViewModel.mediaItems.observeAsState()
     currentMediaItems?.let { mediaItems ->
         MediaItemDescription(mediaItems, mainActivityViewModel)
@@ -43,32 +42,15 @@ private fun MediaItemDescription(
     mediaItems: List<MediaItemData>,
     mainActivityViewModel: MainActivityViewModel
 ) {
-    if (mediaItems.isEmpty()) {
+    if (mediaItems.isEmpty())
         Text("Media Items Empty")
-    } else {
+    else
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             for (mediaItem in mediaItems) {
                 item { MediaItem(mediaItem, mainActivityViewModel) }
             }
         }
-
-    }
-
 }
-
-//@Composable
-//private fun AlbumArt(painter: Painter) {
-//    Image(painter = painter, contentDescription = null)
-//}
-//@Preview
-//@Composable
-//private fun MediaItemDescriptionPreview() {
-//
-//    val mediaItems : MutableList<MediaItemData> = mutableListOf()
-//    mediaItems
-//    MediaItemDescription(mediaItems = mediaItems)
-//}
-
 
 @Composable
 private fun MediaItem(mediaItemData: MediaItemData, mainActivityViewModel: MainActivityViewModel) {
@@ -76,7 +58,6 @@ private fun MediaItem(mediaItemData: MediaItemData, mainActivityViewModel: MainA
     val imageModel = mediaItemData.mediaItem.mediaMetadata.artworkUri
     val mediaItemTitle = mediaItemData.title
     val mediaItemArtist = mediaItemData.subtitle
-
 
     Row(
         modifier = Modifier
@@ -109,11 +90,3 @@ private fun MediaItem(mediaItemData: MediaItemData, mainActivityViewModel: MainA
         }
     }
 }
-
-//@Preview
-//@Composable
-//private fun MediaItemPreview() {
-//    UAMPTheme {
-//        MediaItem()
-//    }
-//}

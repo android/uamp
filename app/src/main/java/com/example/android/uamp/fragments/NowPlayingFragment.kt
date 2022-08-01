@@ -30,7 +30,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.android.uamp.R
-import com.example.android.uamp.databinding.FragmentNowplayingBinding
 import com.example.android.uamp.theme.UAMPTheme
 import com.example.android.uamp.utils.InjectorUtils
 import com.example.android.uamp.viewmodels.MainActivityViewModel
@@ -48,8 +47,7 @@ class NowPlayingFragment : Fragment() {
         InjectorUtils.provideNowPlayingFragmentViewModel(requireContext())
     }
 
-
-    lateinit var binding: FragmentNowplayingBinding
+//    lateinit var binding: FragmentNowplayingBinding
 
     companion object {
         fun newInstance() = NowPlayingFragment()
@@ -67,8 +65,6 @@ class NowPlayingFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): ComposeView {
-//        binding = FragmentNowplayingBinding.inflate(inflater, container, false)
-//        return binding.root
             return ComposeView(requireContext()).apply {
                 setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
                 setContent {
@@ -82,7 +78,7 @@ class NowPlayingFragment : Fragment() {
                                     NowPlayingDescription(nowPlayingViewModel, mainActivityViewModel, navController)
                                 }
                                 composable(route = "settings") {
-                                    SettingsScreenDescription(navController)
+                                    SettingsScreenDescription(mainActivityViewModel, navController)
                                 }
                             }
                         }
