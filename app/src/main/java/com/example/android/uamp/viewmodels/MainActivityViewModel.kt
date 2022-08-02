@@ -167,6 +167,11 @@ class MainActivityViewModel(
         }
     }
 
+    /**
+     * Sends a command via MusicServiceConnection to MusicService to toggle spatial audio
+     *
+     * @param enable current toggle state of spatial audio
+     */
     suspend fun toggleSpatialization(enable: Boolean){
         val bundle = Bundle()
         bundle.putBoolean("EXTRAS_TOGGLE_SPATIALIZATION", enable)

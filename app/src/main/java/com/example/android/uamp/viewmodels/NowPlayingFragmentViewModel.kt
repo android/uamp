@@ -44,12 +44,15 @@ class NowPlayingFragmentViewModel(
     musicServiceConnection: MusicServiceConnection
 ) : AndroidViewModel(app) {
 
+    // Current media item being played
     val mediaItem = MutableLiveData<MediaItem>().apply {
         postValue(MediaItem.EMPTY)
     }
+    // Current position of the media item being played
     val mediaPosition = MutableLiveData<Long>().apply {
         postValue(0L)
     }
+    // Duration of the media item being played
     val mediaDuration = MutableLiveData<Long>().apply {
         postValue(0L)
     }

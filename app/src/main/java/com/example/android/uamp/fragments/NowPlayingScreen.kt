@@ -1,3 +1,19 @@
+/*
+ * Copyright 2022 Google Inc. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.example.android.uamp.fragments
 
 import android.annotation.SuppressLint
@@ -39,7 +55,17 @@ import com.example.android.uamp.viewmodels.MainActivityViewModel
 import com.example.android.uamp.viewmodels.NowPlayingFragmentViewModel
 
 
-@Composable //stateful
+/**
+ * This particular instance of NowPlayingDescription keeps track of a mediaItem's state such that the
+ * correct mediaItemData is displayed i.e. the correct song being played, song's title, author, its
+ * respective album art, duration, and current position.
+ * Recomposes upon change in mediaItem's state.
+ *
+ * @param nowPlayingFragmentViewModel to reference NowPlayingFragmentViewModel functions
+ * @param mainActivityViewModel to reference MainActivityViewModel functions
+ * @param navController to navigate to SettingsScreen
+ */
+@Composable
 fun NowPlayingDescription(
     nowPlayingFragmentViewModel: NowPlayingFragmentViewModel,
     mainActivityViewModel: MainActivityViewModel,
@@ -47,11 +73,24 @@ fun NowPlayingDescription(
 ) {
     val currentMediaItem by nowPlayingFragmentViewModel.mediaItem.observeAsState()
     currentMediaItem?.let { mediaItem ->
-        NowPlayingDescription(mediaItem, nowPlayingFragmentViewModel, mainActivityViewModel, navController)
+        NowPlayingDescription(
+            mediaItem,
+            nowPlayingFragmentViewModel,
+            mainActivityViewModel,
+            navController
+        )
     }
 }
 
-
+/**
+ * This particular instance of NowPlayingDescription serves to showcase the current media item being played
+ * on the screen
+ *
+ * @param mediaItem current mediaItem being played
+ * @param nowPlayingFragmentViewModel to reference NowPlayingFragmentViewModel functions
+ * @param mainActivityViewModel to reference MainActivityViewModel functions
+ * @param navController to navigate to SettingsScreen
+ */
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun NowPlayingDescription(
@@ -69,6 +108,15 @@ private fun NowPlayingDescription(
     }
 }
 
+/**
+ * NowPlaying describes the UI of the NowPlayingScreen which recomposes upon changes in the state of
+ * currentMediaItem's position, duration, and change in playback (play/pause).
+ *
+ * @param mediaItem current mediaItem being played
+ * @param nowPlayingFragmentViewModel to reference NowPlayingFragmentViewModel functions
+ * @param mainActivityViewModel to reference MainActivityViewModel functions
+ * @param navController to navigate to SettingsScreen
+ */
 @SuppressLint("PrivateResource")
 @Composable
 private fun NowPlaying(
@@ -77,18 +125,18 @@ private fun NowPlaying(
     mainActivityViewModel: MainActivityViewModel,
     navController: NavController
 ) {
-    val position: Long? by nowPlayingFragmentViewModel.mediaPosition.observeAsState(0)
-    val duration: Long? by nowPlayingFragmentViewModel.mediaDuration.observeAsState(0)
+    val position: Long by nowPlayingFragmentViewModel.mediaPosition.observeAsState(0)
+    val duration: Long by nowPlayingFragmentViewModel.mediaDuration.observeAsState(0)
     val buttonRes: Int? by nowPlayingFragmentViewModel.mediaButtonRes.observeAsState()
 
     Log.d("DURATION", "${duration}")
     Log.d("POSITION", "${position}")
 
-    val positionMinute = (position!!.div(1000)).div(60)
-    val positionSecond = "%02d".format((position!!.div(1000)).mod(60))
+    val positionMinute = (position.div(1000)).div(60)
+    val positionSecond = "%02d".format((position.div(1000)).mod(60))
 
-    val durationMinute = (duration!!.div(1000)).div(60)
-    val durationSecond = "%02d".format((duration!!.div(1000)).mod(60))
+    val durationMinute = (duration.div(1000)).div(60)
+    val durationSecond = "%02d".format((duration.div(1000)).mod(60))
 
     val buttonWidth = dimensionResource(id = R.dimen.exo_media_button_width)
     val margins = dimensionResource(id = R.dimen.text_margin)
@@ -103,7 +151,11 @@ private fun NowPlaying(
             TopAppBar(
                 title = { Text("") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigate("settings"){ launchSingleTop = true} }) {
+                    IconButton(onClick = {
+                        navController.navigate("settings") {
+                            launchSingleTop = true
+                        }
+                    }) {
                         Icon(Icons.Filled.Settings, contentDescription = null)
                     }
                 },
@@ -130,9 +182,7 @@ private fun NowPlaying(
                             mediaItem
                         )
                     }
-
             )
-
             Column(modifier = Modifier.weight(2f), verticalArrangement = Arrangement.Top) {
                 Text(
                     text = mediaItem.mediaMetadata.title.toString(),
@@ -161,7 +211,6 @@ private fun NowPlaying(
                     text = "${durationMinute}:${durationSecond}", modifier = Modifier
                         .padding(start = margins, end = margins),
                     style = MaterialTheme.typography.subtitle1
-
                 )
             }
         }

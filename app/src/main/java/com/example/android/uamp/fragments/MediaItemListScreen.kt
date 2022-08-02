@@ -1,3 +1,19 @@
+/*
+ * Copyright 2022 Google Inc. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.example.android.uamp.fragments
 
 import androidx.compose.foundation.clickable
@@ -25,7 +41,14 @@ import com.example.android.uamp.R
 import com.example.android.uamp.viewmodels.MainActivityViewModel
 import com.example.android.uamp.viewmodels.MediaItemFragmentViewModel
 
-@Composable //stateful
+/**
+ * This particular instance of MediaItemDescription serves as the function which keeps track of the media items state
+ * and recomposes the UI upon any changes
+ *
+ * @param mediaItemFragmentViewModel to reference MediaItemFragmentViewModel functions
+ * @param mainActivityViewModel to reference MainActivityViewModel functions
+ */
+@Composable
 fun MediaItemDescription(
     mediaItemFragmentViewModel: MediaItemFragmentViewModel,
     mainActivityViewModel: MainActivityViewModel
@@ -36,8 +59,14 @@ fun MediaItemDescription(
     }
 }
 
+/**
+ * This particular instance of MediaItemDescription displays the mediaItems in a vertical list scroll format
+ *
+ * @param mediaItems List of mediaItems in the selected branch
+ * @param mainActivityViewModel to reference MainActivityViewModel functions
+ */
 @OptIn(ExperimentalMaterialApi::class)
-@Composable //stateless
+@Composable
 private fun MediaItemDescription(
     mediaItems: List<MediaItemData>,
     mainActivityViewModel: MainActivityViewModel
@@ -52,6 +81,12 @@ private fun MediaItemDescription(
         }
 }
 
+/**
+ * This function describes the UI of a mediaItem instance
+ *
+ * @param mediaItemData to reference details of a mediaItem in the current branch
+ * @param mainActivityViewModel to reference MainActivityViewModel functions
+ */
 @Composable
 private fun MediaItem(mediaItemData: MediaItemData, mainActivityViewModel: MainActivityViewModel) {
     val mediaItemArtDimen = dimensionResource(R.dimen.media_item_art)

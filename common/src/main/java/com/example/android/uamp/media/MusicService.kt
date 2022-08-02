@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Google Inc. All rights reserved.
+ * Copyright 2022 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -104,7 +104,8 @@ open class MusicService : MediaLibraryService() {
                 MediaMetadata.Builder()
                     .setFolderType(MediaMetadata.FOLDER_TYPE_ALBUMS)
                     .setIsPlayable(false)
-                    .build())
+                    .build()
+            )
             .build()
     }
 
@@ -115,7 +116,8 @@ open class MusicService : MediaLibraryService() {
                 MediaMetadata.Builder()
                     .setFolderType(MediaMetadata.FOLDER_TYPE_ALBUMS)
                     .setIsPlayable(false)
-                    .build())
+                    .build()
+            )
             .build()
     }
 
@@ -156,13 +158,15 @@ open class MusicService : MediaLibraryService() {
                 setSessionAvailabilityListener(UampCastSessionAvailabilityListener())
                 addListener(playerListener)
             }
-        } catch (e : Exception) {
+        } catch (e: Exception) {
             // We wouldn't normally catch the generic `Exception` however
             // calling `CastContext.getSharedInstance` can throw various exceptions, all of which
             // indicate that Cast is unavailable.
             // Related internal bug b/68009560.
-            Log.i(TAG, "Cast is not available on this device. " +
-                    "Exception thrown when attempting to obtain CastContext. " + e.message)
+            Log.i(
+                TAG, "Cast is not available on this device. " +
+                        "Exception thrown when attempting to obtain CastContext. " + e.message
+            )
             null
         }
     }
@@ -183,8 +187,11 @@ open class MusicService : MediaLibraryService() {
             replaceableForwardingPlayer.setPlayer(castPlayer!!)
         }
 
-        mediaSession = with(MediaLibrarySession.Builder(
-            this, replaceableForwardingPlayer, getCallback())) {
+        mediaSession = with(
+            MediaLibrarySession.Builder(
+                this, replaceableForwardingPlayer, getCallback()
+            )
+        ) {
             setId(packageName)
             packageManager?.getLaunchIntentForPackage(packageName)?.let { sessionIntent ->
                 setSessionActivity(
@@ -214,7 +221,8 @@ open class MusicService : MediaLibraryService() {
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? {
         return if ("android.media.session.MediaController" == controllerInfo.packageName
-            || packageValidator.isKnownCaller(controllerInfo.packageName, controllerInfo.uid)) {
+            || packageValidator.isKnownCaller(controllerInfo.packageName, controllerInfo.uid)
+        ) {
             mediaSession
         } else null
     }
@@ -302,8 +310,12 @@ open class MusicService : MediaLibraryService() {
         }
     }
 
-    open inner class MusicServiceCallback: MediaLibrarySession.Callback {
+    open inner class MusicServiceCallback : MediaLibrarySession.Callback {
 
+        /**
+         * Establishes media connection
+         * Set up custom command for Spatial Audio toggle
+         */
         override fun onConnect(
             session: MediaSession,
             controller: MediaSession.ControllerInfo
@@ -316,10 +328,14 @@ open class MusicService : MediaLibraryService() {
                     .add(SessionCommand(ACTION_TOGGLE_SPATIALIZATION, Bundle()))
                     .build()
             return MediaSession.ConnectionResult.accept(
-                sessionCommands, connectionResult.availablePlayerCommands)
+                sessionCommands, connectionResult.availablePlayerCommands
+            )
         }
+
         override fun onGetLibraryRoot(
-            session: MediaLibrarySession, browser: MediaSession.ControllerInfo, params: LibraryParams?
+            session: MediaLibrarySession,
+            browser: MediaSession.ControllerInfo,
+            params: LibraryParams?
         ): ListenableFuture<LibraryResult<MediaItem>> {
             // By default, all known clients are permitted to search, but only tell unknown callers
             // about search if permitted by the [BrowseTree].
@@ -360,8 +376,8 @@ open class MusicService : MediaLibraryService() {
             if (parentId == recentRootMediaItem.mediaId) {
                 return Futures.immediateFuture(
                     LibraryResult.ofItemList(
-                        storage.loadRecentSong()?.let {
-                            song -> listOf(song)
+                        storage.loadRecentSong()?.let { song ->
+                            listOf(song)
                         }!!,
                         LibraryParams.Builder().build()
                     )
@@ -383,7 +399,8 @@ open class MusicService : MediaLibraryService() {
             return callWhenMusicSourceReady {
                 LibraryResult.ofItem(
                     browseTree.getMediaItemByMediaId(mediaId) ?: MediaItem.EMPTY,
-                    LibraryParams.Builder().build())
+                    LibraryParams.Builder().build()
+                )
             }
         }
 
@@ -432,15 +449,21 @@ open class MusicService : MediaLibraryService() {
             customCommand: SessionCommand,
             args: Bundle
         ): ListenableFuture<SessionResult> {
-            if(customCommand.customAction == ACTION_TOGGLE_SPATIALIZATION){
+            /*
+            Toggle spatial audio
+             */
+            if (customCommand.customAction == ACTION_TOGGLE_SPATIALIZATION) {
                 val enable = customCommand.customExtras.getBoolean("EXTRAS_TOGGLE_SPATIALIZATION")
                 Log.d("SPATIAL AUDIO TOGGLE: ", enable.toString())
-                if(enable)
+                if (enable)
                     uAmpAudioAttributesBuilder.setSpatializationBehavior(C.SPATIALIZATION_BEHAVIOR_AUTO)
                 else
                     uAmpAudioAttributesBuilder.setSpatializationBehavior(C.SPATIALIZATION_BEHAVIOR_NEVER)
 
-                (exoPlayer as ExoPlayer).setAudioAttributes(uAmpAudioAttributesBuilder.build(), true)
+                (exoPlayer as ExoPlayer).setAudioAttributes(
+                    uAmpAudioAttributesBuilder.build(),
+                    true
+                )
                 return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
             }
             return Futures.immediateFuture(SessionResult(SessionResult.RESULT_ERROR_NOT_SUPPORTED))
@@ -470,7 +493,8 @@ open class MusicService : MediaLibraryService() {
         override fun onEvents(player: Player, events: Player.Events) {
             if (events.contains(EVENT_POSITION_DISCONTINUITY)
                 || events.contains(EVENT_MEDIA_ITEM_TRANSITION)
-                || events.contains(EVENT_PLAY_WHEN_READY_CHANGED)) {
+                || events.contains(EVENT_PLAY_WHEN_READY_CHANGED)
+            ) {
                 currentMediaItemIndex = player.currentMediaItemIndex
                 saveRecentSongToStorage()
             }
@@ -478,9 +502,14 @@ open class MusicService : MediaLibraryService() {
 
         override fun onPlayerError(error: PlaybackException) {
             var message = R.string.generic_error;
-            Log.e(TAG, "Player error: " + error.errorCodeName + " (" + error.errorCode + ")", error);
+            Log.e(
+                TAG,
+                "Player error: " + error.errorCodeName + " (" + error.errorCode + ")",
+                error
+            );
             if (error.errorCode == PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS
-                || error.errorCode == PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND) {
+                || error.errorCode == PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND
+            ) {
                 message = R.string.error_media_not_found;
             }
             Toast.makeText(

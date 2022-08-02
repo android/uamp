@@ -85,20 +85,6 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-//    @Override
-//    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-//        super.onCreateOptionsMenu(menu)
-//        menuInflater.inflate(R.menu.main_activity_menu, menu)
-//
-//        /**
-//         * Set up a MediaRouteButton to allow the user to control the current media playback route
-//         */
-//        menu?.let {
-//            CastButtonFactory.setUpMediaRouteButton(this, menu, R.id.media_route_menu_item)
-//        }
-//        return true
-//    }
-
     private fun navigateToMediaItem(mediaId: String) {
         var fragment: MediaItemFragment? = getBrowseFragment(mediaId)
         if (fragment == null) {

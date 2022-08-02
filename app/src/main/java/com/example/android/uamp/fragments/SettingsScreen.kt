@@ -1,3 +1,19 @@
+/*
+ * Copyright 2022 Google Inc. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.example.android.uamp.fragments
 
 import android.media.AudioAttributes
@@ -38,15 +54,29 @@ import com.example.android.uamp.R
 import com.example.android.uamp.viewmodels.MainActivityViewModel
 import kotlinx.coroutines.launch
 
+
+/**
+ * SettingsScreenDescription serves to describe the UI of the settings screen, which includes a TopAppBar
+ * for the user to return to the NowPlayingScreen, a switch to enable spatial audio, and spatializer
+ * function outputs of the current mediaItem being played.
+ *
+ * @param mainActivityViewModel to reference functions in MainActivityViewModel
+ * @param navController to allow navigation back to NowPlayingScreen
+ */
 @Composable
-fun SettingsScreenDescription(mainActivityViewModel: MainActivityViewModel, navController: NavController) {
+fun SettingsScreenDescription(
+    mainActivityViewModel: MainActivityViewModel,
+    navController: NavController
+) {
     val mCheckedValue = remember { mutableStateOf(false) }
     val audioManager =
         ContextCompat.getSystemService(LocalContext.current, AudioManager::class.java)
 
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .background(color = colorResource(id = R.color.nowPlayingWhiteBackground))) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color = colorResource(id = R.color.nowPlayingWhiteBackground))
+    ) {
         TopAppBar(
             title = { Text("Settings", style = MaterialTheme.typography.h5) },
             navigationIcon = {
@@ -55,9 +85,7 @@ fun SettingsScreenDescription(mainActivityViewModel: MainActivityViewModel, navC
                 }
             },
             backgroundColor = Color.White
-
         )
-
         Column(modifier = Modifier.padding(start = 10.dp, end = 10.dp)) {
             Row(
                 modifier = Modifier
@@ -86,13 +114,20 @@ fun SettingsScreenDescription(mainActivityViewModel: MainActivityViewModel, navC
     }
 }
 
+/**
+ * SpatialAudioOutput initializes a spatializer through which the current spatial audio characteristics
+ * of the current media item being played are displayed.
+ *
+ * @param audioManager to declare spatializer
+ */
 @Composable
 fun SpatialAudioOutput(audioManager: AudioManager) {
 
     val spatializer = audioManager.spatializer
 
     val attributes = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(
-        C.AUDIO_CONTENT_TYPE_UNKNOWN).setAllowedCapturePolicy(C.ALLOW_CAPTURE_BY_ALL).build()
+        C.AUDIO_CONTENT_TYPE_UNKNOWN
+    ).setAllowedCapturePolicy(C.ALLOW_CAPTURE_BY_ALL).build()
     val audioFormat = AudioFormat.Builder()
         .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
         .setChannelMask(AudioFormat.CHANNEL_OUT_5POINT1)
@@ -102,7 +137,8 @@ fun SpatialAudioOutput(audioManager: AudioManager) {
     val getImmersiveAudioLevel = spatializer.immersiveAudioLevel
     val isEnabled = spatializer.isEnabled
     val isAvailable = spatializer.isAvailable
-    // Added in API level 33, not available?
+
+    // Introduced in API 33, be sure to use a compatible device
     val isHeadTrackerAvailable = spatializer.isHeadTrackerAvailable
 
     Column(verticalArrangement = Arrangement.SpaceBetween) {
@@ -161,13 +197,13 @@ fun SpatialAudioOutput(audioManager: AudioManager) {
     }
 }
 
-fun toggleSpatialAudio(mainActivityViewModel: MainActivityViewModel, enable: Boolean){
+/**
+ * Helper function for the change in switch state which enables/disables Spatial Audio
+ * Invokes the toggleSpatialization fucntion in MainActivityViewModel
+ *
+ * @param mainActivityViewModel to reference toggleSpatialization
+ * @param enable to pass the current checked value of switch
+ */
+fun toggleSpatialAudio(mainActivityViewModel: MainActivityViewModel, enable: Boolean) {
     mainActivityViewModel.viewModelScope.launch { mainActivityViewModel.toggleSpatialization(enable) }
 }
-
-
-//@Preview
-//@Composable
-//fun SettingsScreenPreview() {
-//    SettingsScreenDescription()
-//}

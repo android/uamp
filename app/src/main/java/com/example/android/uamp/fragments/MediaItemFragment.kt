@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Google Inc. All rights reserved.
+ * Copyright 2022 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,11 +42,6 @@ class MediaItemFragment : Fragment() {
     }
 
     private lateinit var mediaId: String
-//    private lateinit var binding: FragmentMediaitemListBinding
-
-//    private val listAdapter = MediaItemAdapter { clickedItem ->
-//        mainActivityViewModel.mediaItemClicked(clickedItem)
-//    }
 
     companion object {
         fun newInstance(mediaId: String): MediaItemFragment {
@@ -63,6 +58,10 @@ class MediaItemFragment : Fragment() {
         mediaId = arguments?.getString(MEDIA_ID_ARG) ?: return
 
     }
+
+    /**
+     * @return ComposeView of MediaItemFragment rather than xml
+     */
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -76,35 +75,6 @@ class MediaItemFragment : Fragment() {
                 }
             }
         }
-
-
-//
-//    override fun onActivityCreated(savedInstanceState: Bundle?) {
-//        super.onActivityCreated(savedInstanceState)
-//
-//        // Always true, but lets lint know that as well.
-//        mediaId = arguments?.getString(MEDIA_ID_ARG) ?: return
-//    }
-//
-//        mediaItemFragmentViewModel.mediaItems.observe(viewLifecycleOwner,
-//            Observer { list ->
-//                binding.loadingSpinner.visibility =
-//                    if (list?.isNotEmpty() == true) View.GONE else View.VISIBLE
-//                listAdapter.submitList(list)
-//            })
-//        mediaItemFragmentViewModel.networkError.observe(viewLifecycleOwner,
-//            Observer { error ->
-//                if (error) {
-//                    binding.loadingSpinner.visibility = View.GONE
-//                    binding.networkError.visibility = View.VISIBLE
-//                } else {
-//                    binding.networkError.visibility = View.GONE
-//                }
-//            })
-//
-//        // Set the adapter
-//        binding.list.adapter = listAdapter
-
     }
 
 }

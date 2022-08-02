@@ -19,6 +19,9 @@ package com.example.android.uamp.theme
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 
+/**
+ * Define custom theme for UAMP
+ */
 @Composable
 fun UAMPTheme(
     content: @Composable () -> Unit
