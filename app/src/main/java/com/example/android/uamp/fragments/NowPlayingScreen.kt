@@ -17,7 +17,7 @@
 package com.example.android.uamp.fragments
 
 import android.annotation.SuppressLint
-import android.util.Log
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -43,6 +43,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -129,15 +130,6 @@ private fun NowPlaying(
     val duration: Long by nowPlayingFragmentViewModel.mediaDuration.observeAsState(0)
     val buttonRes: Int? by nowPlayingFragmentViewModel.mediaButtonRes.observeAsState()
 
-    Log.d("DURATION", "${duration}")
-    Log.d("POSITION", "${position}")
-
-    val positionMinute = (position.div(1000)).div(60)
-    val positionSecond = "%02d".format((position.div(1000)).mod(60))
-
-    val durationMinute = (duration.div(1000)).div(60)
-    val durationSecond = "%02d".format((duration.div(1000)).mod(60))
-
     val buttonWidth = dimensionResource(id = R.dimen.exo_media_button_width)
     val margins = dimensionResource(id = R.dimen.text_margin)
 
@@ -150,11 +142,9 @@ private fun NowPlaying(
         ) {
             TopAppBar(
                 title = { Text("") },
-                navigationIcon = {
+                actions = {
                     IconButton(onClick = {
-                        navController.navigate("settings") {
-                            launchSingleTop = true
-                        }
+                        navController.navigate("settings")
                     }) {
                         Icon(Icons.Filled.Settings, contentDescription = null)
                     }
@@ -203,18 +193,27 @@ private fun NowPlaying(
                 horizontalAlignment = Alignment.End
             ) {
                 Text(
-                    text = "${positionMinute}:${positionSecond}", modifier = Modifier
+                    text = timestampToMSS(LocalContext.current, position), modifier = Modifier
                         .padding(start = margins, top = 8.dp, end = margins),
                     style = MaterialTheme.typography.h6
                 )
                 Text(
-                    text = "${durationMinute}:${durationSecond}", modifier = Modifier
+                    text = timestampToMSS(LocalContext.current, duration), modifier = Modifier
                         .padding(start = margins, end = margins),
                     style = MaterialTheme.typography.subtitle1
                 )
             }
         }
     }
+}
+
+/** Converts milliseconds to a display of minutes and seconds. */
+fun timestampToMSS(context: Context, position: Long): String {
+    val totalSeconds = Math.floor(position / 1E3).toInt()
+    val minutes = totalSeconds / 60
+    val remainingSeconds = totalSeconds - (minutes * 60)
+    return if (position < 0) context.getString(R.string.duration_unknown)
+    else context.getString(R.string.duration_format).format(minutes, remainingSeconds)
 }
 
 

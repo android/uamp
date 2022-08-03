@@ -19,6 +19,7 @@ package com.example.android.uamp.fragments
 import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioManager
+import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -65,10 +66,9 @@ import kotlinx.coroutines.launch
  */
 @Composable
 fun SettingsScreenDescription(
-    mainActivityViewModel: MainActivityViewModel,
-    navController: NavController
+    mainActivityViewModel: MainActivityViewModel, navController: NavController
 ) {
-    val mCheckedValue = remember { mutableStateOf(false) }
+    val mCheckedValue = remember { mutableStateOf(true) }
     val audioManager =
         ContextCompat.getSystemService(LocalContext.current, AudioManager::class.java)
 
@@ -77,10 +77,9 @@ fun SettingsScreenDescription(
             .fillMaxSize()
             .background(color = colorResource(id = R.color.nowPlayingWhiteBackground))
     ) {
-        TopAppBar(
-            title = { Text("Settings", style = MaterialTheme.typography.h5) },
+        TopAppBar(title = { Text("Settings", style = MaterialTheme.typography.h5) },
             navigationIcon = {
-                IconButton(onClick = { navController.navigate("nowplaying") }) {
+                IconButton(onClick = { navController.popBackStack() }) {
                     Icon(Icons.Filled.ArrowBack, contentDescription = null)
                 }
             },
@@ -90,11 +89,11 @@ fun SettingsScreenDescription(
             Row(
                 modifier = Modifier
                     .padding(top = 20.dp)
-                    .fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Enable Spatial Audio", modifier = Modifier
-                        .weight(2f)
+                    text = "Enable Spatial Audio", modifier = Modifier.weight(2f)
                 )
                 Switch(
                     checked = mCheckedValue.value,
@@ -128,10 +127,8 @@ fun SpatialAudioOutput(audioManager: AudioManager) {
     val attributes = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(
         C.AUDIO_CONTENT_TYPE_UNKNOWN
     ).setAllowedCapturePolicy(C.ALLOW_CAPTURE_BY_ALL).build()
-    val audioFormat = AudioFormat.Builder()
-        .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-        .setChannelMask(AudioFormat.CHANNEL_OUT_5POINT1)
-        .build()
+    val audioFormat = AudioFormat.Builder().setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+        .setChannelMask(AudioFormat.CHANNEL_OUT_5POINT1).build()
 
     val canBeSpatialized = spatializer.canBeSpatialized(attributes, audioFormat)
     val getImmersiveAudioLevel = spatializer.immersiveAudioLevel
@@ -139,7 +136,9 @@ fun SpatialAudioOutput(audioManager: AudioManager) {
     val isAvailable = spatializer.isAvailable
 
     // Introduced in API 33, be sure to use a compatible device
-    val isHeadTrackerAvailable = spatializer.isHeadTrackerAvailable
+    var isHeadTrackerAvailable = false
+    if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+        isHeadTrackerAvailable = spatializer.isHeadTrackerAvailable
 
     Column(verticalArrangement = Arrangement.SpaceBetween) {
         Text(
@@ -163,7 +162,9 @@ fun SpatialAudioOutput(audioManager: AudioManager) {
                         fontStyle = FontStyle.Italic,
                         style = MaterialTheme.typography.h6
                     )
-                    Text(text = getImmersiveAudioLevel.toString())
+                    Text(text = if (getImmersiveAudioLevel == 1) "Multichannel"
+                                else if (getImmersiveAudioLevel == 0) "None"
+                                else "Other")
                 }
                 Row() {
                     Text(

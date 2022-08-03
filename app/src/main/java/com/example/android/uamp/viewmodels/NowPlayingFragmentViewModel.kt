@@ -60,7 +60,6 @@ class NowPlayingFragmentViewModel(
     val mediaButtonRes = MutableLiveData<Int>().apply {
         postValue(R.drawable.ic_album_black_24dp)
     }
-    val isPlaying = MutableLiveData<Boolean>(false)
 
     private var updatePosition = true
     private val handler = Handler(Looper.getMainLooper())
@@ -136,7 +135,7 @@ class NowPlayingFragmentViewModel(
 
     private fun updateState(
         playbackState: PlaybackState,
-        mediaItem: MediaItem,
+        mediaItem: MediaItem
     ) {
 
         // Only update media item once we have duration available
@@ -145,8 +144,6 @@ class NowPlayingFragmentViewModel(
         }
 
         mediaDuration.postValue(playbackState.duration)
-
-        isPlaying.postValue(playbackState.isPlaying)
 
         //Update the media button resource ID
         mediaButtonRes.postValue(

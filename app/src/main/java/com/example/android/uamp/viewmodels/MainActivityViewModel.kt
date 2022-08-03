@@ -35,6 +35,7 @@ import com.example.android.uamp.MediaItemData
 import com.example.android.uamp.common.MusicServiceConnection
 import com.example.android.uamp.fragments.NowPlayingFragment
 import com.example.android.uamp.media.ACTION_TOGGLE_SPATIALIZATION
+import com.example.android.uamp.media.EXTRAS_TOGGLE_SPATIALIZATION
 import com.example.android.uamp.media.extensions.isEnded
 import com.example.android.uamp.media.extensions.isPlayEnabled
 import com.example.android.uamp.utils.Event
@@ -49,7 +50,6 @@ class MainActivityViewModel(
 ) : ViewModel() {
 
     private lateinit var lastBrowsableMediaId: String
-    var playbackState = musicServiceConnection.playbackState
 
     val rootMediaItem: LiveData<MediaItem> =
         Transformations.map(musicServiceConnection.rootMediaItem) { rootMediaItem ->
@@ -174,7 +174,7 @@ class MainActivityViewModel(
      */
     suspend fun toggleSpatialization(enable: Boolean){
         val bundle = Bundle()
-        bundle.putBoolean("EXTRAS_TOGGLE_SPATIALIZATION", enable)
+        bundle.putBoolean(EXTRAS_TOGGLE_SPATIALIZATION, enable)
         musicServiceConnection.sendCommand(ACTION_TOGGLE_SPATIALIZATION, bundle)
     }
 

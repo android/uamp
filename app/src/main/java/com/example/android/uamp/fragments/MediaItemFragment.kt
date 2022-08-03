@@ -79,4 +79,4 @@ class MediaItemFragment : Fragment() {
 
 }
 
-private val MEDIA_ID_ARG = "com.example.android.uamp.fragments.MediaItemFragment.MEDIA_ID"
+private const val MEDIA_ID_ARG = "com.example.android.uamp.fragments.MediaItemFragment.MEDIA_ID"

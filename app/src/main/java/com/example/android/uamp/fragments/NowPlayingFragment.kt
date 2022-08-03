@@ -16,7 +16,6 @@
 
 package com.example.android.uamp.fragments
 
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -29,7 +28,6 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.android.uamp.R
 import com.example.android.uamp.theme.UAMPTheme
 import com.example.android.uamp.utils.InjectorUtils
 import com.example.android.uamp.viewmodels.MainActivityViewModel
@@ -49,15 +47,6 @@ class NowPlayingFragment : Fragment() {
 
     companion object {
         fun newInstance() = NowPlayingFragment()
-
-        /** Converts milliseconds to a display of minutes and seconds. */
-        fun timestampToMSS(context: Context, position: Long): String {
-            val totalSeconds = Math.floor(position / 1E3).toInt()
-            val minutes = totalSeconds / 60
-            val remainingSeconds = totalSeconds - (minutes * 60)
-            return if (position < 0) context.getString(R.string.duration_unknown)
-            else context.getString(R.string.duration_format).format(minutes, remainingSeconds)
-        }
     }
 
     /**

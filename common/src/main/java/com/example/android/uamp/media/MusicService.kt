@@ -453,8 +453,8 @@ open class MusicService : MediaLibraryService() {
             Toggle spatial audio
              */
             if (customCommand.customAction == ACTION_TOGGLE_SPATIALIZATION) {
-                val enable = customCommand.customExtras.getBoolean("EXTRAS_TOGGLE_SPATIALIZATION")
-                Log.d("SPATIAL AUDIO TOGGLE: ", enable.toString())
+                val enable = customCommand.customExtras.getBoolean(EXTRAS_TOGGLE_SPATIALIZATION)
+
                 if (enable)
                     uAmpAudioAttributesBuilder.setSpatializationBehavior(C.SPATIALIZATION_BEHAVIOR_AUTO)
                 else
