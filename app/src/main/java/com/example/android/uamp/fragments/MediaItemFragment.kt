@@ -20,11 +20,21 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
+import androidx.compose.material.TopAppBar
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import com.example.android.uamp.R
 import com.example.android.uamp.theme.UAMPTheme
 import com.example.android.uamp.utils.InjectorUtils
 import com.example.android.uamp.viewmodels.MainActivityViewModel
@@ -70,13 +80,20 @@ class MediaItemFragment : Fragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 UAMPTheme {
-                    // Redirect to compose
-                    MediaItemDescription(mediaItemFragmentViewModel, mainActivityViewModel)
+                    Column {
+                        TopAppBar(
+                            title = { Text("UAMP", style = MaterialTheme.typography.h5) },
+                            backgroundColor = colorResource(id = R.color.colorPrimary),
+                            modifier = Modifier.padding(bottom = 10.dp),
+                            contentColor = Color.White
+                        )
+                        // Redirect to compose
+                        MediaItemDescription(mediaItemFragmentViewModel, mainActivityViewModel)
+                    }
                 }
             }
         }
     }
-
 }
 
 private const val MEDIA_ID_ARG = "com.example.android.uamp.fragments.MediaItemFragment.MEDIA_ID"

@@ -16,18 +16,39 @@
 
 package com.example.android.uamp.theme
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 
 /**
  * Define custom theme for UAMP
  */
 @Composable
 fun UAMPTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
+    if(!darkTheme){
+        UAMPColors = lightColors(
+            primary = Red400,
+            primaryVariant = RedLight,
+            onPrimary = Color.Black,
+            secondary = secondaryRed,
+            onSecondary = Color.Black,
+            background = Color.White,
+            onBackground = Color.Black,
+            surface = Color.White,
+            onSurface = Color.Black,
+            error = Color.Red,
+            onError = Color.White
+        )
+    }
+
+
     MaterialTheme(
-        colors = MaterialTheme.colors,
+        colors = UAMPColors,
         typography = UAMPTypography,
         shapes = MaterialTheme.shapes,
         content = content

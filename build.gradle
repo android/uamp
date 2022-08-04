@@ -27,7 +27,7 @@ buildscript {
         androidx_app_compat_version = '1.4.1'
         androidx_car_version = '1.0.0-alpha7'
         androidx_media_version = '1.5.0'
-        androidx_media3_version =  '1.0.0-beta01'
+        androidx_media3_version =  '1.0.0-beta02'
         androidx_preference_version = '1.2.0'
         androidx_test_runner_version = '1.4.0'
         arch_lifecycle_version = '2.2.0'

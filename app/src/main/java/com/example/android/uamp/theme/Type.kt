@@ -52,7 +52,7 @@ val UAMPTypography = Typography(
     ),
     subtitle1 = TextStyle(
         fontSize = 10.sp,
-        fontWeight = FontWeight.Light,
+        fontWeight = FontWeight.SemiBold,
     ),
     subtitle2 = TextStyle(
         fontSize = 7.sp,

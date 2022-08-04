@@ -19,6 +19,7 @@ package com.example.android.uamp.fragments
 import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -42,8 +43,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -136,22 +137,17 @@ private fun NowPlaying(
     val mediaItemArtwork = mediaItem.mediaMetadata.artworkUri
 
     Column(modifier = Modifier.fillMaxSize()) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End
-        ) {
-            TopAppBar(
-                title = { Text("") },
-                actions = {
-                    IconButton(onClick = {
-                        navController.navigate("settings")
-                    }) {
-                        Icon(Icons.Filled.Settings, contentDescription = null)
-                    }
-                },
-                backgroundColor = Color.White
-            )
-        }
+        TopAppBar(
+            title = { Text("") },
+            actions = {
+                IconButton(onClick = {
+                    navController.navigate("settings")
+                }) {
+                    Icon(Icons.Filled.Settings, contentDescription = null)
+                }
+            },
+            backgroundColor = colorResource(id = R.color.colorPrimary)
+        )
 
         AsyncImage(
             model = mediaItemArtwork,
@@ -161,7 +157,12 @@ private fun NowPlaying(
                 .fillMaxWidth()
         )
 
-        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(colorResource(id = R.color.colorPrimary)),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Image(
                 painter = painterResource(id = buttonRes!!),
                 contentDescription = null,

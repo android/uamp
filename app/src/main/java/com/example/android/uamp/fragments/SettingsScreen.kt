@@ -20,7 +20,6 @@ import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioManager
 import android.os.Build
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -75,15 +74,15 @@ fun SettingsScreenDescription(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(color = colorResource(id = R.color.nowPlayingWhiteBackground))
     ) {
-        TopAppBar(title = { Text("Settings", style = MaterialTheme.typography.h5) },
+        TopAppBar(
+            title = { Text("Settings", style = MaterialTheme.typography.h5) },
             navigationIcon = {
                 IconButton(onClick = { navController.popBackStack() }) {
                     Icon(Icons.Filled.ArrowBack, contentDescription = null)
                 }
             },
-            backgroundColor = Color.White
+            backgroundColor = colorResource(id = R.color.colorPrimary)
         )
         Column(modifier = Modifier.padding(start = 10.dp, end = 10.dp)) {
             Row(
@@ -103,8 +102,9 @@ fun SettingsScreenDescription(
                     },
                     colors = SwitchDefaults.colors(
                         checkedTrackColor = colorResource(id = R.color.colorPrimaryDark),
-                        checkedThumbColor = Color.White,
-                        uncheckedTrackColor = Color.Gray
+                        checkedThumbColor = colorResource(id = R.color.colorPrimary),
+                        uncheckedTrackColor = colorResource(id = R.color.colorPrimary),
+                        uncheckedThumbColor = Color.White
                     ),
                 )
             }
@@ -136,9 +136,8 @@ fun SpatialAudioOutput(audioManager: AudioManager) {
     val isAvailable = spatializer.isAvailable
 
     // Introduced in API 33, be sure to use a compatible device
-    var isHeadTrackerAvailable = false
-    if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
-        isHeadTrackerAvailable = spatializer.isHeadTrackerAvailable
+    val isHeadTrackerAvailable =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) spatializer.isHeadTrackerAvailable else false
 
     Column(verticalArrangement = Arrangement.SpaceBetween) {
         Text(
@@ -162,9 +161,13 @@ fun SpatialAudioOutput(audioManager: AudioManager) {
                         fontStyle = FontStyle.Italic,
                         style = MaterialTheme.typography.h6
                     )
-                    Text(text = if (getImmersiveAudioLevel == 1) "Multichannel"
-                                else if (getImmersiveAudioLevel == 0) "None"
-                                else "Other")
+                    Text(
+                        text = when (getImmersiveAudioLevel) {
+                            0 -> "None"
+                            1 -> "Multichannel"
+                            else -> "Other"
+                        }
+                    )
                 }
                 Row() {
                     Text(
