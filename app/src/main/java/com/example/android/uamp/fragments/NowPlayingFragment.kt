@@ -22,12 +22,14 @@ import android.view.ViewGroup
 import androidx.compose.material.Scaffold
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.stringResource
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.android.uamp.R
 import com.example.android.uamp.theme.UAMPTheme
 import com.example.android.uamp.utils.InjectorUtils
 import com.example.android.uamp.viewmodels.MainActivityViewModel
@@ -65,15 +67,15 @@ class NowPlayingFragment : Fragment() {
                         // Add navigation functionality between NowPlayingScreen and SettingsScreen
                         val navController = rememberNavController()
 
-                        NavHost(navController = navController, startDestination = "nowplaying") {
-                            composable(route = "nowplaying") {
+                        NavHost(navController = navController, startDestination = stringResource(id = R.string.route_nowplaying)) {
+                            composable(route = context.getString(R.string.route_nowplaying)) {
                                 NowPlayingDescription(
                                     nowPlayingViewModel,
                                     mainActivityViewModel,
                                     navController
                                 )
                             }
-                            composable(route = "settings") {
+                            composable(route = context.getString(R.string.route_settings)) {
                                 SettingsScreenDescription(mainActivityViewModel, navController)
                             }
                         }

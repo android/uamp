@@ -43,7 +43,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -76,13 +76,13 @@ fun SettingsScreenDescription(
             .fillMaxSize()
     ) {
         TopAppBar(
-            title = { Text("Settings", style = MaterialTheme.typography.h5) },
+            title = { Text(stringResource(R.string.settings_title), style = MaterialTheme.typography.h5) },
             navigationIcon = {
                 IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(Icons.Filled.ArrowBack, contentDescription = null)
+                    Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.arrowback_desc))
                 }
             },
-            backgroundColor = colorResource(id = R.color.colorPrimary)
+            backgroundColor = MaterialTheme.colors.primary
         )
         Column(modifier = Modifier.padding(start = 10.dp, end = 10.dp)) {
             Row(
@@ -92,7 +92,7 @@ fun SettingsScreenDescription(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Enable Spatial Audio", modifier = Modifier.weight(2f)
+                    text = stringResource(R.string.enable_spatial_audio), modifier = Modifier.weight(2f)
                 )
                 Switch(
                     checked = mCheckedValue.value,
@@ -101,9 +101,9 @@ fun SettingsScreenDescription(
                         toggleSpatialAudio(mainActivityViewModel, mCheckedValue.value)
                     },
                     colors = SwitchDefaults.colors(
-                        checkedTrackColor = colorResource(id = R.color.colorPrimaryDark),
-                        checkedThumbColor = colorResource(id = R.color.colorPrimary),
-                        uncheckedTrackColor = colorResource(id = R.color.colorPrimary),
+                        checkedTrackColor = MaterialTheme.colors.primary,
+                        checkedThumbColor = MaterialTheme.colors.primary,
+                        uncheckedTrackColor = MaterialTheme.colors.primary,
                         uncheckedThumbColor = Color.White
                     ),
                 )
@@ -141,13 +141,13 @@ fun SpatialAudioOutput(audioManager: AudioManager) {
 
     Column(verticalArrangement = Arrangement.SpaceBetween) {
         Text(
-            text = "Spatial Audio Output:"
+            text = stringResource(R.string.spatial_audio_output)
         )
         Surface() {
             Column(verticalArrangement = Arrangement.SpaceBetween) {
                 Row() {
                     Text(
-                        text = "canBeSpatialized: ",
+                        text = stringResource(R.string.can_be_spatialized),
                         modifier = Modifier.weight(1f),
                         fontStyle = FontStyle.Italic,
                         style = MaterialTheme.typography.h6
@@ -156,22 +156,22 @@ fun SpatialAudioOutput(audioManager: AudioManager) {
                 }
                 Row() {
                     Text(
-                        text = "getImmersiveAudioLevel: ",
+                        text = stringResource(R.string.get_immersive_audio_level),
                         modifier = Modifier.weight(1f),
                         fontStyle = FontStyle.Italic,
                         style = MaterialTheme.typography.h6
                     )
                     Text(
                         text = when (getImmersiveAudioLevel) {
-                            0 -> "None"
-                            1 -> "Multichannel"
-                            else -> "Other"
+                            0 -> stringResource(R.string.audio_level_none)
+                            1 -> stringResource(R.string.audio_level_multichannel)
+                            else -> stringResource(R.string.audio_level_other)
                         }
                     )
                 }
                 Row() {
                     Text(
-                        text = "isAvailable: ",
+                        text = stringResource(R.string.is_available),
                         modifier = Modifier.weight(1f),
                         fontStyle = FontStyle.Italic,
                         style = MaterialTheme.typography.h6
@@ -180,7 +180,7 @@ fun SpatialAudioOutput(audioManager: AudioManager) {
                 }
                 Row() {
                     Text(
-                        text = "isEnabled: ",
+                        text = stringResource(R.string.is_enabled),
                         modifier = Modifier.weight(1f),
                         fontStyle = FontStyle.Italic,
                         style = MaterialTheme.typography.h6
@@ -189,7 +189,7 @@ fun SpatialAudioOutput(audioManager: AudioManager) {
                 }
                 Row() {
                     Text(
-                        text = "isHeadTrackerAvailable: ",
+                        text = stringResource(R.string.is_head_tracker_available),
                         modifier = Modifier.weight(1f),
                         fontStyle = FontStyle.Italic,
                         style = MaterialTheme.typography.h6

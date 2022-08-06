@@ -28,4 +28,20 @@
     <string name="duration_format">%d:%02d</string>
 
     <string name="cast_context_error">Failed to get Cast context. Try updating Google Play Services and restart the app.</string>
+    <string name="media_items_empty">Media Items Empty</string>
+    <string name="route_nowplaying">nowplaying</string>
+    <string name="route_settings">settings</string>
+    <string name="settings_title">Settings</string>
+    <string name="enable_spatial_audio">Enable Spatial Audio</string>
+    <string name="spatial_audio_output">Spatial Audio Output:</string>
+    <string name="can_be_spatialized">\"canBeSpatialized: \"</string>
+    <string name="get_immersive_audio_level">\"getImmersiveAudioLevel: \"</string>
+    <string name="audio_level_none">None</string>
+    <string name="audio_level_multichannel">Multichannel</string>
+    <string name="audio_level_other">Other</string>
+    <string name="is_available">\"isAvailable: \"</string>
+    <string name="is_enabled">\"isEnabled: \"</string>
+    <string name="is_head_tracker_available">\"isHeadTrackerAvailable: \"</string>
+    <string name="arrowback_desc">Return to now playing screen</string>
+    <string name="settings_button_desc">Go to settings screen</string>
 </resources>

@@ -16,7 +16,6 @@
 
 package com.example.android.uamp.fragments
 
-import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -29,7 +28,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
@@ -44,7 +42,6 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -55,7 +52,6 @@ import coil.compose.AsyncImage
 import com.example.android.uamp.R
 import com.example.android.uamp.viewmodels.MainActivityViewModel
 import com.example.android.uamp.viewmodels.NowPlayingFragmentViewModel
-
 
 /**
  * This particular instance of NowPlayingDescription keeps track of a mediaItem's state such that the
@@ -90,10 +86,7 @@ fun NowPlayingDescription(
  *
  * @param mediaItem current mediaItem being played
  * @param nowPlayingFragmentViewModel to reference NowPlayingFragmentViewModel functions
- * @param mainActivityViewModel to reference MainActivityViewModel functions
- * @param navController to navigate to SettingsScreen
  */
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun NowPlayingDescription(
     mediaItem: MediaItem,
@@ -101,12 +94,8 @@ private fun NowPlayingDescription(
     mainActivityViewModel: MainActivityViewModel,
     navController: NavController
 ) {
-    if (mediaItem.equals(null)) {
-        Text(text = "Media Item is null")
-    } else {
-        Surface() {
-            NowPlaying(mediaItem, nowPlayingFragmentViewModel, mainActivityViewModel, navController)
-        }
+    Surface() {
+        NowPlaying(mediaItem, nowPlayingFragmentViewModel, mainActivityViewModel, navController)
     }
 }
 
@@ -119,7 +108,6 @@ private fun NowPlayingDescription(
  * @param mainActivityViewModel to reference MainActivityViewModel functions
  * @param navController to navigate to SettingsScreen
  */
-@SuppressLint("PrivateResource")
 @Composable
 private fun NowPlaying(
     mediaItem: MediaItem,
@@ -138,29 +126,29 @@ private fun NowPlaying(
 
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
-            title = { Text("") },
+            title = { Text(stringResource(id = R.string.app_name), style = MaterialTheme.typography.h5) },
             actions = {
                 IconButton(onClick = {
-                    navController.navigate("settings")
+                    navController.navigate(route = "settings")
                 }) {
-                    Icon(Icons.Filled.Settings, contentDescription = null)
+                    Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.settings_button_desc))
                 }
             },
-            backgroundColor = colorResource(id = R.color.colorPrimary)
+            backgroundColor = MaterialTheme.colors.primary
         )
 
         AsyncImage(
             model = mediaItemArtwork,
             contentDescription = stringResource(id = R.string.album_art_alt),
             modifier = Modifier
-                .weight(2f)
+                .weight(1f)
                 .fillMaxWidth()
         )
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(colorResource(id = R.color.colorPrimary)),
+                .background(MaterialTheme.colors.primary),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(

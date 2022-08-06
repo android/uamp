@@ -26,10 +26,9 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -82,10 +81,9 @@ class MediaItemFragment : Fragment() {
                 UAMPTheme {
                     Column {
                         TopAppBar(
-                            title = { Text("UAMP", style = MaterialTheme.typography.h5) },
-                            backgroundColor = colorResource(id = R.color.colorPrimary),
-                            modifier = Modifier.padding(bottom = 10.dp),
-                            contentColor = Color.White
+                            title = { Text(stringResource(id = R.string.app_name), style = MaterialTheme.typography.h5) },
+                            backgroundColor = MaterialTheme.colors.primary,
+                            modifier = Modifier.padding(bottom = 10.dp)
                         )
                         // Redirect to compose
                         MediaItemDescription(mediaItemFragmentViewModel, mainActivityViewModel)

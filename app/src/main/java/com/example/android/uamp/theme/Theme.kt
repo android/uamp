@@ -18,6 +18,7 @@ package com.example.android.uamp.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -30,25 +31,40 @@ fun UAMPTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    if(!darkTheme){
-        UAMPColors = lightColors(
-            primary = Red400,
-            primaryVariant = RedLight,
-            onPrimary = Color.Black,
-            secondary = secondaryRed,
-            onSecondary = Color.Black,
-            background = Color.White,
-            onBackground = Color.Black,
-            surface = Color.White,
-            onSurface = Color.Black,
-            error = Color.Red,
-            onError = Color.White
-        )
-    }
 
+
+    val darkThemeColors = darkColors(
+        primary = RedDark,
+        primaryVariant = RedLight,
+        onPrimary = Color.White,
+        secondary = secondaryRedDark,
+        onSecondary = Color.White,
+        background = Color.Black,
+        onBackground = Color.White,
+        surface = Color.Black,
+        onSurface = Color.White,
+        error = Color.Red,
+        onError = Color.Black
+    )
+
+    val lightThemeColors = lightColors(
+        primary = Red400,
+        primaryVariant = RedLight,
+        onPrimary = Color.Black,
+        secondary = secondaryRed,
+        onSecondary = Color.Black,
+        background = Color.White,
+        onBackground = Color.Black,
+        surface = Color.White,
+        onSurface = Color.Black,
+        error = Color.Red,
+        onError = Color.White
+    )
+
+    val colors = if (darkTheme) darkThemeColors else lightThemeColors
 
     MaterialTheme(
-        colors = UAMPColors,
+        colors = colors,
         typography = UAMPTypography,
         shapes = MaterialTheme.shapes,
         content = content

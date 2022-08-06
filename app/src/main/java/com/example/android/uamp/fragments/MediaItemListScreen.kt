@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -35,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import coil.compose.AsyncImage
 import com.example.android.uamp.MediaItemData
 import com.example.android.uamp.R
@@ -61,18 +61,14 @@ fun MediaItemDescription(
 
 /**
  * This particular instance of MediaItemDescription displays the mediaItems in a vertical list scroll format
- *
- * @param mediaItems List of mediaItems in the selected branch
- * @param mainActivityViewModel to reference MainActivityViewModel functions
  */
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun MediaItemDescription(
     mediaItems: List<MediaItemData>,
     mainActivityViewModel: MainActivityViewModel
 ) {
     if (mediaItems.isEmpty())
-        Text("Media Items Empty")
+        Text(stringResource(R.string.media_items_empty))
     else
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             for (mediaItem in mediaItems) {

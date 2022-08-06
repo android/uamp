@@ -173,8 +173,9 @@ class MainActivityViewModel(
      * @param enable current toggle state of spatial audio
      */
     suspend fun toggleSpatialization(enable: Boolean){
-        val bundle = Bundle()
-        bundle.putBoolean(EXTRAS_TOGGLE_SPATIALIZATION, enable)
+        val bundle = Bundle().apply{
+            putBoolean(EXTRAS_TOGGLE_SPATIALIZATION, enable)
+        }
         musicServiceConnection.sendCommand(ACTION_TOGGLE_SPATIALIZATION, bundle)
     }
 
