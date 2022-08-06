@@ -81,7 +81,12 @@ class MediaItemFragment : Fragment() {
                 UAMPTheme {
                     Column {
                         TopAppBar(
-                            title = { Text(stringResource(id = R.string.app_name), style = MaterialTheme.typography.h5) },
+                            title = {
+                                Text(
+                                    stringResource(id = R.string.app_name),
+                                    style = MaterialTheme.typography.h5
+                                )
+                            },
                             backgroundColor = MaterialTheme.colors.primary,
                             modifier = Modifier.padding(bottom = 10.dp)
                         )

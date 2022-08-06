@@ -76,10 +76,18 @@ fun SettingsScreenDescription(
             .fillMaxSize()
     ) {
         TopAppBar(
-            title = { Text(stringResource(R.string.settings_title), style = MaterialTheme.typography.h5) },
+            title = {
+                Text(
+                    stringResource(R.string.settings_title),
+                    style = MaterialTheme.typography.h5
+                )
+            },
             navigationIcon = {
                 IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(Icons.Filled.ArrowBack, contentDescription = stringResource(R.string.arrowback_desc))
+                    Icon(
+                        Icons.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.arrowback_desc)
+                    )
                 }
             },
             backgroundColor = MaterialTheme.colors.primary
@@ -92,7 +100,8 @@ fun SettingsScreenDescription(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = stringResource(R.string.enable_spatial_audio), modifier = Modifier.weight(2f)
+                    text = stringResource(R.string.enable_spatial_audio),
+                    modifier = Modifier.weight(2f)
                 )
                 Switch(
                     checked = mCheckedValue.value,

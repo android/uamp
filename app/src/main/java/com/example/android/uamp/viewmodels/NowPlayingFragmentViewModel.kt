@@ -29,7 +29,6 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.media3.common.MediaItem
-import com.example.android.uamp.R
 import com.example.android.uamp.common.MusicServiceConnection
 import com.example.android.uamp.common.PlaybackState
 import com.example.android.uamp.fragments.NowPlayingFragment
@@ -48,18 +47,19 @@ class NowPlayingFragmentViewModel(
     val mediaItem = MutableLiveData<MediaItem>().apply {
         postValue(MediaItem.EMPTY)
     }
+
     // Current position of the media item being played
     val mediaPosition = MutableLiveData<Long>().apply {
         postValue(0L)
     }
+
     // Duration of the media item being played
     val mediaDuration = MutableLiveData<Long>().apply {
         postValue(0L)
     }
-    // Painter resource for the play/pause button in the playback bar
-    val mediaButtonRes = MutableLiveData<Int>().apply {
-        postValue(R.drawable.ic_album_black_24dp)
-    }
+
+    // Boolean value to indicate current playback status of the mediaItem
+    val isPlaying = MutableLiveData<Boolean>(true)
 
     private var updatePosition = true
     private val handler = Handler(Looper.getMainLooper())
@@ -145,13 +145,8 @@ class NowPlayingFragmentViewModel(
 
         mediaDuration.postValue(playbackState.duration)
 
-        //Update the media button resource ID
-        mediaButtonRes.postValue(
-            when (playbackState.isPlaying) {
-                true -> R.drawable.ic_pause_black_24dp
-                else -> R.drawable.ic_play_arrow_black_24dp
-            }
-        )
+        isPlaying.postValue(playbackState.isPlaying)
+
     }
 
     class Factory(

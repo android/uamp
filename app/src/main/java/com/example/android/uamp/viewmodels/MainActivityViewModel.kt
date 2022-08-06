@@ -126,7 +126,7 @@ class MainActivityViewModel(
         parentMediaId: String? = null
     ) {
         val nowPlaying = musicServiceConnection.nowPlaying.value
-        val player = musicServiceConnection.player?: return
+        val player = musicServiceConnection.player ?: return
 
         val isPrepared = player.playbackState != Player.STATE_IDLE
         if (isPrepared && mediaItem.mediaId == nowPlaying?.mediaId) {
@@ -172,8 +172,8 @@ class MainActivityViewModel(
      *
      * @param enable current toggle state of spatial audio
      */
-    suspend fun toggleSpatialization(enable: Boolean){
-        val bundle = Bundle().apply{
+    suspend fun toggleSpatialization(enable: Boolean) {
+        val bundle = Bundle().apply {
             putBoolean(EXTRAS_TOGGLE_SPATIALIZATION, enable)
         }
         musicServiceConnection.sendCommand(ACTION_TOGGLE_SPATIALIZATION, bundle)

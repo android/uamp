@@ -44,4 +44,6 @@
     <string name="is_head_tracker_available">\"isHeadTrackerAvailable: \"</string>
     <string name="arrowback_desc">Return to now playing screen</string>
     <string name="settings_button_desc">Go to settings screen</string>
+    <string name="play_content_desc">Play button</string>
+    <string name="pause_content_desc">Pause button</string>
 </resources>

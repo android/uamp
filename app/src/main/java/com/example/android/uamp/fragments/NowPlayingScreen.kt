@@ -117,21 +117,35 @@ private fun NowPlaying(
 ) {
     val position: Long by nowPlayingFragmentViewModel.mediaPosition.observeAsState(0)
     val duration: Long by nowPlayingFragmentViewModel.mediaDuration.observeAsState(0)
-    val buttonRes: Int? by nowPlayingFragmentViewModel.mediaButtonRes.observeAsState()
+    val isPlaying: Boolean by nowPlayingFragmentViewModel.isPlaying.observeAsState(true)
 
     val buttonWidth = dimensionResource(id = R.dimen.exo_media_button_width)
     val margins = dimensionResource(id = R.dimen.text_margin)
+
+    val play = painterResource(id = R.drawable.ic_play_arrow_black_24dp)
+    val pause = painterResource(id = R.drawable.ic_pause_black_24dp)
+
+    val contentDesc =
+        if (isPlaying) stringResource(R.string.pause_content_desc) else stringResource(R.string.play_content_desc)
 
     val mediaItemArtwork = mediaItem.mediaMetadata.artworkUri
 
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
-            title = { Text(stringResource(id = R.string.app_name), style = MaterialTheme.typography.h5) },
+            title = {
+                Text(
+                    stringResource(id = R.string.app_name),
+                    style = MaterialTheme.typography.h5
+                )
+            },
             actions = {
                 IconButton(onClick = {
                     navController.navigate(route = "settings")
                 }) {
-                    Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.settings_button_desc))
+                    Icon(
+                        Icons.Filled.Settings,
+                        contentDescription = stringResource(R.string.settings_button_desc)
+                    )
                 }
             },
             backgroundColor = MaterialTheme.colors.primary
@@ -152,8 +166,8 @@ private fun NowPlaying(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
-                painter = painterResource(id = buttonRes!!),
-                contentDescription = null,
+                painter = if (isPlaying) pause else play,
+                contentDescription = contentDesc,
                 modifier = Modifier
                     .width(buttonWidth)
                     .clickable {
