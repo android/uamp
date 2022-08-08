@@ -36,7 +36,7 @@ class AutomotiveMusicService: MusicService() {
         return AutomotiveCallback()
     }
 
-    private inner class AutomotiveCallback() : MusicServiceCallback() {
+    private inner class AutomotiveCallback : MusicServiceCallback() {
 
         override fun onConnect(
             session: MediaSession,

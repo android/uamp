@@ -17,6 +17,7 @@
 package com.example.android.uamp.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material.Colors
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors
@@ -61,6 +62,8 @@ fun UAMPTheme(
         onError = Color.White
     )
 
+
+
     val colors = if (darkTheme) darkThemeColors else lightThemeColors
 
     MaterialTheme(
@@ -70,3 +73,8 @@ fun UAMPTheme(
         content = content
     )
 }
+
+val Colors.buttonColor: Color
+    get() = if (isLight) Color.Black else Color.White
+
+

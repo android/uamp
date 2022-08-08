@@ -49,12 +49,12 @@ class NowPlayingFragmentViewModel(
     }
 
     // Current position of the media item being played
-    val mediaPosition = MutableLiveData<Long>().apply {
+    val mediaPositionSeconds = MutableLiveData<Long>().apply {
         postValue(0L)
     }
 
     // Duration of the media item being played
-    val mediaDuration = MutableLiveData<Long>().apply {
+    val mediaDurationSeconds = MutableLiveData<Long>().apply {
         postValue(0L)
     }
 
@@ -108,11 +108,11 @@ class NowPlayingFragmentViewModel(
      * updates the corresponding LiveData object when it has changed.
      */
     private fun checkPlaybackPosition(delayMs: Long): Boolean = handler.postDelayed({
-        val currPosition = musicServiceConnection.player?.currentPosition ?: 0
-        if (mediaPosition.value != currPosition)
-            mediaPosition.postValue(currPosition)
+        val currPosition = (musicServiceConnection.player?.currentPosition ?: 0) / 1000
+        if (mediaPositionSeconds.value != currPosition)
+            mediaPositionSeconds.postValue(currPosition)
         if (updatePosition)
-            checkPlaybackPosition(1000 - (currPosition % 1000))
+            checkPlaybackPosition(100)
     }, delayMs)
 
     /**
@@ -143,7 +143,7 @@ class NowPlayingFragmentViewModel(
             this.mediaItem.postValue(mediaItem)
         }
 
-        mediaDuration.postValue(playbackState.duration)
+        mediaDurationSeconds.postValue(playbackState.duration / 1000)
 
         isPlaying.postValue(playbackState.isPlaying)
 

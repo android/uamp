@@ -17,7 +17,6 @@
 package com.example.android.uamp.fragments
 
 import android.content.Context
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -50,6 +49,7 @@ import androidx.media3.common.MediaItem
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.android.uamp.R
+import com.example.android.uamp.theme.buttonColor
 import com.example.android.uamp.viewmodels.MainActivityViewModel
 import com.example.android.uamp.viewmodels.NowPlayingFragmentViewModel
 
@@ -94,7 +94,7 @@ private fun NowPlayingDescription(
     mainActivityViewModel: MainActivityViewModel,
     navController: NavController
 ) {
-    Surface() {
+    Surface {
         NowPlaying(mediaItem, nowPlayingFragmentViewModel, mainActivityViewModel, navController)
     }
 }
@@ -115,14 +115,14 @@ private fun NowPlaying(
     mainActivityViewModel: MainActivityViewModel,
     navController: NavController
 ) {
-    val position: Long by nowPlayingFragmentViewModel.mediaPosition.observeAsState(0)
-    val duration: Long by nowPlayingFragmentViewModel.mediaDuration.observeAsState(0)
+    val position: Long by nowPlayingFragmentViewModel.mediaPositionSeconds.observeAsState(0)
+    val duration: Long by nowPlayingFragmentViewModel.mediaDurationSeconds.observeAsState(0)
     val isPlaying: Boolean by nowPlayingFragmentViewModel.isPlaying.observeAsState(true)
 
     val buttonWidth = dimensionResource(id = R.dimen.exo_media_button_width)
     val margins = dimensionResource(id = R.dimen.text_margin)
 
-    val play = painterResource(id = R.drawable.ic_play_arrow_black_24dp)
+    val play = painterResource(id = R.drawable.ic_play_arrow_black_24dp )
     val pause = painterResource(id = R.drawable.ic_pause_black_24dp)
 
     val contentDesc =
@@ -165,16 +165,17 @@ private fun NowPlaying(
                 .background(MaterialTheme.colors.primary),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
+            Icon(
                 painter = if (isPlaying) pause else play,
                 contentDescription = contentDesc,
                 modifier = Modifier
-                    .width(buttonWidth)
                     .clickable {
                         mainActivityViewModel.playMedia(
                             mediaItem
                         )
                     }
+                    .width(buttonWidth),
+                tint = MaterialTheme.colors.buttonColor
             )
             Column(modifier = Modifier.weight(2f), verticalArrangement = Arrangement.Top) {
                 Text(
@@ -211,11 +212,10 @@ private fun NowPlaying(
 }
 
 /** Converts milliseconds to a display of minutes and seconds. */
-fun timestampToMSS(context: Context, position: Long): String {
-    val totalSeconds = Math.floor(position / 1E3).toInt()
-    val minutes = totalSeconds / 60
-    val remainingSeconds = totalSeconds - (minutes * 60)
-    return if (position < 0) context.getString(R.string.duration_unknown)
+fun timestampToMSS(context: Context, seconds: Long): String {
+    val minutes = seconds / 60
+    val remainingSeconds = seconds - (minutes * 60)
+    return if (seconds < 0) context.getString(R.string.duration_unknown)
     else context.getString(R.string.duration_format).format(minutes, remainingSeconds)
 }
 

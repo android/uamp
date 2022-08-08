@@ -63,7 +63,7 @@ class NowPlayingFragment : Fragment() {
             setContent {
                 UAMPTheme {
                     // Redirect to compose
-                    Scaffold() {
+                    Scaffold {
                         // Add navigation functionality between NowPlayingScreen and SettingsScreen
                         val navController = rememberNavController()
 

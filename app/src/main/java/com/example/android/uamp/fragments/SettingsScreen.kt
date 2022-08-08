@@ -152,9 +152,9 @@ fun SpatialAudioOutput(audioManager: AudioManager) {
         Text(
             text = stringResource(R.string.spatial_audio_output)
         )
-        Surface() {
+        Surface {
             Column(verticalArrangement = Arrangement.SpaceBetween) {
-                Row() {
+                Row {
                     Text(
                         text = stringResource(R.string.can_be_spatialized),
                         modifier = Modifier.weight(1f),
@@ -163,7 +163,7 @@ fun SpatialAudioOutput(audioManager: AudioManager) {
                     )
                     Text(text = canBeSpatialized.toString())
                 }
-                Row() {
+                Row {
                     Text(
                         text = stringResource(R.string.get_immersive_audio_level),
                         modifier = Modifier.weight(1f),
@@ -178,7 +178,7 @@ fun SpatialAudioOutput(audioManager: AudioManager) {
                         }
                     )
                 }
-                Row() {
+                Row {
                     Text(
                         text = stringResource(R.string.is_available),
                         modifier = Modifier.weight(1f),
@@ -187,7 +187,7 @@ fun SpatialAudioOutput(audioManager: AudioManager) {
                     )
                     Text(text = isAvailable.toString())
                 }
-                Row() {
+                Row {
                     Text(
                         text = stringResource(R.string.is_enabled),
                         modifier = Modifier.weight(1f),
@@ -196,7 +196,7 @@ fun SpatialAudioOutput(audioManager: AudioManager) {
                     )
                     Text(text = isEnabled.toString())
                 }
-                Row() {
+                Row {
                     Text(
                         text = stringResource(R.string.is_head_tracker_available),
                         modifier = Modifier.weight(1f),

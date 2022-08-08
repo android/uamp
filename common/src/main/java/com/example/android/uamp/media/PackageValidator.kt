@@ -330,14 +330,14 @@ internal class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
     }
 
     private data class KnownCallerInfo(
-        internal val name: String,
-        internal val packageName: String,
-        internal val signatures: MutableSet<KnownSignature>
+        val name: String,
+        val packageName: String,
+        val signatures: MutableSet<KnownSignature>
     )
 
     private data class KnownSignature(
-        internal val signature: String,
-        internal val release: Boolean
+        val signature: String,
+        val release: Boolean
     )
 
     /**
@@ -345,11 +345,11 @@ internal class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
      * to see if it's a known caller.
      */
     private data class CallerPackageInfo(
-        internal val name: String,
-        internal val packageName: String,
-        internal val uid: Int,
-        internal val signature: String?,
-        internal val permissions: Set<String>
+        val name: String,
+        val packageName: String,
+        val uid: Int,
+        val signature: String?,
+        val permissions: Set<String>
     )
 }
 

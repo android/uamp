@@ -304,7 +304,7 @@ open class MusicService : MediaLibraryService() {
             Futures.immediateFuture(action())
         } else {
             executorService.submit<T> {
-                conditionVariable.block();
+                conditionVariable.block()
                 action()
             }
         }
@@ -501,16 +501,16 @@ open class MusicService : MediaLibraryService() {
         }
 
         override fun onPlayerError(error: PlaybackException) {
-            var message = R.string.generic_error;
+            var message = R.string.generic_error
             Log.e(
                 TAG,
                 "Player error: " + error.errorCodeName + " (" + error.errorCode + ")",
                 error
-            );
+            )
             if (error.errorCode == PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS
                 || error.errorCode == PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND
             ) {
-                message = R.string.error_media_not_found;
+                message = R.string.error_media_not_found
             }
             Toast.makeText(
                 applicationContext,

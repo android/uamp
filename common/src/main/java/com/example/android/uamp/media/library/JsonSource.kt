@@ -42,7 +42,7 @@ internal class JsonSource(private val source: Uri) : AbstractMusicSource() {
         const val ORIGINAL_ARTWORK_URI_KEY = "com.example.android.uamp.JSON_ARTWORK_URI"
     }
 
-    private var catalog: List<androidx.media3.common.MediaItem> = emptyList()
+    private var catalog: List<MediaItem> = emptyList()
 
     init {
         state = STATE_INITIALIZING

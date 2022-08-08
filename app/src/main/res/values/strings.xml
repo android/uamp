@@ -17,17 +17,10 @@
 <resources>
     <string name="app_name">UAMP</string>
 
-    <string name="skip_back_10s">Skip back 10s</string>
-    <string name="skip_forward_10s">Skip forward 10s</string>
-    <string name="play">Play</string>
-    <string name="pause">Pause</string>
-
-    <string name="menu_music_queue">Queue</string>
     <string name="album_art_alt">Album art</string>
     <string name="duration_unknown">--:--</string>
     <string name="duration_format">%d:%02d</string>
 
-    <string name="cast_context_error">Failed to get Cast context. Try updating Google Play Services and restart the app.</string>
     <string name="media_items_empty">Media Items Empty</string>
     <string name="route_nowplaying">nowplaying</string>
     <string name="route_settings">settings</string>
