@@ -18,7 +18,6 @@ package com.example.android.uamp.fragments
 
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -62,12 +61,6 @@ class MediaItemFragment : Fragment() {
         }
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        mediaId = arguments?.getString(MEDIA_ID_ARG) ?: return
-
-    }
-
     /**
      * @return ComposeView of MediaItemFragment rather than xml
      */
@@ -75,6 +68,7 @@ class MediaItemFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): ComposeView {
+        mediaId = arguments?.getString(MEDIA_ID_ARG).toString()
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {

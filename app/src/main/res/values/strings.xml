@@ -22,8 +22,8 @@
     <string name="duration_format">%d:%02d</string>
 
     <string name="media_items_empty">Media Items Empty</string>
-    <string name="route_nowplaying">nowplaying</string>
-    <string name="route_settings">settings</string>
+    <string name="route_nowplaying" translatable="false">nowplaying</string>
+    <string name="route_settings" translatable="false">settings</string>
     <string name="settings_title">Settings</string>
     <string name="enable_spatial_audio">Enable Spatial Audio</string>
     <string name="spatial_audio_output">Spatial Audio Output:</string>
