@@ -19,6 +19,7 @@ package com.example.android.uamp.fragments
 import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioManager
+import android.media.Spatializer
 import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -56,9 +57,9 @@ import kotlinx.coroutines.launch
 
 
 /**
- * SettingsScreenDescription serves to describe the UI of the settings screen, which includes a TopAppBar
- * for the user to return to the NowPlayingScreen, a switch to enable spatial audio, and spatializer
- * function outputs of the current mediaItem being played.
+ * SettingsScreenDescription serves to describe the UI of the settings screen, which includes a
+ * TopAppBar for the user to return to the NowPlayingScreen, a switch to enable spatial audio,
+ * and spatializer function outputs of the current mediaItem being played.
  *
  * @param mainActivityViewModel to reference functions in MainActivityViewModel
  * @param navController to allow navigation back to NowPlayingScreen
@@ -67,9 +68,12 @@ import kotlinx.coroutines.launch
 fun SettingsScreenDescription(
     mainActivityViewModel: MainActivityViewModel, navController: NavController
 ) {
-    val mCheckedValue = remember { mutableStateOf(true) }
+
     val audioManager =
         ContextCompat.getSystemService(LocalContext.current, AudioManager::class.java)
+    val spatializer = audioManager!!.spatializer
+
+    val mCheckedValue = remember { mutableStateOf(spatializer.isEnabled) }
 
     Column(
         modifier = Modifier
@@ -117,21 +121,19 @@ fun SettingsScreenDescription(
                     ),
                 )
             }
-            SpatialAudioOutput(audioManager = audioManager!!)
+            SpatialAudioOutput(spatializer = spatializer)
         }
     }
 }
 
 /**
- * SpatialAudioOutput initializes a spatializer through which the current spatial audio characteristics
- * of the current media item being played are displayed.
+ * SpatialAudioOutput initializes a spatializer through which the current spatial audio
+ * characteristics of the current media item being played are displayed.
  *
  * @param audioManager to declare spatializer
  */
 @Composable
-fun SpatialAudioOutput(audioManager: AudioManager) {
-
-    val spatializer = audioManager.spatializer
+fun SpatialAudioOutput(spatializer: Spatializer) {
 
     val attributes = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(
         C.AUDIO_CONTENT_TYPE_UNKNOWN
@@ -146,7 +148,9 @@ fun SpatialAudioOutput(audioManager: AudioManager) {
 
     // Introduced in API 33, be sure to use a compatible device
     val isHeadTrackerAvailable =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) spatializer.isHeadTrackerAvailable else false
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+            spatializer.isHeadTrackerAvailable
+        else false
 
     Column(verticalArrangement = Arrangement.SpaceBetween) {
         Text(
@@ -218,5 +222,7 @@ fun SpatialAudioOutput(audioManager: AudioManager) {
  * @param enable to pass the current checked value of switch
  */
 fun toggleSpatialAudio(mainActivityViewModel: MainActivityViewModel, enable: Boolean) {
-    mainActivityViewModel.viewModelScope.launch { mainActivityViewModel.toggleSpatialization(enable) }
+    mainActivityViewModel.viewModelScope.launch {
+        mainActivityViewModel.toggleSpatialization(enable)
+    }
 }

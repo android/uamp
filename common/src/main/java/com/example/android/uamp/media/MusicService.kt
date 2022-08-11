@@ -138,7 +138,7 @@ open class MusicService : MediaLibraryService() {
      * Configure ExoPlayer to handle audio focus for us. See [ExoPlayer.Builder.setAudioAttributes]
      * for details.
      */
-    private val exoPlayer: Player by lazy {
+    private val exoPlayer: ExoPlayer by lazy {
         val player = ExoPlayer.Builder(this).build().apply {
             setAudioAttributes(uAmpAudioAttributesBuilder.build(), true)
             setHandleAudioBecomingNoisy(true)
@@ -455,15 +455,19 @@ open class MusicService : MediaLibraryService() {
             if (customCommand.customAction == ACTION_TOGGLE_SPATIALIZATION) {
                 val enable = customCommand.customExtras.getBoolean(EXTRAS_TOGGLE_SPATIALIZATION)
 
-                if (enable)
-                    uAmpAudioAttributesBuilder.setSpatializationBehavior(C.SPATIALIZATION_BEHAVIOR_AUTO)
-                else
-                    uAmpAudioAttributesBuilder.setSpatializationBehavior(C.SPATIALIZATION_BEHAVIOR_NEVER)
+                if (enable) {
+                    uAmpAudioAttributesBuilder
+                        .setSpatializationBehavior(C.SPATIALIZATION_BEHAVIOR_AUTO)
+                } else {
+                    uAmpAudioAttributesBuilder
+                        .setSpatializationBehavior(C.SPATIALIZATION_BEHAVIOR_NEVER)
+                }
 
-                (exoPlayer as ExoPlayer).setAudioAttributes(
+                exoPlayer.setAudioAttributes(
                     uAmpAudioAttributesBuilder.build(),
                     true
                 )
+
                 return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
             }
             return Futures.immediateFuture(SessionResult(SessionResult.RESULT_ERROR_NOT_SUPPORTED))

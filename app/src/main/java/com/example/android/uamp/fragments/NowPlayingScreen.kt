@@ -54,9 +54,10 @@ import com.example.android.uamp.viewmodels.MainActivityViewModel
 import com.example.android.uamp.viewmodels.NowPlayingFragmentViewModel
 
 /**
- * This particular instance of NowPlayingDescription keeps track of a mediaItem's state such that the
- * correct mediaItemData is displayed i.e. the correct song being played, song's title, author, its
- * respective album art, duration, and current position.
+ * This particular instance of NowPlayingDescription keeps track of a mediaItem's state such that
+ * the correct mediaItemData is displayed i.e. the correct song being played, song's title, author,
+ * its respective album art, duration, and current position.
+ *
  * Recomposes upon change in mediaItem's state.
  *
  * @param nowPlayingFragmentViewModel to reference NowPlayingFragmentViewModel functions
@@ -117,16 +118,22 @@ private fun NowPlaying(
 ) {
     val position: Long by nowPlayingFragmentViewModel.mediaPositionSeconds.observeAsState(0)
     val duration: Long by nowPlayingFragmentViewModel.mediaDurationSeconds.observeAsState(0)
-    val isPlaying: Boolean by nowPlayingFragmentViewModel.isPlaying.observeAsState(true)
+    val isPlaying: Boolean by nowPlayingFragmentViewModel.mediaIsPlaying.observeAsState(true)
 
     val buttonWidth = dimensionResource(id = R.dimen.exo_media_button_width)
     val margins = dimensionResource(id = R.dimen.text_margin)
 
-    val play = painterResource(id = R.drawable.ic_play_arrow_black_24dp )
+    val play = painterResource(id = R.drawable.ic_play_arrow_black_24dp)
     val pause = painterResource(id = R.drawable.ic_pause_black_24dp)
 
+    val settingsRoute = stringResource(id = R.string.route_settings)
+
     val contentDesc =
-        if (isPlaying) stringResource(R.string.pause_content_desc) else stringResource(R.string.play_content_desc)
+        if (isPlaying) {
+            stringResource(R.string.pause_content_desc)
+        } else {
+            stringResource(R.string.play_content_desc)
+        }
 
     val mediaItemArtwork = mediaItem.mediaMetadata.artworkUri
 
@@ -140,7 +147,7 @@ private fun NowPlaying(
             },
             actions = {
                 IconButton(onClick = {
-                    navController.navigate(route = "settings")
+                    navController.navigate(route = settingsRoute)
                 }) {
                     Icon(
                         Icons.Filled.Settings,

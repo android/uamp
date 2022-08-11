@@ -42,8 +42,8 @@ import com.example.android.uamp.viewmodels.MainActivityViewModel
 import com.example.android.uamp.viewmodels.MediaItemFragmentViewModel
 
 /**
- * This particular instance of MediaItemDescription serves as the function which keeps track of the media items state
- * and recomposes the UI upon any changes
+ * This particular instance of MediaItemDescription serves as the function which keeps track of the
+ * media items state and recomposes the UI upon any changes
  *
  * @param mediaItemFragmentViewModel to reference MediaItemFragmentViewModel functions
  * @param mainActivityViewModel to reference MainActivityViewModel functions
@@ -60,7 +60,8 @@ fun MediaItemDescription(
 }
 
 /**
- * This particular instance of MediaItemDescription displays the mediaItems in a vertical list scroll format
+ * This particular instance of MediaItemDescription displays the mediaItems in a vertical list
+ * scroll format
  */
 @Composable
 private fun MediaItemDescription(

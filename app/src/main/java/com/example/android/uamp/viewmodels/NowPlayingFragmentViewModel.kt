@@ -44,22 +44,16 @@ class NowPlayingFragmentViewModel(
 ) : AndroidViewModel(app) {
 
     // Current media item being played
-    val mediaItem = MutableLiveData<MediaItem>().apply {
-        postValue(MediaItem.EMPTY)
-    }
+    val mediaItem = MutableLiveData<MediaItem>(MediaItem.EMPTY)
 
     // Current position of the media item being played
-    val mediaPositionSeconds = MutableLiveData<Long>().apply {
-        postValue(0L)
-    }
+    val mediaPositionSeconds = MutableLiveData<Long>(0L)
 
     // Duration of the media item being played
-    val mediaDurationSeconds = MutableLiveData<Long>().apply {
-        postValue(0L)
-    }
+    val mediaDurationSeconds = MutableLiveData<Long>(0L)
 
     // Boolean value to indicate current playback status of the mediaItem
-    val isPlaying = MutableLiveData<Boolean>(true)
+    val mediaIsPlaying = MutableLiveData<Boolean>(true)
 
     private var updatePosition = true
     private val handler = Handler(Looper.getMainLooper())
@@ -145,7 +139,7 @@ class NowPlayingFragmentViewModel(
 
         mediaDurationSeconds.postValue(playbackState.duration / 1000)
 
-        isPlaying.postValue(playbackState.isPlaying)
+        mediaIsPlaying.postValue(playbackState.isPlaying)
 
     }
 
