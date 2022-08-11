@@ -23,6 +23,7 @@ import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import androidx.lifecycle.MutableLiveData
+import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
@@ -77,7 +78,10 @@ class MusicServiceConnection(context: Context, serviceComponent: ComponentName) 
         .apply { postValue(EMPTY_PLAYBACK_STATE) }
     val nowPlaying = MutableLiveData<MediaItem>()
         .apply { postValue(NOTHING_PLAYING) }
+    val isAppSpatializationEnabled = MutableLiveData<Boolean>()
+        .apply { postValue(true) }
     val player: Player? get() = browser
+
 
     val networkFailure = MutableLiveData<Boolean>()
         .apply { postValue(false) }
@@ -111,14 +115,14 @@ class MusicServiceConnection(context: Context, serviceComponent: ComponentName) 
             ?: ImmutableList.of()
     }
 
-    suspend fun sendCommand(command: String, parameters: Bundle?):Boolean =
+    suspend fun sendCommand(command: String, parameters: Bundle?): Boolean =
         sendCommand(command, parameters) { _, _ -> }
 
     suspend fun sendCommand(
         command: String,
         parameters: Bundle?,
         resultCallback: ((Int, Bundle?) -> Unit)
-    ):Boolean = if (browser?.isConnected == true) {
+    ): Boolean = if (browser?.isConnected == true) {
         val args = parameters ?: Bundle()
         browser?.sendCustomCommand(SessionCommand(command, args), args)?.await()?.let {
             resultCallback(it.resultCode, it.extras)
@@ -166,6 +170,14 @@ class MusicServiceConnection(context: Context, serviceComponent: ComponentName) 
         )
     }
 
+    private fun updateAppSpatializationStatus(audioAttributes: AudioAttributes) {
+        isAppSpatializationEnabled
+            .postValue(
+                audioAttributes.spatializationBehavior
+                        == C.SPATIALIZATION_BEHAVIOR_AUTO
+            )
+    }
+
     companion object {
         // For Singleton instantiation.
         @Volatile
@@ -185,10 +197,17 @@ class MusicServiceConnection(context: Context, serviceComponent: ComponentName) 
     }
 
     private inner class PlayerListener : Player.Listener {
+
+        override fun onAudioAttributesChanged(audioAttributes: AudioAttributes) {
+            super.onAudioAttributesChanged(audioAttributes)
+            updateAppSpatializationStatus(audioAttributes)
+        }
+
         override fun onEvents(player: Player, events: Player.Events) {
             if (events.contains(EVENT_PLAY_WHEN_READY_CHANGED)
                 || events.contains(EVENT_PLAYBACK_STATE_CHANGED)
-                || events.contains(EVENT_MEDIA_ITEM_TRANSITION)) {
+                || events.contains(EVENT_MEDIA_ITEM_TRANSITION)
+            ) {
                 updatePlaybackState(player)
                 if (player.playbackState != Player.STATE_IDLE) {
                     networkFailure.postValue(false)
@@ -196,13 +215,14 @@ class MusicServiceConnection(context: Context, serviceComponent: ComponentName) 
             }
             if (events.contains(EVENT_MEDIA_METADATA_CHANGED)
                 || events.contains(EVENT_MEDIA_ITEM_TRANSITION)
-                || events.contains(EVENT_PLAY_WHEN_READY_CHANGED)) {
+                || events.contains(EVENT_PLAY_WHEN_READY_CHANGED)
+            ) {
                 updateNowPlaying(player)
             }
         }
 
         override fun onPlayerErrorChanged(error: PlaybackException?) {
-            when(error?.errorCode) {
+            when (error?.errorCode) {
                 ERROR_CODE_IO_BAD_HTTP_STATUS,
                 ERROR_CODE_IO_INVALID_HTTP_CONTENT_TYPE,
                 ERROR_CODE_IO_CLEARTEXT_NOT_PERMITTED,
@@ -218,7 +238,8 @@ class MusicServiceConnection(context: Context, serviceComponent: ComponentName) 
 class PlaybackState(
     private val playbackState: Int = Player.STATE_IDLE,
     private val playWhenReady: Boolean = false,
-    val duration: Long = C.TIME_UNSET) {
+    val duration: Long = C.TIME_UNSET
+) {
     val isPlaying: Boolean
         get() {
             return (playbackState == Player.STATE_BUFFERING

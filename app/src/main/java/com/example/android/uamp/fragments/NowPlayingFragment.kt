@@ -79,7 +79,11 @@ class NowPlayingFragment : Fragment() {
                                 )
                             }
                             composable(route = context.getString(R.string.route_settings)) {
-                                SettingsScreenDescription(mainActivityViewModel, navController)
+                                SettingsScreenDescription(
+                                    nowPlayingViewModel,
+                                    mainActivityViewModel,
+                                    navController
+                                )
                             }
                         }
                     }

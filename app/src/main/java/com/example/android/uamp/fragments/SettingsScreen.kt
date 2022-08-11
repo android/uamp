@@ -19,7 +19,6 @@ package com.example.android.uamp.fragments
 import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioManager
-import android.media.Spatializer
 import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -38,8 +37,8 @@ import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -53,6 +52,7 @@ import androidx.media3.common.C
 import androidx.navigation.NavController
 import com.example.android.uamp.R
 import com.example.android.uamp.viewmodels.MainActivityViewModel
+import com.example.android.uamp.viewmodels.NowPlayingFragmentViewModel
 import kotlinx.coroutines.launch
 
 
@@ -66,14 +66,17 @@ import kotlinx.coroutines.launch
  */
 @Composable
 fun SettingsScreenDescription(
-    mainActivityViewModel: MainActivityViewModel, navController: NavController
+    nowPlayingFragmentViewModel: NowPlayingFragmentViewModel,
+    mainActivityViewModel: MainActivityViewModel,
+    navController: NavController
 ) {
-
+    val spatializationStatus: Boolean by nowPlayingFragmentViewModel.spatializationStatus
+        .observeAsState(true)
+//    val mCheckedValue =
+//        remember { mutableStateOf(nowPlayingFragmentViewModel.spatializationStatus.value!!) }
     val audioManager =
         ContextCompat.getSystemService(LocalContext.current, AudioManager::class.java)
-    val spatializer = audioManager!!.spatializer
 
-    val mCheckedValue = remember { mutableStateOf(spatializer.isEnabled) }
 
     Column(
         modifier = Modifier
@@ -108,10 +111,9 @@ fun SettingsScreenDescription(
                     modifier = Modifier.weight(2f)
                 )
                 Switch(
-                    checked = mCheckedValue.value,
+                    checked = spatializationStatus,
                     onCheckedChange = {
-                        mCheckedValue.value = it
-                        toggleSpatialAudio(mainActivityViewModel, mCheckedValue.value)
+                        toggleSpatialAudio(mainActivityViewModel, it)
                     },
                     colors = SwitchDefaults.colors(
                         checkedTrackColor = MaterialTheme.colors.primary,
@@ -121,7 +123,7 @@ fun SettingsScreenDescription(
                     ),
                 )
             }
-            SpatialAudioOutput(spatializer = spatializer)
+            SpatialAudioOutput(audioManager = audioManager!!)
         }
     }
 }
@@ -133,11 +135,14 @@ fun SettingsScreenDescription(
  * @param audioManager to declare spatializer
  */
 @Composable
-fun SpatialAudioOutput(spatializer: Spatializer) {
+fun SpatialAudioOutput(audioManager: AudioManager) {
+
+    val spatializer = audioManager.spatializer
 
     val attributes = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(
         C.AUDIO_CONTENT_TYPE_UNKNOWN
     ).setAllowedCapturePolicy(C.ALLOW_CAPTURE_BY_ALL).build()
+
     val audioFormat = AudioFormat.Builder().setEncoding(AudioFormat.ENCODING_PCM_16BIT)
         .setChannelMask(AudioFormat.CHANNEL_OUT_5POINT1).build()
 
