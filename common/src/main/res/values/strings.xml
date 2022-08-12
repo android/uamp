@@ -16,14 +16,8 @@
 -->
 <resources>
     <!-- Notificaiton Channel -->
-    <string name="notification_channel">Now Playing</string>
-    <string name="notification_channel_description">Shows what music is currently playing in UAMP</string>
 
     <!-- Notification actions -->
-    <string name="notification_skip_to_previous">Skip to previous track</string>
-    <string name="notification_skip_to_next">Skip to next track</string>
-    <string name="notification_play">Play</string>
-    <string name="notification_pause">Pause</string>
 
     <!-- Error messages -->
     <string name="error_media_not_found">Could not locate requested media.</string>
@@ -38,7 +32,6 @@
     </string>
 
     <!-- Cast menu item -->
-    <string name="media_route_menu_title">Cast</string>
 
     <!-- Browse Tree -->
     <string name="recommended_title">Recommended</string>

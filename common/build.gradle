@@ -50,6 +50,7 @@ dependencies {
     api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_coroutines_version"
     api "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlin_coroutines_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-guava:$kotlin_coroutines_version"
+    implementation "androidx.lifecycle:lifecycle-extensions:$arch_lifecycle_version"
 
     api "com.google.code.gson:gson:$gson_version"
 

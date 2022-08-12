@@ -19,18 +19,19 @@
 buildscript {
     ext {
         // App SDK versions.
-        compileSdkVersion = 31
-        minSdkVersion = 19
-        targetSdkVersion = 31
+        compileSdkVersion = 33
+        minSdkVersion = 21
+        targetSdkVersion = 33
 
         // Dependency versions.
         androidx_app_compat_version = '1.4.1'
         androidx_car_version = '1.0.0-alpha7'
         androidx_media_version = '1.5.0'
-        androidx_media3_version =  '1.0.0-beta01'
+        androidx_media3_version =  '1.0.0-beta02'
         androidx_preference_version = '1.2.0'
         androidx_test_runner_version = '1.4.0'
         arch_lifecycle_version = '2.2.0'
+        compose_version = "1.2.0"
         constraint_layout_version = '2.1.3'
         espresso_version = '3.4.0'
         fragment_version = '1.4.1'
@@ -39,7 +40,7 @@ buildscript {
         gradle_version = '3.1.4'
         gson_version = '2.8.6'
         junit_version = '4.13.2'
-        kotlin_version = '1.6.10'
+        kotlin_version = '1.7.0'
         kotlin_coroutines_version = '1.5.2'
         multidex_version = '1.0.3'
         play_services_auth_version = '20.1.0'

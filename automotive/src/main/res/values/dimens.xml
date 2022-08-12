@@ -15,8 +15,6 @@
   ~ limitations under the License.
   -->
 <resources>
-    <dimen name="activity_horizontal_margin">16dp</dimen>
-    <dimen name="activity_vertical_margin">16dp</dimen>
 
     <dimen name="display_text_size">64sp</dimen>
     <dimen name="primary_text_size">32sp</dimen>

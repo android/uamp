@@ -29,7 +29,6 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.media3.common.MediaItem
-import com.example.android.uamp.R
 import com.example.android.uamp.common.MusicServiceConnection
 import com.example.android.uamp.common.PlaybackState
 import com.example.android.uamp.fragments.NowPlayingFragment
@@ -44,18 +43,21 @@ class NowPlayingFragmentViewModel(
     musicServiceConnection: MusicServiceConnection
 ) : AndroidViewModel(app) {
 
-    val mediaItem = MutableLiveData<MediaItem>().apply {
-        postValue(MediaItem.EMPTY)
-    }
-    val mediaPosition = MutableLiveData<Long>().apply {
-        postValue(0L)
-    }
-    val mediaDuration = MutableLiveData<Long>().apply {
-        postValue(0L)
-    }
-    val mediaButtonRes = MutableLiveData<Int>().apply {
-        postValue(R.drawable.ic_album_black_24dp)
-    }
+    // Current media item being played
+    val mediaItem = MutableLiveData<MediaItem>(MediaItem.EMPTY)
+
+    // Current position of the media item being played
+    val mediaPositionSeconds = MutableLiveData<Long>(0L)
+
+    // Duration of the media item being played
+    val mediaDurationSeconds = MutableLiveData<Long>(0L)
+
+    // Boolean value to indicate current playback status of the mediaItem
+    val mediaIsPlaying = MutableLiveData<Boolean>(true)
+
+    // Boolean value to indicate the current status of spatialization
+    val spatializationStatus =
+        MutableLiveData<Boolean>(true)
 
     private var updatePosition = true
     private val handler = Handler(Looper.getMainLooper())
@@ -66,7 +68,10 @@ class NowPlayingFragmentViewModel(
      * (i.e.: play/pause button or blank)
      */
     private val playbackStateObserver = Observer<PlaybackState> {
-        updateState(it, musicServiceConnection.nowPlaying.value!!)
+        updateState(
+            it, musicServiceConnection.nowPlaying.value!!,
+            musicServiceConnection.isAppSpatializationEnabled.value!!
+        )
     }
 
     /**
@@ -76,7 +81,23 @@ class NowPlayingFragmentViewModel(
      * changed. (i.e.: play/pause button or blank)
      */
     private val nowPlayingObserver = Observer<MediaItem> {
-        updateState(musicServiceConnection.playbackState.value!!, it)
+        updateState(
+            musicServiceConnection.playbackState.value!!, it,
+            musicServiceConnection.isAppSpatializationEnabled.value!!
+        )
+    }
+
+    /**
+     * When the session's spatial audio is toggled, the [spatializationStatus] needs to be updated
+     * as it represents the current spatial audio status of the app. As a result, the old
+     * spatialization status needs to be updated with the new status while keeping the nowPlaying
+     * and playback states the same.
+     */
+    private val isAppSpatializationEnabledObserver = Observer<Boolean> {
+        updateState(
+            musicServiceConnection.playbackState.value!!,
+            musicServiceConnection.nowPlaying.value!!, it
+        )
     }
 
     /**
@@ -96,6 +117,7 @@ class NowPlayingFragmentViewModel(
     private val musicServiceConnection = musicServiceConnection.also {
         it.playbackState.observeForever(playbackStateObserver)
         it.nowPlaying.observeForever(nowPlayingObserver)
+        it.isAppSpatializationEnabled.observeForever(isAppSpatializationEnabledObserver)
         checkPlaybackPosition(POSITION_UPDATE_INTERVAL_MILLIS)
     }
 
@@ -104,11 +126,11 @@ class NowPlayingFragmentViewModel(
      * updates the corresponding LiveData object when it has changed.
      */
     private fun checkPlaybackPosition(delayMs: Long): Boolean = handler.postDelayed({
-        val currPosition = musicServiceConnection.player?.currentPosition ?: 0
-        if (mediaPosition.value != currPosition)
-            mediaPosition.postValue(currPosition)
+        val currPosition = (musicServiceConnection.player?.currentPosition ?: 0) / 1000
+        if (mediaPositionSeconds.value != currPosition)
+            mediaPositionSeconds.postValue(currPosition)
         if (updatePosition)
-            checkPlaybackPosition(1000 - (currPosition % 1000))
+            checkPlaybackPosition(100)
     }, delayMs)
 
     /**
@@ -124,6 +146,8 @@ class NowPlayingFragmentViewModel(
         // Remove the permanent observers from the MusicServiceConnection.
         musicServiceConnection.playbackState.removeObserver(playbackStateObserver)
         musicServiceConnection.nowPlaying.removeObserver(nowPlayingObserver)
+        musicServiceConnection.isAppSpatializationEnabled
+            .removeObserver(isAppSpatializationEnabledObserver)
 
         // Stop updating the position
         updatePosition = false
@@ -131,7 +155,8 @@ class NowPlayingFragmentViewModel(
 
     private fun updateState(
         playbackState: PlaybackState,
-        mediaItem: MediaItem
+        mediaItem: MediaItem,
+        isAppSpatializationEnabled: Boolean
     ) {
 
         // Only update media item once we have duration available
@@ -139,15 +164,12 @@ class NowPlayingFragmentViewModel(
             this.mediaItem.postValue(mediaItem)
         }
 
-        mediaDuration.postValue(playbackState.duration)
+        mediaDurationSeconds.postValue(playbackState.duration / 1000)
 
-        // Update the media button resource ID
-        mediaButtonRes.postValue(
-            when (playbackState.isPlaying) {
-                true -> R.drawable.ic_pause_black_24dp
-                else -> R.drawable.ic_play_arrow_black_24dp
-            }
-        )
+        mediaIsPlaying.postValue(playbackState.isPlaying)
+
+        spatializationStatus.postValue(isAppSpatializationEnabled)
+
     }
 
     class Factory(
@@ -156,7 +178,7 @@ class NowPlayingFragmentViewModel(
     ) : ViewModelProvider.NewInstanceFactory() {
 
         @Suppress("unchecked_cast")
-        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
             return NowPlayingFragmentViewModel(app, musicServiceConnection) as T
         }
     }

@@ -204,19 +204,19 @@ class SignInLandingPageFragment : Fragment() {
 
     private fun checkPlayServices(): Boolean {
         context?.let { context ->
-            val apiAvailability = GoogleApiAvailability.getInstance();
-            val resultCode = apiAvailability.isGooglePlayServicesAvailable(context);
+            val apiAvailability = GoogleApiAvailability.getInstance()
+            val resultCode = apiAvailability.isGooglePlayServicesAvailable(context)
             if (resultCode != ConnectionResult.SUCCESS) {
                 activity?.let {
                     if (apiAvailability.isUserResolvableError(resultCode)) {
                         apiAvailability.getErrorDialog(
                             it, resultCode, PLAY_SERVICES_RESOLUTION_REQUEST
-                        )?.show();
+                        )?.show()
                     }
                 }
-                return false;
+                return false
             }
-            return true;
+            return true
         }
         return false
     }

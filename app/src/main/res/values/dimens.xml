@@ -17,28 +17,6 @@
 <resources>
     <dimen name="text_margin">16dp</dimen>
 
-    <dimen name="media_item_height">72dp</dimen>
-    <dimen name="media_item_control_margin">4dp</dimen>
-    <dimen name="media_item_icon_margin_start">12dp</dimen>
-    <dimen name="media_item_text_margin_start">4dp</dimen>
-
     <dimen name="media_item_art">72dp</dimen>
 
-    <dimen name="media_item_radius">4dp</dimen>
-    <dimen name="media_item_half_radius">2dp</dimen>
-    <dimen name="media_item_negative_half_radius">-2dp</dimen>
-
-    <dimen name="now_playing_album_art_margin">72dp</dimen>
-    <dimen name="now_playing_skip_top_margin">42dp</dimen>
-    <dimen name="now_playing_skip_margin">8dp</dimen>
-    <dimen name="now_playing_play_pause_top_margin">42dp</dimen>
-    <dimen name="now_playing_play_pause_bottom_margin">52dp</dimen>
-
-    <dimen name="now_playing_title_top_margin">32dp</dimen>
-    <dimen name="now_playing_title_bottom_margin">8dp</dimen>
-    <dimen name="now_playing_artist_bottom_margin">32dp</dimen>
-    <dimen name="now_playing_text_padding">16dp</dimen>
-
-    <dimen name="now_playing_title_size">32sp</dimen>
-    <dimen name="now_playing_artist_size">18sp</dimen>
 </resources>
