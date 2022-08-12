@@ -153,10 +153,9 @@ fun SpatialAudioOutput(audioManager: AudioManager) {
 
     // Introduced in API 33, be sure to use a compatible device
     val isHeadTrackerAvailable =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             spatializer.isHeadTrackerAvailable
-        }
-        else {
+        } else {
             false
         }
 

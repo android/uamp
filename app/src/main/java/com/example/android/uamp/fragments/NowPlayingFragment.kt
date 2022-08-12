@@ -66,19 +66,21 @@ class NowPlayingFragment : Fragment() {
                     Scaffold {
                         // Add navigation functionality between NowPlayingScreen and SettingsScreen
                         val navController = rememberNavController()
+                        val nowPlaying = stringResource(id = R.string.route_nowplaying)
+                        val settings = stringResource(id = R.string.route_settings)
 
                         NavHost(
                             navController = navController,
-                            startDestination = stringResource(id = R.string.route_nowplaying)
+                            startDestination = nowPlaying
                         ) {
-                            composable(route = context.getString(R.string.route_nowplaying)) {
+                            composable(route = nowPlaying) {
                                 NowPlayingDescription(
                                     nowPlayingViewModel,
                                     mainActivityViewModel,
                                     navController
                                 )
                             }
-                            composable(route = context.getString(R.string.route_settings)) {
+                            composable(route = settings) {
                                 SettingsScreenDescription(
                                     nowPlayingViewModel,
                                     mainActivityViewModel,
