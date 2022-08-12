@@ -82,8 +82,8 @@ fun NowPlayingDescription(
 }
 
 /**
- * This particular instance of NowPlayingDescription serves to showcase the current media item being played
- * on the screen
+ * This particular instance of NowPlayingDescription serves to showcase the current media item
+ * being played on the screen
  *
  * @param mediaItem current mediaItem being played
  * @param nowPlayingFragmentViewModel to reference NowPlayingFragmentViewModel functions

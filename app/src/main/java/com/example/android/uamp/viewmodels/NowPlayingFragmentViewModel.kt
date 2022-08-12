@@ -87,6 +87,12 @@ class NowPlayingFragmentViewModel(
         )
     }
 
+    /**
+     * When the session's spatial audio is toggled, the [spatializationStatus] needs to be updated
+     * as it represents the current spatial audio status of the app. As a result, the old
+     * spatialization status needs to be updated with the new status while keeping the nowPlaying
+     * and playback states the same.
+     */
     private val isAppSpatializationEnabledObserver = Observer<Boolean> {
         updateState(
             musicServiceConnection.playbackState.value!!,

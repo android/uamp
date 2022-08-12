@@ -72,8 +72,7 @@ fun SettingsScreenDescription(
 ) {
     val spatializationStatus: Boolean by nowPlayingFragmentViewModel.spatializationStatus
         .observeAsState(true)
-//    val mCheckedValue =
-//        remember { mutableStateOf(nowPlayingFragmentViewModel.spatializationStatus.value!!) }
+
     val audioManager =
         ContextCompat.getSystemService(LocalContext.current, AudioManager::class.java)
 
@@ -139,9 +138,10 @@ fun SpatialAudioOutput(audioManager: AudioManager) {
 
     val spatializer = audioManager.spatializer
 
-    val attributes = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(
-        C.AUDIO_CONTENT_TYPE_UNKNOWN
-    ).setAllowedCapturePolicy(C.ALLOW_CAPTURE_BY_ALL).build()
+    val attributes = AudioAttributes.Builder()
+        .setUsage(AudioAttributes.USAGE_MEDIA)
+        .setContentType(C.AUDIO_CONTENT_TYPE_UNKNOWN)
+        .setAllowedCapturePolicy(C.ALLOW_CAPTURE_BY_ALL).build()
 
     val audioFormat = AudioFormat.Builder().setEncoding(AudioFormat.ENCODING_PCM_16BIT)
         .setChannelMask(AudioFormat.CHANNEL_OUT_5POINT1).build()
@@ -153,9 +153,12 @@ fun SpatialAudioOutput(audioManager: AudioManager) {
 
     // Introduced in API 33, be sure to use a compatible device
     val isHeadTrackerAvailable =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
             spatializer.isHeadTrackerAvailable
-        else false
+        }
+        else {
+            false
+        }
 
     Column(verticalArrangement = Arrangement.SpaceBetween) {
         Text(

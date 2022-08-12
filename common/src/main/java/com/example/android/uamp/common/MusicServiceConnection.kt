@@ -72,16 +72,12 @@ import kotlin.coroutines.CoroutineContext
  */
 class MusicServiceConnection(context: Context, serviceComponent: ComponentName) {
 
-    val rootMediaItem = MutableLiveData<MediaItem>()
-        .apply { postValue(MediaItem.EMPTY) }
-    val playbackState = MutableLiveData<PlaybackState>()
-        .apply { postValue(EMPTY_PLAYBACK_STATE) }
-    val nowPlaying = MutableLiveData<MediaItem>()
-        .apply { postValue(NOTHING_PLAYING) }
-    val isAppSpatializationEnabled = MutableLiveData<Boolean>()
-        .apply { postValue(true) }
-    val player: Player? get() = browser
+    val rootMediaItem = MutableLiveData<MediaItem>(MediaItem.EMPTY)
+    val playbackState = MutableLiveData<PlaybackState>(EMPTY_PLAYBACK_STATE)
+    val nowPlaying = MutableLiveData<MediaItem>(NOTHING_PLAYING)
+    val isAppSpatializationEnabled = MutableLiveData<Boolean>(true)
 
+    val player: Player? get() = browser
 
     val networkFailure = MutableLiveData<Boolean>()
         .apply { postValue(false) }

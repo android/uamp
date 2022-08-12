@@ -68,14 +68,16 @@ private fun MediaItemDescription(
     mediaItems: List<MediaItemData>,
     mainActivityViewModel: MainActivityViewModel
 ) {
-    if (mediaItems.isEmpty())
+    if (mediaItems.isEmpty()){
         Text(stringResource(R.string.media_items_empty))
-    else
+    }
+    else {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             for (mediaItem in mediaItems) {
                 item { MediaItem(mediaItem, mainActivityViewModel) }
             }
         }
+    }
 }
 
 /**
