@@ -57,16 +57,11 @@ Adding New Keys:
     <signature
         name="Android Auto"
         package="com.google.android.projection.gearhead">
-        <!-- Privileged 1P app debug key -->
         <key release="false">
             19:75:b2:f1:71:77:bc:89:a5:df:f3:1f:9e:64:a6:ca:e2:81:a5:3d:c1:d1:d5:9b:1d:14:7f:e1:c8:2a:fa:00
         </key>
         <key release="false">
             70:81:1a:3e:ac:fd:2e:83:e1:8d:a9:bf:ed:e5:2d:f1:6c:e9:1f:2e:69:a4:4d:21:f1:8a:b6:69:91:13:07:71
-        </key>
-        <!-- Android Auto debug key -->
-        <key release="false">
-            AC:81:14:2D:AB:3C:B5:35:E5:55:C3:1B:17:43:D5:CA:4F:7C:79:6E:B6:F8:10:36:A3:8F:40:84:FF:16:66:9D
         </key>
         <key release="true">
             fd:b0:0c:43:db:de:8b:51:cb:31:2a:a8:1d:3b:5f:a1:77:13:ad:b9:4b:28:f5:98:d7:7f:8e:b8:9d:ac:ee:df
