@@ -17,7 +17,6 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
-apply plugin: 'kotlin-android-extensions'
 
 android {
     compileSdkVersion rootProject.compileSdkVersion
@@ -53,6 +52,7 @@ dependencies {
     api "androidx.media:media:$androidx_media_version"
 
     api "com.google.code.gson:gson:$gson_version"
+    api "androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1"
 
     // ExoPlayer dependencies
 
