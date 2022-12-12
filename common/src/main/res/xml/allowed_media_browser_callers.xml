@@ -68,8 +68,13 @@ Adding New Keys:
         <key release="false">
             AC:81:14:2D:AB:3C:B5:35:E5:55:C3:1B:17:43:D5:CA:4F:7C:79:6E:B6:F8:10:36:A3:8F:40:84:FF:16:66:9D
         </key>
+        <!-- Android Auto prod release key -->
         <key release="true">
             fd:b0:0c:43:db:de:8b:51:cb:31:2a:a8:1d:3b:5f:a1:77:13:ad:b9:4b:28:f5:98:d7:7f:8e:b8:9d:ac:ee:df
+        </key>
+        <!-- Android Auto rotated prod release key -->
+        <key release="true">
+            1c:a8:dc:c0:be:d3:cb:d8:72:d2:cb:79:12:00:c0:29:2c:a9:97:57:68:a8:2d:67:6b:8b:42:4f:b6:5b:52:95
         </key>
     </signature>
 
