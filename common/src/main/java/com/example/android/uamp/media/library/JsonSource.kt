@@ -36,6 +36,7 @@ import com.example.android.uamp.media.extensions.mediaUri
 import com.example.android.uamp.media.extensions.title
 import com.example.android.uamp.media.extensions.trackCount
 import com.example.android.uamp.media.extensions.trackNumber
+import com.google.android.exoplayer2.C
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -221,6 +222,6 @@ class JsonMusic {
     var image: String = ""
     var trackNumber: Long = 0
     var totalTrackCount: Long = 0
-    var duration: Long = -1
+    var duration: Long = C.TIME_UNSET
     var site: String = ""
 }
