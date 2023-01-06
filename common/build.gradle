@@ -23,9 +23,6 @@ android {
     compileSdkVersion rootProject.compileSdkVersion
 
     defaultConfig {
-        versionCode 1
-        versionName "1.0"
-
         minSdkVersion rootProject.minSdkVersion
         targetSdkVersion rootProject.targetSdkVersion
 
@@ -42,6 +39,7 @@ android {
     compileOptions {
         targetCompatibility = '1.8'
     }
+    namespace 'com.example.android.uamp.media'
 
 }
 
