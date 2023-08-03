@@ -42,6 +42,7 @@ import androidx.media3.common.Player.Listener
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.util.EventLogger
+import androidx.media3.session.CommandButton
 import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
@@ -206,6 +207,15 @@ open class MusicService : MediaLibraryService() {
             }
             build()
         }
+        val customActionButton =
+            CommandButton.Builder()
+                .setEnabled(true)
+                .setSessionCommand(customSessionCommand)
+                .setDisplayName("Custom command")
+                .setIconResId(android.R.drawable.ic_dialog_info)
+                .build()
+
+        mediaSession.setCustomLayout(listOf(customActionButton)) // adds custom actions in media session
 
         // The media library is built from a remote JSON file. We start loading asynchronously here.
         // Use [callWhenMusicSourceReady] to execute code that needs the source load being
@@ -326,6 +336,7 @@ open class MusicService : MediaLibraryService() {
                     .buildUpon()
                     // Add custom commands
                     .add(SessionCommand(ACTION_TOGGLE_SPATIALIZATION, Bundle()))
+                    .add(customSessionCommand)
                     .build()
             return MediaSession.ConnectionResult.accept(
                 sessionCommands, connectionResult.availablePlayerCommands
@@ -470,6 +481,12 @@ open class MusicService : MediaLibraryService() {
 
                 return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
             }
+
+            if(customCommand.customAction== CUSTOM_SESSION_COMMAND){
+                Log.i(TAG, "Custom session command received")
+                return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
+            }
+
             return Futures.immediateFuture(SessionResult(SessionResult.RESULT_ERROR_NOT_SUPPORTED))
         }
     }
@@ -525,7 +542,9 @@ open class MusicService : MediaLibraryService() {
     }
 }
 
+
 /** Content styling constants */
+private const val EXTRA_CUSTOM_ACTION_SHOW_ON_WEAR = "android.support.wearable.media.extra.CUSTOM_ACTION_SHOW_ON_WEAR" // Flag to display custom actions on wear
 private const val CONTENT_STYLE_BROWSABLE_HINT = "android.media.browse.CONTENT_STYLE_BROWSABLE_HINT"
 private const val CONTENT_STYLE_PLAYABLE_HINT = "android.media.browse.CONTENT_STYLE_PLAYABLE_HINT"
 private const val CONTENT_STYLE_SUPPORTED = "android.media.browse.CONTENT_STYLE_SUPPORTED"
@@ -534,7 +553,11 @@ private const val CONTENT_STYLE_GRID = 2
 
 const val ACTION_TOGGLE_SPATIALIZATION = "com.example.android.uamp.ACTION_TOGGLE_SPATIALIZATION"
 const val EXTRAS_TOGGLE_SPATIALIZATION = "com.example.android.uamp.EXTRAS_TOGGLE_SPATIALIZATION"
+const val CUSTOM_SESSION_COMMAND = "com.example.android.uamp.CUSTOM_SESSION_COMMAND"
+val customSessionCommand = SessionCommand(CUSTOM_SESSION_COMMAND,
+    Bundle().apply {
+        putBoolean(EXTRA_CUSTOM_ACTION_SHOW_ON_WEAR, true)
+    })
 
 const val MEDIA_DESCRIPTION_EXTRAS_START_PLAYBACK_POSITION_MS = "playback_start_position_ms"
-
 private const val TAG = "MusicService"
