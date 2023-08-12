@@ -207,15 +207,6 @@ open class MusicService : MediaLibraryService() {
             }
             build()
         }
-        val customActionButton =
-            CommandButton.Builder()
-                .setEnabled(true)
-                .setSessionCommand(customSessionCommand)
-                .setDisplayName("Custom command")
-                .setIconResId(android.R.drawable.ic_dialog_info)
-                .build()
-
-        mediaSession.setCustomLayout(listOf(customActionButton)) // adds custom actions in media session
 
         // The media library is built from a remote JSON file. We start loading asynchronously here.
         // Use [callWhenMusicSourceReady] to execute code that needs the source load being
@@ -336,11 +327,35 @@ open class MusicService : MediaLibraryService() {
                     .buildUpon()
                     // Add custom commands
                     .add(SessionCommand(ACTION_TOGGLE_SPATIALIZATION, Bundle()))
-                    .add(customSessionCommand)
+                    .add(SessionCommand(SEEK_BACK,Bundle()))
+                    .add(SessionCommand(SEEK_FORWARD,Bundle()))
                     .build()
             return MediaSession.ConnectionResult.accept(
                 sessionCommands, connectionResult.availablePlayerCommands
             )
+        }
+
+        override fun onPostConnect(
+            session: MediaSession,
+            controller: MediaSession.ControllerInfo
+        ) {
+            // Display a button for seek back action
+            val seekBackButton = CommandButton.Builder()
+                .setDisplayName("Seek Back")
+                .setIconResId(R.drawable.media3_notification_seek_back)
+                .setSessionCommand(SessionCommand(SEEK_BACK,Bundle()))
+                .build()
+            session.setCustomLayout(listOf(seekBackButton))
+
+            // Display a button for seek forward action
+            val seekForwardButton = CommandButton.Builder()
+                .setDisplayName("Seek Forward")
+                .setIconResId(R.drawable.media3_notification_seek_forward)
+                .setSessionCommand(SessionCommand(SEEK_FORWARD,Bundle()))
+                .build()
+            session.setCustomLayout(listOf(seekBackButton,seekForwardButton))
+
+            super.onPostConnect(session, controller)
         }
 
         override fun onGetLibraryRoot(
@@ -482,11 +497,15 @@ open class MusicService : MediaLibraryService() {
                 return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
             }
 
-            if(customCommand.customAction== CUSTOM_SESSION_COMMAND){
-                Log.i(TAG, "Custom session command received")
+            if (customCommand.customAction == SEEK_BACK) {
+                exoPlayer.seekBack()
                 return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
             }
 
+            if (customCommand.customAction == SEEK_FORWARD) {
+                exoPlayer.seekForward()
+                return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
+            }
             return Futures.immediateFuture(SessionResult(SessionResult.RESULT_ERROR_NOT_SUPPORTED))
         }
     }
@@ -542,9 +561,7 @@ open class MusicService : MediaLibraryService() {
     }
 }
 
-
 /** Content styling constants */
-private const val EXTRA_CUSTOM_ACTION_SHOW_ON_WEAR = "android.support.wearable.media.extra.CUSTOM_ACTION_SHOW_ON_WEAR" // Flag to display custom actions on wear
 private const val CONTENT_STYLE_BROWSABLE_HINT = "android.media.browse.CONTENT_STYLE_BROWSABLE_HINT"
 private const val CONTENT_STYLE_PLAYABLE_HINT = "android.media.browse.CONTENT_STYLE_PLAYABLE_HINT"
 private const val CONTENT_STYLE_SUPPORTED = "android.media.browse.CONTENT_STYLE_SUPPORTED"
@@ -553,11 +570,9 @@ private const val CONTENT_STYLE_GRID = 2
 
 const val ACTION_TOGGLE_SPATIALIZATION = "com.example.android.uamp.ACTION_TOGGLE_SPATIALIZATION"
 const val EXTRAS_TOGGLE_SPATIALIZATION = "com.example.android.uamp.EXTRAS_TOGGLE_SPATIALIZATION"
-const val CUSTOM_SESSION_COMMAND = "com.example.android.uamp.CUSTOM_SESSION_COMMAND"
-val customSessionCommand = SessionCommand(CUSTOM_SESSION_COMMAND,
-    Bundle().apply {
-        putBoolean(EXTRA_CUSTOM_ACTION_SHOW_ON_WEAR, true)
-    })
+const val SEEK_FORWARD = "com.example.android.uamp.SEEK_FORWARD"
+const val SEEK_BACK = "com.example.android.uamp.SEEK_BACK"
 
 const val MEDIA_DESCRIPTION_EXTRAS_START_PLAYBACK_POSITION_MS = "playback_start_position_ms"
+
 private const val TAG = "MusicService"
