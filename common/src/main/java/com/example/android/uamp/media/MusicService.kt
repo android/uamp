@@ -345,7 +345,6 @@ open class MusicService : MediaLibraryService() {
                 .setIconResId(R.drawable.media3_notification_seek_back)
                 .setSessionCommand(SessionCommand(SEEK_BACK,Bundle()))
                 .build()
-            session.setCustomLayout(listOf(seekBackButton))
 
             // Display a button for seek forward action
             val seekForwardButton = CommandButton.Builder()
@@ -574,5 +573,4 @@ const val SEEK_FORWARD = "com.example.android.uamp.SEEK_FORWARD"
 const val SEEK_BACK = "com.example.android.uamp.SEEK_BACK"
 
 const val MEDIA_DESCRIPTION_EXTRAS_START_PLAYBACK_POSITION_MS = "playback_start_position_ms"
-
 private const val TAG = "MusicService"
