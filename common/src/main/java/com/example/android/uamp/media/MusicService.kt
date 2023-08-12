@@ -42,6 +42,7 @@ import androidx.media3.common.Player.Listener
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.util.EventLogger
+import androidx.media3.session.CommandButton
 import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
@@ -326,10 +327,34 @@ open class MusicService : MediaLibraryService() {
                     .buildUpon()
                     // Add custom commands
                     .add(SessionCommand(ACTION_TOGGLE_SPATIALIZATION, Bundle()))
+                    .add(SessionCommand(SEEK_BACK,Bundle()))
+                    .add(SessionCommand(SEEK_FORWARD,Bundle()))
                     .build()
             return MediaSession.ConnectionResult.accept(
                 sessionCommands, connectionResult.availablePlayerCommands
             )
+        }
+
+        override fun onPostConnect(
+            session: MediaSession,
+            controller: MediaSession.ControllerInfo
+        ) {
+            // Display a button for seek back action
+            val seekBackButton = CommandButton.Builder()
+                .setDisplayName("Seek Back")
+                .setIconResId(R.drawable.media3_notification_seek_back)
+                .setSessionCommand(SessionCommand(SEEK_BACK,Bundle()))
+                .build()
+
+            // Display a button for seek forward action
+            val seekForwardButton = CommandButton.Builder()
+                .setDisplayName("Seek Forward")
+                .setIconResId(R.drawable.media3_notification_seek_forward)
+                .setSessionCommand(SessionCommand(SEEK_FORWARD,Bundle()))
+                .build()
+            session.setCustomLayout(listOf(seekBackButton,seekForwardButton))
+
+            super.onPostConnect(session, controller)
         }
 
         override fun onGetLibraryRoot(
@@ -470,6 +495,16 @@ open class MusicService : MediaLibraryService() {
 
                 return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
             }
+
+            if (customCommand.customAction == SEEK_BACK) {
+                exoPlayer.seekBack()
+                return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
+            }
+
+            if (customCommand.customAction == SEEK_FORWARD) {
+                exoPlayer.seekForward()
+                return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
+            }
             return Futures.immediateFuture(SessionResult(SessionResult.RESULT_ERROR_NOT_SUPPORTED))
         }
     }
@@ -534,7 +569,8 @@ private const val CONTENT_STYLE_GRID = 2
 
 const val ACTION_TOGGLE_SPATIALIZATION = "com.example.android.uamp.ACTION_TOGGLE_SPATIALIZATION"
 const val EXTRAS_TOGGLE_SPATIALIZATION = "com.example.android.uamp.EXTRAS_TOGGLE_SPATIALIZATION"
+const val SEEK_FORWARD = "com.example.android.uamp.SEEK_FORWARD"
+const val SEEK_BACK = "com.example.android.uamp.SEEK_BACK"
 
 const val MEDIA_DESCRIPTION_EXTRAS_START_PLAYBACK_POSITION_MS = "playback_start_position_ms"
-
 private const val TAG = "MusicService"
