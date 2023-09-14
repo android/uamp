@@ -36,14 +36,14 @@ class MainActivity : AppCompatActivity() {
     private val viewModel by viewModels<MainActivityViewModel> {
         InjectorUtils.provideMainActivityViewModel(this)
     }
-    private var castContext: CastContext? = null
+//    private var castContext: CastContext? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         // Initialize the Cast context. This is required so that the media route button can be
         // created in the AppBar
-        castContext = CastContext.getSharedInstance(this)
+//        castContext = CastContext.getSharedInstance(this)
 
         setContentView(R.layout.activity_main)
 
