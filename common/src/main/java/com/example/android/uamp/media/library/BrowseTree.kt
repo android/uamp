@@ -147,7 +147,7 @@ class BrowseTree(
 
         // Insert the album's root with an empty list for its children, and return the list.
         return mutableListOf<MediaMetadataCompat>().also {
-            mediaIdToChildren[albumMetadata.id!!] = it
+            mediaIdToChildren[albumMetadata.id.orEmpty()] = it
         }
     }
 }

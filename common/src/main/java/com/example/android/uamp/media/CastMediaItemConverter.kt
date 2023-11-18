@@ -53,7 +53,7 @@ internal class CastMediaItemConverter : MediaItemConverter {
         mediaItem.mediaMetadata.discNumber?.let {
             castMediaMetadata.putInt(MediaMetadata.KEY_DISC_NUMBER, it)
         }
-        val mediaInfo = MediaInfo.Builder(mediaItem.localConfiguration!!.uri.toString())
+        val mediaInfo = MediaInfo.Builder(mediaItem.localConfiguration?.uri.toString())
             .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
             .setContentType(MimeTypes.AUDIO_MPEG)
         mediaItem.localConfiguration?.let {

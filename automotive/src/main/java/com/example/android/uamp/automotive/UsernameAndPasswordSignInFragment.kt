@@ -88,7 +88,7 @@ class UsernameAndPasswordSignInFragment : Fragment() {
 
         submitButton.text = getString(R.string.sign_in_submit_button_label)
         submitButton.setOnClickListener {
-            onSignIn(userId!!, passwordInput.text.toString())
+            onSignIn(userId.orEmpty(), passwordInput.text.toString())
         }
     }
 
