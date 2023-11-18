@@ -16,6 +16,7 @@
 
 package com.example.android.uamp.viewmodels
 
+import android.net.Uri
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaBrowserCompat.MediaItem
 import android.support.v4.media.MediaBrowserCompat.SubscriptionCallback
@@ -61,12 +62,12 @@ class MediaItemFragmentViewModel(
             val itemsList = children.map { child ->
                 val subtitle = child.description.subtitle ?: ""
                 MediaItemData(
-                    child.mediaId!!,
+                    child.mediaId.orEmpty(),
                     child.description.title.toString(),
                     subtitle.toString(),
-                    child.description.iconUri!!,
+                    child.description.iconUri ?: Uri.EMPTY,
                     child.isBrowsable,
-                    getResourceForMediaId(child.mediaId!!)
+                    getResourceForMediaId(child.mediaId.orEmpty())
                 )
             }
             _mediaItems.postValue(itemsList)

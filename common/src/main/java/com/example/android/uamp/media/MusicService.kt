@@ -217,7 +217,11 @@ open class MusicService : MediaBrowserServiceCompat() {
 
         switchToPlayer(
             previousPlayer = null,
-            newPlayer = if (castPlayer?.isCastSessionAvailable == true) castPlayer!! else exoPlayer
+            newPlayer = if (castPlayer?.isCastSessionAvailable == true) {
+                castPlayer ?: exoPlayer
+            } else {
+                exoPlayer
+            }
         )
         notificationManager.showNotificationForPlayer(currentPlayer)
 
@@ -445,7 +449,7 @@ open class MusicService : MediaBrowserServiceCompat() {
          * remote Cast receiver rather than play audio locally.
          */
         override fun onCastSessionAvailable() {
-            switchToPlayer(currentPlayer, castPlayer!!)
+            castPlayer?.let { switchToPlayer(currentPlayer, it) }
         }
 
         /**
@@ -484,7 +488,7 @@ open class MusicService : MediaBrowserServiceCompat() {
         override fun onPrepare(playWhenReady: Boolean) {
             val recentSong = storage.loadRecentSong() ?: return
             onPrepareFromMediaId(
-                recentSong.mediaId!!,
+                recentSong.mediaId.orEmpty(),
                 playWhenReady,
                 recentSong.description.extras
             )
