@@ -26,6 +26,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.media3.common.MediaItem
 import com.bumptech.glide.Glide
 import com.example.android.uamp.R
@@ -33,23 +34,33 @@ import com.example.android.uamp.databinding.FragmentNowplayingBinding
 import com.example.android.uamp.utils.InjectorUtils
 import com.example.android.uamp.viewmodels.MainActivityViewModel
 import com.example.android.uamp.viewmodels.NowPlayingFragmentViewModel
+import dagger.android.support.AndroidSupportInjection
+import javax.inject.Inject
 
 /**
  * A fragment representing the current media item being played.
  */
 class NowPlayingFragment : Fragment() {
 
+    @Inject
+    lateinit var factory: ViewModelProvider.Factory
+
     private val mainActivityViewModel by activityViewModels<MainActivityViewModel> {
-        InjectorUtils.provideMainActivityViewModel(requireContext())
+        factory
     }
     private val nowPlayingViewModel by viewModels<NowPlayingFragmentViewModel> {
-        InjectorUtils.provideNowPlayingFragmentViewModel(requireContext())
+        factory
     }
 
     lateinit var binding: FragmentNowplayingBinding
 
+    override fun onAttach(context: Context) {
+        AndroidSupportInjection.inject(this)
+        super.onAttach(context)
+    }
+
     companion object {
-        fun newInstance() = NowPlayingFragment()
+//        fun newInstance() = NowPlayingFragment()
         /** Converts milliseconds to a display of minutes and seconds. */
         fun timestampToMSS(context: Context, position: Long): String {
             val totalSeconds = Math.floor(position / 1E3).toInt()

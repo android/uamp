@@ -55,6 +55,11 @@ dependencies {
 
     api "com.google.code.gson:gson:$gson_version"
 
+    implementation "com.google.dagger:dagger-android:$dagger_version"
+    implementation "com.google.dagger:dagger-android-support:$dagger_version" // if you use the support libraries
+    kapt "com.google.dagger:dagger-android-processor:$dagger_version"
+    kapt "com.google.dagger:dagger-compiler:$dagger_version"
+
     // AndroidX Media3  dependencies
 
     // This allows UAMP to utilize a local version of AndroidX Media3, which is particularly

@@ -22,7 +22,9 @@ import android.view.Menu
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.media3.common.MediaItem
+import com.example.android.uamp.fragments.MEDIA_ID_ARG
 import com.example.android.uamp.fragments.MediaItemFragment
 import com.example.android.uamp.media.MusicService
 import com.example.android.uamp.utils.Event
@@ -30,15 +32,27 @@ import com.example.android.uamp.utils.InjectorUtils
 import com.example.android.uamp.viewmodels.MainActivityViewModel
 import com.google.android.gms.cast.framework.CastButtonFactory
 import com.google.android.gms.cast.framework.CastContext
+import dagger.android.AndroidInjection
+import dagger.android.AndroidInjector
+import dagger.android.DispatchingAndroidInjector
+import dagger.android.HasAndroidInjector
+import javax.inject.Inject
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), HasAndroidInjector {
+
+    @Inject
+    lateinit var factory: ViewModelProvider.Factory
+
+    @Inject
+    lateinit var androidInjector: DispatchingAndroidInjector<Any>
 
     private val viewModel by viewModels<MainActivityViewModel> {
-        InjectorUtils.provideMainActivityViewModel(this)
+        factory
     }
     private var castContext: CastContext? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        AndroidInjection.inject(this)
         super.onCreate(savedInstanceState)
 
         // Initialize the Cast context. This is required so that the media route button can be
@@ -103,11 +117,19 @@ class MainActivity : AppCompatActivity() {
     private fun navigateToMediaItem(mediaId: String) {
         var fragment: MediaItemFragment? = getBrowseFragment(mediaId)
         if (fragment == null) {
-            fragment = MediaItemFragment.newInstance(mediaId)
+            fragment = MediaItemFragment().apply {
+                arguments = Bundle().apply {
+                    putString(MEDIA_ID_ARG, mediaId)
+                }
+            }
             // If this is not the top level media (root), we add it to the fragment
             // back stack, so that actionbar toggle and Back will work appropriately:
             viewModel.showFragment(fragment, !isRootId(mediaId), mediaId)
         }
+    }
+
+    override fun androidInjector(): AndroidInjector<Any> {
+        return androidInjector
     }
 
     private fun isRootId(mediaId: String) = mediaId == viewModel.rootMediaItem.value?.mediaId

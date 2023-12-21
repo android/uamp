@@ -69,7 +69,10 @@ import kotlin.coroutines.CoroutineContext
  *  parameters, rather than private properties. They're only required to build the
  *  [MediaBrowserConnectionCallback] and [MediaBrowserCompat] objects.
  */
-class MusicServiceConnection(context: Context, serviceComponent: ComponentName) {
+class MusicServiceConnection(
+    context: Context,
+    serviceComponent: ComponentName
+) {
 
     val rootMediaItem = MutableLiveData<MediaItem>()
         .apply { postValue(MediaItem.EMPTY) }
@@ -111,14 +114,14 @@ class MusicServiceConnection(context: Context, serviceComponent: ComponentName) 
             ?: ImmutableList.of()
     }
 
-    suspend fun sendCommand(command: String, parameters: Bundle?):Boolean =
+    suspend fun sendCommand(command: String, parameters: Bundle?): Boolean =
         sendCommand(command, parameters) { _, _ -> }
 
     suspend fun sendCommand(
         command: String,
         parameters: Bundle?,
         resultCallback: ((Int, Bundle?) -> Unit)
-    ):Boolean = if (browser?.isConnected == true) {
+    ): Boolean = if (browser?.isConnected == true) {
         val args = parameters ?: Bundle()
         browser?.sendCustomCommand(SessionCommand(command, args), args)?.await()?.let {
             resultCallback(it.resultCode, it.extras)
@@ -135,7 +138,8 @@ class MusicServiceConnection(context: Context, serviceComponent: ComponentName) 
             it.removeListener(playerListener)
             it.release()
         }
-        instance = null
+        // TODO uncomment to fix
+//        instance = null
     }
 
     private fun updatePlaybackState(player: Player) {
@@ -166,7 +170,8 @@ class MusicServiceConnection(context: Context, serviceComponent: ComponentName) 
         )
     }
 
-    companion object {
+    // TODO uncomment to fix
+    /*companion object {
         // For Singleton instantiation.
         @Volatile
         private var instance: MusicServiceConnection? = null
@@ -176,7 +181,7 @@ class MusicServiceConnection(context: Context, serviceComponent: ComponentName) 
                 instance ?: MusicServiceConnection(context, serviceComponent)
                     .also { instance = it }
             }
-    }
+    }*/
 
     private inner class BrowserListener : MediaBrowser.Listener {
         override fun onDisconnected(controller: MediaController) {
@@ -188,7 +193,8 @@ class MusicServiceConnection(context: Context, serviceComponent: ComponentName) 
         override fun onEvents(player: Player, events: Player.Events) {
             if (events.contains(EVENT_PLAY_WHEN_READY_CHANGED)
                 || events.contains(EVENT_PLAYBACK_STATE_CHANGED)
-                || events.contains(EVENT_MEDIA_ITEM_TRANSITION)) {
+                || events.contains(EVENT_MEDIA_ITEM_TRANSITION)
+            ) {
                 updatePlaybackState(player)
                 if (player.playbackState != Player.STATE_IDLE) {
                     networkFailure.postValue(false)
@@ -196,13 +202,14 @@ class MusicServiceConnection(context: Context, serviceComponent: ComponentName) 
             }
             if (events.contains(EVENT_MEDIA_METADATA_CHANGED)
                 || events.contains(EVENT_MEDIA_ITEM_TRANSITION)
-                || events.contains(EVENT_PLAY_WHEN_READY_CHANGED)) {
+                || events.contains(EVENT_PLAY_WHEN_READY_CHANGED)
+            ) {
                 updateNowPlaying(player)
             }
         }
 
         override fun onPlayerErrorChanged(error: PlaybackException?) {
-            when(error?.errorCode) {
+            when (error?.errorCode) {
                 ERROR_CODE_IO_BAD_HTTP_STATUS,
                 ERROR_CODE_IO_INVALID_HTTP_CONTENT_TYPE,
                 ERROR_CODE_IO_CLEARTEXT_NOT_PERMITTED,
@@ -218,7 +225,8 @@ class MusicServiceConnection(context: Context, serviceComponent: ComponentName) 
 class PlaybackState(
     private val playbackState: Int = Player.STATE_IDLE,
     private val playWhenReady: Boolean = false,
-    val duration: Long = C.TIME_UNSET) {
+    val duration: Long = C.TIME_UNSET
+) {
     val isPlaying: Boolean
         get() {
             return (playbackState == Player.STATE_BUFFERING

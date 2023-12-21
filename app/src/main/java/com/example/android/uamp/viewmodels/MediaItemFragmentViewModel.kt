@@ -30,13 +30,16 @@ import com.example.android.uamp.common.MusicServiceConnection
 import com.example.android.uamp.common.NOTHING_PLAYING
 import com.example.android.uamp.common.PlaybackState
 import com.example.android.uamp.fragments.MediaItemFragment
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
 
 /**
  * [ViewModel] for [MediaItemFragment].
  */
-class MediaItemFragmentViewModel(
-    private val mediaId: String,
+class MediaItemFragmentViewModel @AssistedInject constructor(
+    @Assisted private val mediaId: String,
     musicServiceConnection: MusicServiceConnection
 ) : ViewModel() {
 
@@ -156,15 +159,21 @@ class MediaItemFragmentViewModel(
         } ?: emptyList()
     }
 
-    class Factory(
-        private val mediaId: String,
-        private val musicServiceConnection: MusicServiceConnection
-    ) : ViewModelProvider.NewInstanceFactory() {
-
-        @Suppress("unchecked_cast")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return MediaItemFragmentViewModel(mediaId, musicServiceConnection) as T
+    companion object {
+        @Suppress("UNCHECKED_CAST")
+        fun factory(
+            factory: Factory,
+            mediaId: String
+        ) : ViewModelProvider.Factory {
+            return object : ViewModelProvider.Factory {
+                override fun <T : ViewModel> create(modelClass: Class<T>): T =
+                    factory.build(mediaId) as T
+            }
         }
+    }
+    @AssistedFactory
+    interface Factory {
+        fun build(mediaId: String): MediaItemFragmentViewModel
     }
 }
 

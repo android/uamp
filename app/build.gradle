@@ -73,7 +73,15 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:$arch_lifecycle_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-guava:$kotlin_coroutines_version"
 
+    implementation "com.google.dagger:dagger-android:$dagger_version"
+    implementation "com.google.dagger:dagger-android-support:$dagger_version"
+    // if you use the support libraries
+    kapt "com.google.dagger:dagger-android-processor:$dagger_version"
+    kapt "com.google.dagger:dagger-compiler:$dagger_version"
+
+
     // Glide dependencies
     implementation "com.github.bumptech.glide:glide:$glide_version"
     kapt "com.github.bumptech.glide:compiler:$glide_version"
 }
+kapt { correctErrorTypes true }

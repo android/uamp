@@ -37,12 +37,13 @@ import com.example.android.uamp.media.extensions.isEnded
 import com.example.android.uamp.media.extensions.isPlayEnabled
 import com.example.android.uamp.utils.Event
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 /**
  * Small [ViewModel] that watches a [MusicServiceConnection] to become connected
  * and provides the root/initial media ID of the underlying [MediaBrowserCompat].
  */
-class MainActivityViewModel(
+class MainActivityViewModel @Inject constructor(
     private val musicServiceConnection: MusicServiceConnection
 ) : ViewModel() {
 
@@ -82,7 +83,7 @@ class MainActivityViewModel(
             browseToItem(clickedItem)
         } else {
             playMedia(clickedItem.mediaItem, false, clickedItem.parentMediaId)
-            showFragment(NowPlayingFragment.newInstance())
+            showFragment(NowPlayingFragment())
         }
     }
 
@@ -162,16 +163,6 @@ class MainActivityViewModel(
                 player.prepare()
                 player.play()
             }
-        }
-    }
-
-    class Factory(
-        private val musicServiceConnection: MusicServiceConnection
-    ) : ViewModelProvider.NewInstanceFactory() {
-
-        @Suppress("unchecked_cast")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return MainActivityViewModel(musicServiceConnection) as T
         }
     }
 }

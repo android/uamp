@@ -16,6 +16,7 @@
 
 package com.example.android.uamp.fragments
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -23,39 +24,43 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import com.example.android.uamp.MediaItemAdapter
 import com.example.android.uamp.databinding.FragmentMediaitemListBinding
-import com.example.android.uamp.utils.InjectorUtils
 import com.example.android.uamp.viewmodels.MainActivityViewModel
 import com.example.android.uamp.viewmodels.MediaItemFragmentViewModel
+import dagger.android.support.AndroidSupportInjection
+import javax.inject.Inject
 
 /**
  * A fragment representing a list of MediaItems.
  */
 class MediaItemFragment : Fragment() {
+
+    @Inject
+    lateinit var mediaItemViewModelFactory: MediaItemFragmentViewModel.Factory
+
+    @Inject
+    lateinit var factory: ViewModelProvider.Factory
+
     private val mainActivityViewModel by activityViewModels<MainActivityViewModel> {
-        InjectorUtils.provideMainActivityViewModel(requireContext())
-    }
-    private val mediaItemFragmentViewModel by viewModels<MediaItemFragmentViewModel> {
-        InjectorUtils.provideMediaItemFragmentViewModel(requireContext(), mediaId)
+        factory
     }
 
     private lateinit var mediaId: String
     private lateinit var binding: FragmentMediaitemListBinding
 
+    private val mediaItemFragmentViewModel: MediaItemFragmentViewModel by viewModels {
+        MediaItemFragmentViewModel.factory(mediaItemViewModelFactory, mediaId)
+    }
+
     private val listAdapter = MediaItemAdapter { clickedItem ->
         mainActivityViewModel.mediaItemClicked(clickedItem)
     }
 
-    companion object {
-        fun newInstance(mediaId: String): MediaItemFragment {
-            return MediaItemFragment().apply {
-                arguments = Bundle().apply {
-                    putString(MEDIA_ID_ARG, mediaId)
-                }
-            }
-        }
+    override fun onAttach(context: Context) {
+        AndroidSupportInjection.inject(this)
+        super.onAttach(context)
     }
 
     override fun onCreateView(
@@ -91,4 +96,4 @@ class MediaItemFragment : Fragment() {
     }
 }
 
-private const val MEDIA_ID_ARG = "com.example.android.uamp.fragments.MediaItemFragment.MEDIA_ID"
+const val MEDIA_ID_ARG = "com.example.android.uamp.fragments.MediaItemFragment.MEDIA_ID"

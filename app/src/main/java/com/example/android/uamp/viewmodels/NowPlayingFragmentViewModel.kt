@@ -27,19 +27,19 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.media3.common.MediaItem
 import com.example.android.uamp.R
 import com.example.android.uamp.common.MusicServiceConnection
 import com.example.android.uamp.common.PlaybackState
 import com.example.android.uamp.fragments.NowPlayingFragment
+import javax.inject.Inject
 
 /**
  * [ViewModel] for [NowPlayingFragment] which displays the album art in full size.
  * It extends AndroidViewModel and uses the [Application]'s context to be able to reference string
  * resources.
  */
-class NowPlayingFragmentViewModel(
+class NowPlayingFragmentViewModel @Inject constructor(
     app: Application,
     musicServiceConnection: MusicServiceConnection
 ) : AndroidViewModel(app) {
@@ -148,17 +148,6 @@ class NowPlayingFragmentViewModel(
                 else -> R.drawable.ic_play_arrow_black_24dp
             }
         )
-    }
-
-    class Factory(
-        private val app: Application,
-        private val musicServiceConnection: MusicServiceConnection
-    ) : ViewModelProvider.NewInstanceFactory() {
-
-        @Suppress("unchecked_cast")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return NowPlayingFragmentViewModel(app, musicServiceConnection) as T
-        }
     }
 }
 

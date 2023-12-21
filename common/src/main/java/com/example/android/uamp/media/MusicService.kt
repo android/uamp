@@ -357,17 +357,17 @@ open class MusicService : MediaLibraryService() {
             pageSize: Int,
             params: LibraryParams?
         ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> {
-//            if (parentId == recentRootMediaItem.mediaId) {
-//                val lastItem = storage.loadRecentSong()?.let { song ->
-//                    listOf(song)
-//                }!!
-//                return Futures.immediateFuture(
-//                    LibraryResult.ofItemList(
-//                        lastItem,
-//                        LibraryParams.Builder().build()
-//                    )
-//                )
-//            }
+            if (parentId == recentRootMediaItem.mediaId) {
+                val lastItem = storage.loadRecentSong()?.let { song ->
+                    listOf(song)
+                }!!
+                return Futures.immediateFuture(
+                    LibraryResult.ofItemList(
+                        lastItem,
+                        LibraryParams.Builder().build()
+                    )
+                )
+            }
             return callWhenMusicSourceReady {
                 LibraryResult.ofItemList(
                     browseTree[parentId] ?: ImmutableList.of(),
