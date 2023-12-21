@@ -16,12 +16,9 @@
 
 package com.example.android.uamp.viewmodels
 
-import android.support.v4.media.MediaMetadataCompat
-import android.support.v4.media.session.PlaybackStateCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
-import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -48,12 +45,14 @@ class MediaItemFragmentViewModel(
      * they don't inadvertently modify it.
      */
     private val _mediaItems = MutableLiveData<List<MediaItemData>>()
-    val mediaItems: LiveData<List<MediaItemData>> = _mediaItems
+    val mediaItems: LiveData<List<MediaItemData>>
+        get() = _mediaItems
 
     /**
      * Pass the status of the [MusicServiceConnection.networkFailure] through.
      */
-    val networkError = Transformations.map(musicServiceConnection.networkFailure) { it }
+    val networkError: LiveData<Boolean>
+        get() = musicServiceConnection.networkFailure
 
     /**
      * When the session's [PlaybackStateCompat] changes, the [mediaItems] need to be updated
@@ -163,7 +162,7 @@ class MediaItemFragmentViewModel(
     ) : ViewModelProvider.NewInstanceFactory() {
 
         @Suppress("unchecked_cast")
-        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
             return MediaItemFragmentViewModel(mediaId, musicServiceConnection) as T
         }
     }

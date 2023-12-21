@@ -77,7 +77,7 @@ internal class PersistentStorage private constructor(val context: Context) {
             val metadataBuilder = with(MediaMetadata.Builder()) {
                 setTitle(preferences.getString(RECENT_SONG_TITLE_KEY, ""))
                 setSubtitle(preferences.getString(RECENT_SONG_SUBTITLE_KEY, ""))
-                setFolderType(MediaMetadata.FOLDER_TYPE_NONE)
+                setIsBrowsable(false)
                 setIsPlayable(true)
                 setArtworkUri(Uri.parse(preferences.getString(RECENT_SONG_ICON_URI_KEY, "")))
                 setExtras(extras)

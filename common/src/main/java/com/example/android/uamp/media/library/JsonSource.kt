@@ -138,7 +138,7 @@ fun MediaMetadata.Builder.from(jsonMusic: JsonMusic): MediaMetadata.Builder {
     setArtworkUri(Uri.parse(jsonMusic.image))
     setTrackNumber(jsonMusic.trackNumber.toInt())
     setTotalTrackCount(jsonMusic.totalTrackCount.toInt())
-    setFolderType(MediaMetadata.FOLDER_TYPE_NONE)
+    setIsBrowsable(false)
     setIsPlayable(true)
     // The duration from the JSON is given in seconds, but the rest of the code works in
     // milliseconds. Here's where we convert to the proper units.

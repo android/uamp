@@ -55,7 +55,7 @@ class MainActivity : AppCompatActivity() {
          * Observe [MainActivityViewModel.navigateToFragment] for [Event]s that request a
          * fragment swap.
          */
-        viewModel.navigateToFragment.observe(this, Observer {
+        viewModel.navigateToFragment.observe(this) {
             it?.getContentIfNotHandled()?.let { fragmentRequest ->
                 val transaction = supportFragmentManager.beginTransaction()
                 transaction.replace(
@@ -64,27 +64,26 @@ class MainActivity : AppCompatActivity() {
                 if (fragmentRequest.backStack) transaction.addToBackStack(null)
                 transaction.commit()
             }
-        })
+        }
 
         /**
          * Observe changes to the [MainActivityViewModel.rootMediaItem]. When the app starts,
          * and the UI connects to [MusicService], this will be updated and the app will show
          * the initial list of media items.
          */
-        viewModel.rootMediaItem.observe(this,
-            Observer<MediaItem> { rootMediaItem ->
-                rootMediaItem?.let { navigateToMediaItem(it.mediaId) }
-            })
+        viewModel.rootMediaItem.observe(this) { rootMediaItem ->
+            rootMediaItem?.let { navigateToMediaItem(it.mediaId) }
+        }
 
         /**
          * Observe [MainActivityViewModel.navigateToMediaItem] for [Event]s indicating
          * the user has requested to browse to a different [MediaItemData].
          */
-        viewModel.navigateToMediaItem.observe(this, Observer {
+        viewModel.navigateToMediaItem.observe(this) {
             it?.getContentIfNotHandled()?.let { mediaId ->
                 navigateToMediaItem(mediaId)
             }
-        })
+        }
     }
 
     @Override

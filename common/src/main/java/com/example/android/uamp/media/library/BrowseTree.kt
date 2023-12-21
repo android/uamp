@@ -80,7 +80,7 @@ class BrowseTree(
                             context.resources.getResourceEntryName(R.drawable.ic_recommended)
                 )
             )
-            setFolderType(MediaMetadata.FOLDER_TYPE_MIXED)
+            setIsBrowsable(true)
             setIsPlayable(false)
         }.build()
         rootList += MediaItem.Builder().apply {
@@ -97,7 +97,7 @@ class BrowseTree(
                 )
             )
             setIsPlayable(false)
-            setFolderType(MediaMetadata.FOLDER_TYPE_ALBUMS)
+            setIsBrowsable(true)
         }.build()
         rootList += MediaItem.Builder().apply {
             setMediaId(UAMP_ALBUMS_ROOT)
@@ -147,7 +147,7 @@ class BrowseTree(
         val rootList = mediaIdToChildren[UAMP_ALBUMS_ROOT] ?: mutableListOf()
         // Create the album and add it to the 'Albums' category.
         val albumMetadata = mediaItem.mediaMetadata.buildUpon().apply {
-            setFolderType(MediaMetadata.FOLDER_TYPE_ALBUMS)
+            setIsBrowsable(true)
             setIsPlayable(false)
         }.build()
         val albumMediaItem= mediaItem.buildUpon().apply {

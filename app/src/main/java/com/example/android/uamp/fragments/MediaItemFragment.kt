@@ -61,32 +61,30 @@ class MediaItemFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = FragmentMediaitemListBinding.inflate(inflater, container, false)
         return binding.root
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         // Always true, but lets lint know that as well.
         mediaId = arguments?.getString(MEDIA_ID_ARG) ?: return
 
-        mediaItemFragmentViewModel.mediaItems.observe(viewLifecycleOwner,
-            Observer { list ->
-                binding.loadingSpinner.visibility =
-                    if (list?.isNotEmpty() == true) View.GONE else View.VISIBLE
-                listAdapter.submitList(list)
-            })
-        mediaItemFragmentViewModel.networkError.observe(viewLifecycleOwner,
-            Observer { error ->
-                if (error) {
-                    binding.loadingSpinner.visibility = View.GONE
-                    binding.networkError.visibility = View.VISIBLE
-                } else {
-                    binding.networkError.visibility = View.GONE
-                }
-            })
+        mediaItemFragmentViewModel.mediaItems.observe(viewLifecycleOwner) { list ->
+            binding.loadingSpinner.visibility =
+                if (list?.isNotEmpty() == true) View.GONE else View.VISIBLE
+            listAdapter.submitList(list)
+        }
+        mediaItemFragmentViewModel.networkError.observe(viewLifecycleOwner) { error ->
+            if (error) {
+                binding.loadingSpinner.visibility = View.GONE
+                binding.networkError.visibility = View.VISIBLE
+            } else {
+                binding.networkError.visibility = View.GONE
+            }
+        }
 
         // Set the adapter
         binding.list.adapter = listAdapter
