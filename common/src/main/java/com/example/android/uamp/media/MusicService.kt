@@ -442,7 +442,7 @@ open class MusicService : MediaLibraryService() {
     }
 
     /** Listen for events from ExoPlayer. */
-    private inner class PlayerEventListener : Listener {
+    private inner class PlayerEventListener : Player.Listener {
         override fun onEvents(player: Player, events: Player.Events) {
             if (events.contains(EVENT_POSITION_DISCONTINUITY)
                 || events.contains(EVENT_MEDIA_ITEM_TRANSITION)
