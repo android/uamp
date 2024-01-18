@@ -17,11 +17,10 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
-apply plugin: 'kotlin-android-extensions'
 
 android {
     compileSdkVersion rootProject.compileSdkVersion
-
+    namespace 'com.example.android.uamp'
     defaultConfig {
         applicationId "com.example.android.uamp.next"
         versionCode 1
@@ -36,7 +35,7 @@ android {
             targetCompatibility JavaVersion.VERSION_1_8
         }
         kotlinOptions {
-            jvmTarget = "1.8"
+            jvmTarget = JavaVersion.VERSION_1_8.toString()
         }
 
         vectorDrawables {

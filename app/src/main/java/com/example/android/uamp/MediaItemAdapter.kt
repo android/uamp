@@ -26,6 +26,7 @@ import com.bumptech.glide.Glide
 import com.example.android.uamp.MediaItemData.Companion.PLAYBACK_RES_CHANGED
 import com.example.android.uamp.databinding.FragmentMediaitemBinding
 import com.example.android.uamp.fragments.MediaItemFragment
+import com.example.android.uamp.media.R
 
 /**
  * [RecyclerView.Adapter] of [MediaItemData]s used by the [MediaItemFragment].

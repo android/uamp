@@ -37,6 +37,7 @@ import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.Tracks
 import androidx.media3.common.VideoSize
 import androidx.media3.common.text.CueGroup
+import androidx.media3.common.util.Size
 import androidx.media3.common.util.UnstableApi
 import java.util.ArrayDeque
 import kotlin.math.min
@@ -177,6 +178,18 @@ class ReplaceableForwardingPlayer(private var player: Player) : Player {
         playlist.addAll(min(newIndex, playlist.size), removedItems)
     }
 
+    override fun replaceMediaItem(index: Int, mediaItem: MediaItem) {
+        TODO("Not yet implemented")
+    }
+
+    override fun replaceMediaItems(
+        fromIndex: Int,
+        toIndex: Int,
+        mediaItems: MutableList<MediaItem>
+    ) {
+        TODO("Not yet implemented")
+    }
+
     override fun removeMediaItem(index: Int) {
         player.removeMediaItem(index)
         playlist.removeAt(index)
@@ -295,11 +308,13 @@ class ReplaceableForwardingPlayer(private var player: Player) : Player {
         player.seekForward()
     }
 
+    @Deprecated("Deprecated in Java")
     @OptIn(UnstableApi::class)
     override fun hasPrevious(): Boolean {
         return player.hasPrevious()
     }
 
+    @Deprecated("Deprecated in Java")
     @OptIn(UnstableApi::class)
     override fun hasPreviousWindow(): Boolean {
         return player.hasPreviousWindow()
@@ -309,11 +324,13 @@ class ReplaceableForwardingPlayer(private var player: Player) : Player {
         return player.hasPreviousMediaItem()
     }
 
+    @Deprecated("Deprecated in Java")
     @OptIn(UnstableApi::class)
     override fun previous() {
         player.previous()
     }
 
+    @Deprecated("Deprecated in Java")
     @OptIn(UnstableApi::class)
     override fun seekToPreviousWindow() {
         player.seekToPreviousWindow()
@@ -331,11 +348,13 @@ class ReplaceableForwardingPlayer(private var player: Player) : Player {
         player.seekToPrevious()
     }
 
+    @Deprecated("Deprecated in Java")
     @OptIn(UnstableApi::class)
     override fun hasNext(): Boolean {
         return player.hasNext()
     }
 
+    @Deprecated("Deprecated in Java")
     @OptIn(UnstableApi::class)
     override fun hasNextWindow(): Boolean {
         return player.hasNextWindow()
@@ -345,11 +364,13 @@ class ReplaceableForwardingPlayer(private var player: Player) : Player {
         return player.hasNextMediaItem()
     }
 
+    @Deprecated("Deprecated in Java")
     @OptIn(UnstableApi::class)
     override fun next() {
         player.next()
     }
 
+    @Deprecated("Deprecated in Java")
     @OptIn(UnstableApi::class)
     override fun seekToNextWindow() {
         player.seekToNextWindow()
@@ -377,14 +398,6 @@ class ReplaceableForwardingPlayer(private var player: Player) : Player {
 
     override fun stop() {
         player.stop()
-    }
-
-    @OptIn(UnstableApi::class)
-    override fun stop(reset: Boolean) {
-        player.stop(reset)
-        if (reset) {
-            playlist.clear()
-        }
     }
 
     override fun release() {
@@ -429,6 +442,7 @@ class ReplaceableForwardingPlayer(private var player: Player) : Player {
         return player.currentPeriodIndex
     }
 
+    @Deprecated("Deprecated in Java")
     @OptIn(UnstableApi::class)
     override fun getCurrentWindowIndex(): Int {
         return player.currentWindowIndex
@@ -438,6 +452,7 @@ class ReplaceableForwardingPlayer(private var player: Player) : Player {
         return player.currentMediaItemIndex
     }
 
+    @Deprecated("Deprecated in Java")
     @OptIn(UnstableApi::class)
     override fun getNextWindowIndex(): Int {
         return player.nextWindowIndex
@@ -447,6 +462,7 @@ class ReplaceableForwardingPlayer(private var player: Player) : Player {
         return player.nextMediaItemIndex
     }
 
+    @Deprecated("Deprecated in Java")
     @OptIn(UnstableApi::class)
     override fun getPreviousWindowIndex(): Int {
         return player.previousWindowIndex
@@ -488,6 +504,7 @@ class ReplaceableForwardingPlayer(private var player: Player) : Player {
         return player.totalBufferedDuration
     }
 
+    @Deprecated("Deprecated in Java")
     @OptIn(UnstableApi::class)
     override fun isCurrentWindowDynamic(): Boolean {
         return player.isCurrentWindowDynamic
@@ -497,6 +514,7 @@ class ReplaceableForwardingPlayer(private var player: Player) : Player {
         return player.isCurrentMediaItemDynamic
     }
 
+    @Deprecated("Deprecated in Java")
     @OptIn(UnstableApi::class)
     override fun isCurrentWindowLive(): Boolean {
         return player.isCurrentWindowLive
@@ -510,6 +528,7 @@ class ReplaceableForwardingPlayer(private var player: Player) : Player {
         return player.currentLiveOffset
     }
 
+    @Deprecated("Deprecated in Java")
     @OptIn(UnstableApi::class)
     override fun isCurrentWindowSeekable(): Boolean {
         return player.isCurrentWindowSeekable
@@ -595,6 +614,11 @@ class ReplaceableForwardingPlayer(private var player: Player) : Player {
         return player.videoSize
     }
 
+    @OptIn(UnstableApi::class)
+    override fun getSurfaceSize(): Size {
+        return player.surfaceSize
+    }
+
     override fun getCurrentCues(): CueGroup {
         return player.currentCues
     }
@@ -611,20 +635,44 @@ class ReplaceableForwardingPlayer(private var player: Player) : Player {
         return player.isDeviceMuted
     }
 
+    @Deprecated("Deprecated in Java")
     override fun setDeviceVolume(volume: Int) {
         player.deviceVolume = volume
     }
 
+    override fun setDeviceVolume(volume: Int, flags: Int) {
+        player.setDeviceVolume(volume, flags)
+    }
+
+    @Deprecated("Deprecated in Java")
     override fun increaseDeviceVolume() {
         player.increaseDeviceVolume()
     }
 
+    override fun increaseDeviceVolume(flags: Int) {
+        player.increaseDeviceVolume(flags)
+    }
+
+    @Deprecated("Deprecated in Java")
     override fun decreaseDeviceVolume() {
         player.decreaseDeviceVolume()
     }
 
+    override fun decreaseDeviceVolume(flags: Int) {
+        player.decreaseDeviceVolume(flags)
+    }
+
+    @Deprecated("Deprecated in Java")
     override fun setDeviceMuted(muted: Boolean) {
         player.isDeviceMuted = muted
+    }
+
+    override fun setDeviceMuted(muted: Boolean, flags: Int) {
+        player.setDeviceMuted(muted, flags)
+    }
+
+    override fun setAudioAttributes(audioAttributes: AudioAttributes, handleAudioFocus: Boolean) {
+        player.setAudioAttributes(audioAttributes, handleAudioFocus)
     }
 
     private inner class PlayerListener : Player.Listener {

@@ -21,9 +21,9 @@ import android.support.v4.media.session.PlaybackStateCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
-import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import com.example.android.uamp.MediaItemData
@@ -53,7 +53,7 @@ class MediaItemFragmentViewModel(
     /**
      * Pass the status of the [MusicServiceConnection.networkFailure] through.
      */
-    val networkError = Transformations.map(musicServiceConnection.networkFailure) { it }
+    val networkError = musicServiceConnection.networkFailure.map { it }
 
     /**
      * When the session's [PlaybackStateCompat] changes, the [mediaItems] need to be updated
@@ -163,7 +163,7 @@ class MediaItemFragmentViewModel(
     ) : ViewModelProvider.NewInstanceFactory() {
 
         @Suppress("unchecked_cast")
-        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
             return MediaItemFragmentViewModel(mediaId, musicServiceConnection) as T
         }
     }

@@ -90,13 +90,13 @@ class MainActivity : AppCompatActivity() {
     @Override
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         super.onCreateOptionsMenu(menu)
-        menuInflater.inflate(R.menu.main_activity_menu, menu)
+        menuInflater.inflate(com.example.android.uamp.media.R.menu.main_activity_menu, menu)
 
         /**
          * Set up a MediaRouteButton to allow the user to control the current media playback route
          */
         menu?.let {
-            CastButtonFactory.setUpMediaRouteButton(this, menu, R.id.media_route_menu_item)
+            CastButtonFactory.setUpMediaRouteButton(this, menu, com.example.android.uamp.media.R.id.media_route_menu_item)
         }
         return true
     }

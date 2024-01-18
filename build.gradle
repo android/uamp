@@ -19,33 +19,35 @@
 buildscript {
     ext {
         // App SDK versions.
-        compileSdkVersion = 31
+        compileSdkVersion = 34
         minSdkVersion = 19
-        targetSdkVersion = 31
+        targetSdkVersion = 34
 
         // Dependency versions.
-        androidx_app_compat_version = '1.4.1'
+        androidx_app_compat_version = '1.6.1'
         androidx_car_version = '1.0.0-alpha7'
         androidx_media_version = '1.5.0'
-        androidx_media3_version =  '1.0.0-beta01'
-        androidx_preference_version = '1.2.0'
-        androidx_test_runner_version = '1.4.0'
+        androidx_media3_version =  '1.2.1'
+        androidx_preference_version = '1.2.1'
+        androidx_test_runner_version = '1.5.2'
         arch_lifecycle_version = '2.2.0'
-        constraint_layout_version = '2.1.3'
-        espresso_version = '3.4.0'
-        fragment_version = '1.4.1'
+        constraint_layout_version = '2.1.4'
+        espresso_version = '3.5.1'
+        fragment_version = '1.6.2'
         glide_version = '4.12.0'
         gms_strict_version_matcher_version = '1.0.3'
         gradle_version = '3.1.4'
-        gson_version = '2.8.6'
+        gson_version = '2.10'
         junit_version = '4.13.2'
-        kotlin_version = '1.6.10'
-        kotlin_coroutines_version = '1.5.2'
+        kotlin_version = '1.9.10'
+        kotlin_coroutines_version = '1.6.4'
         multidex_version = '1.0.3'
-        play_services_auth_version = '20.1.0'
-        recycler_view_version = '1.1.0'
-        robolectric_version = '4.7.3'
+        play_services_auth_version = '20.7.0'
+        recycler_view_version = '1.3.2'
+        robolectric_version = '4.11'
         test_runner_version = '1.1.0'
+        agp_version = '8.0.1'
+        agp_version1 = '8.2.0'
     }
 
     repositories {
@@ -53,7 +55,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.0.4'
+        classpath "com.android.tools.build:gradle:$agp_version1"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "com.google.android.gms:strict-version-matcher-plugin:$gms_strict_version_matcher_version"
 
