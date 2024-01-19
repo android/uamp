@@ -57,6 +57,7 @@ android {
 }
 
 dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
     implementation "com.android.support:multidex:$multidex_version"
 
     implementation project(':common')
