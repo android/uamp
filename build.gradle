@@ -47,7 +47,6 @@ buildscript {
         robolectric_version = '4.11'
         test_runner_version = '1.1.0'
         agp_version = '8.0.1'
-        agp_version1 = '8.2.0'
     }
 
     repositories {
@@ -55,7 +54,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath "com.android.tools.build:gradle:$agp_version1"
+        classpath "com.android.tools.build:gradle:$agp_version"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "com.google.android.gms:strict-version-matcher-plugin:$gms_strict_version_matcher_version"
 

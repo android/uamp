@@ -71,7 +71,8 @@ internal class CastMediaItemConverter : MediaItemConverter {
             mediaInfo.setStreamDuration(bundle.getLong(MediaMetadataCompat.METADATA_KEY_DURATION,0))
         }
         mediaInfo.setMetadata(castMediaMetadata)
-        defaultMediaItemConverter.toMediaQueueItem(mediaItem).customData?.let {
+        val mediaQueueItem = defaultMediaItemConverter.toMediaQueueItem(mediaItem)
+        mediaQueueItem.media?.customData?.let {
             mediaInfo.setCustomData(it)
         }
         return MediaQueueItem.Builder(mediaInfo.build()).build()
