@@ -17,7 +17,9 @@
 package com.example.android.uamp.cast
 
 import android.content.Context
+import androidx.annotation.OptIn
 import androidx.media3.cast.DefaultCastOptionsProvider.APP_ID_DEFAULT_RECEIVER_WITH_DRM
+import androidx.media3.common.util.UnstableApi
 import com.google.android.gms.cast.framework.CastOptions
 import com.google.android.gms.cast.framework.OptionsProvider
 import com.google.android.gms.cast.framework.SessionProvider
@@ -25,6 +27,7 @@ import com.google.android.gms.cast.framework.media.CastMediaOptions
 
 class UampCastOptionsProvider : OptionsProvider {
 
+    @OptIn(UnstableApi::class)
     override fun getCastOptions(context: Context): CastOptions {
         return CastOptions.Builder()
             // Use the Default Media Receiver with DRM support.

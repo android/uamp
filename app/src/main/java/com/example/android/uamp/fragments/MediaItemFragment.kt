@@ -16,7 +16,6 @@
 
 package com.example.android.uamp.fragments
 
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -24,43 +23,35 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
 import com.example.android.uamp.MediaItemAdapter
 import com.example.android.uamp.databinding.FragmentMediaitemListBinding
 import com.example.android.uamp.viewmodels.MainActivityViewModel
 import com.example.android.uamp.viewmodels.MediaItemFragmentViewModel
-import dagger.android.support.AndroidSupportInjection
-import javax.inject.Inject
+import com.example.android.uamp.viewmodels.MediaItemViewModelFactory
+import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.lifecycle.withCreationCallback
 
 /**
  * A fragment representing a list of MediaItems.
  */
+@AndroidEntryPoint
 class MediaItemFragment : Fragment() {
 
-    @Inject
-    lateinit var mediaItemViewModelFactory: MediaItemFragmentViewModel.Factory
-
-    @Inject
-    lateinit var factory: ViewModelProvider.Factory
-
-    private val mainActivityViewModel by activityViewModels<MainActivityViewModel> {
-        factory
-    }
+    private val mainActivityViewModel by activityViewModels<MainActivityViewModel>()
 
     private lateinit var mediaId: String
     private lateinit var binding: FragmentMediaitemListBinding
 
-    private val mediaItemFragmentViewModel: MediaItemFragmentViewModel by viewModels {
-        MediaItemFragmentViewModel.factory(mediaItemViewModelFactory, mediaId)
-    }
+    private val mediaItemFragmentViewModel: MediaItemFragmentViewModel by viewModels(
+        extrasProducer = {
+            defaultViewModelCreationExtras.withCreationCallback<MediaItemViewModelFactory> { factory ->
+                factory.build(mediaId)
+            }
+        }
+    )
 
     private val listAdapter = MediaItemAdapter { clickedItem ->
         mainActivityViewModel.mediaItemClicked(clickedItem)
-    }
-
-    override fun onAttach(context: Context) {
-        AndroidSupportInjection.inject(this)
-        super.onAttach(context)
     }
 
     override fun onCreateView(

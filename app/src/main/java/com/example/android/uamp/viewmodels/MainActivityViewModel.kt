@@ -23,7 +23,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.C
@@ -36,6 +35,7 @@ import com.example.android.uamp.fragments.NowPlayingFragment
 import com.example.android.uamp.media.extensions.isEnded
 import com.example.android.uamp.media.extensions.isPlayEnabled
 import com.example.android.uamp.utils.Event
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -43,6 +43,7 @@ import javax.inject.Inject
  * Small [ViewModel] that watches a [MusicServiceConnection] to become connected
  * and provides the root/initial media ID of the underlying [MediaBrowserCompat].
  */
+@HiltViewModel
 class MainActivityViewModel @Inject constructor(
     private val musicServiceConnection: MusicServiceConnection
 ) : ViewModel() {
@@ -53,6 +54,11 @@ class MainActivityViewModel @Inject constructor(
         musicServiceConnection.rootMediaItem.map { rootMediaItem ->
             if (rootMediaItem != MediaItem.EMPTY) rootMediaItem else null
         }
+
+    override fun onCleared() {
+        Log.d(TAG, "onCleared")
+        super.onCleared()
+    }
 
     /**
      * [navigateToMediaItem] acts as an "event", rather than state. [Observer]s

@@ -22,6 +22,7 @@ import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
+import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -42,6 +43,7 @@ import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionToken
 import com.example.android.uamp.media.MusicService
 import com.google.common.collect.ImmutableList
+import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -70,8 +72,8 @@ import kotlin.coroutines.CoroutineContext
  *  [MediaBrowserConnectionCallback] and [MediaBrowserCompat] objects.
  */
 class MusicServiceConnection(
-    context: Context,
-    serviceComponent: ComponentName
+    private val context: Context,
+    private val serviceComponent: ComponentName
 ) {
 
     val rootMediaItem = MutableLiveData<MediaItem>()
@@ -86,20 +88,23 @@ class MusicServiceConnection(
         .apply { postValue(false) }
 
     private var browser: MediaBrowser? = null
+    private lateinit var browserFuture: ListenableFuture<MediaBrowser>
     private val playerListener: PlayerListener = PlayerListener()
 
     private val coroutineContext: CoroutineContext = Dispatchers.Main
     private val scope = CoroutineScope(coroutineContext + SupervisorJob())
 
     init {
+        Log.d(TAG, "init; this.hash: ${this.hashCode()}; browser: ${browser.hashCode()}")
         scope.launch {
-            val newBrowser =
+            browserFuture =
                 MediaBrowser.Builder(context, SessionToken(context, serviceComponent))
                     .setListener(BrowserListener())
                     .buildAsync()
-                    .await()
+            val newBrowser = browserFuture.await()
             newBrowser.addListener(playerListener)
             browser = newBrowser
+            Log.d(TAG, "newBrowser: ${browser.hashCode()}")
             rootMediaItem.postValue(
                 newBrowser.getLibraryRoot(/* params= */ null).await().value
             )
@@ -131,15 +136,16 @@ class MusicServiceConnection(
         false
     }
 
-    fun release() {
+    fun release(controller: MediaController? = null) {
+        val browser = controller ?: this.browser
+        Log.d(TAG, "releasing browser: ${browser.hashCode()}")
         rootMediaItem.postValue(MediaItem.EMPTY)
         nowPlaying.postValue(NOTHING_PLAYING)
         browser?.let {
             it.removeListener(playerListener)
             it.release()
         }
-        // TODO uncomment to fix
-//        instance = null
+        MediaBrowser.releaseFuture(browserFuture)
     }
 
     private fun updatePlaybackState(player: Player) {
@@ -170,21 +176,9 @@ class MusicServiceConnection(
         )
     }
 
-    // TODO uncomment to fix
-    /*companion object {
-        // For Singleton instantiation.
-        @Volatile
-        private var instance: MusicServiceConnection? = null
-
-        fun getInstance(context: Context, serviceComponent: ComponentName) =
-            instance ?: synchronized(this) {
-                instance ?: MusicServiceConnection(context, serviceComponent)
-                    .also { instance = it }
-            }
-    }*/
-
     private inner class BrowserListener : MediaBrowser.Listener {
         override fun onDisconnected(controller: MediaController) {
+            Log.d(TAG, "onDisconnected(${controller.hashCode()})")
             release()
         }
     }
@@ -234,6 +228,8 @@ class PlaybackState(
                     && playWhenReady
         }
 }
+
+private const val TAG = "MusicServiceConnection"
 
 @Suppress("PropertyName")
 val EMPTY_PLAYBACK_STATE: PlaybackState = PlaybackState()

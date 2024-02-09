@@ -38,7 +38,6 @@ import androidx.media3.common.Player
 import androidx.media3.common.Player.EVENT_MEDIA_ITEM_TRANSITION
 import androidx.media3.common.Player.EVENT_PLAY_WHEN_READY_CHANGED
 import androidx.media3.common.Player.EVENT_POSITION_DISCONTINUITY
-import androidx.media3.common.Player.Listener
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.util.EventLogger
@@ -58,6 +57,7 @@ import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -77,6 +77,7 @@ import kotlin.math.max
  * commands are passed to a [CastPlayer].
  */
 @OptIn(UnstableApi::class)
+@AndroidEntryPoint
 open class MusicService : MediaLibraryService() {
 
     private val serviceJob = SupervisorJob()
@@ -233,26 +234,31 @@ open class MusicService : MediaLibraryService() {
 
     /** Called when swiping the activity away from recents. */
     override fun onTaskRemoved(rootIntent: Intent) {
+        Log.d(TAG, "onTaskRemoved")
         saveRecentSongToStorage()
         super.onTaskRemoved(rootIntent)
         // The choice what to do here is app specific. Some apps stop playback, while others allow
         // playback to continue and allow users to stop it with the notification.
         releaseMediaSession()
+        Log.d(TAG, "stopSelf()")
         stopSelf()
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        Log.d(TAG, "onDestroy")
         releaseMediaSession()
     }
 
     private fun releaseMediaSession() {
+        Log.d(TAG, "releaseMediaSession()")
         mediaSession.run {
-            release()
-            if (player.playbackState != Player.STATE_IDLE) {
+            if (player.playWhenReady) {
+                player.pause()
                 player.removeListener(playerListener)
                 player.release()
             }
+            release()
         }
         // Cancel coroutines when the service is going away.
         serviceJob.cancel()

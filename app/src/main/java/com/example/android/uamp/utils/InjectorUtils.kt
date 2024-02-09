@@ -16,46 +16,30 @@
 
 package com.example.android.uamp.utils
 
-import android.app.Application
 import android.content.ComponentName
 import android.content.Context
-import com.example.android.uamp.UampApplication
 import com.example.android.uamp.common.MusicServiceConnection
 import com.example.android.uamp.media.MusicService
 import dagger.Module
 import dagger.Provides
-import javax.inject.Singleton
+import dagger.hilt.InstallIn
+import dagger.hilt.android.components.ActivityRetainedComponent
+import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.android.scopes.ActivityRetainedScoped
 
 /**
  * Static methods used to inject classes needed for various Activities and Fragments.
  */
+@InstallIn(ActivityRetainedComponent::class)
 @Module
 class InjectorUtils {
 
-    @Singleton
     @Provides
-    fun provideContext(
-        application: UampApplication
-    ): Context {
-        return application.applicationContext
-    }
-
-    @Singleton
-    @Provides
-    fun providesApplication(
-        application: UampApplication
-    ): Application {
-        return application
-    }
-
-    @Singleton // TODO comment to fix
-    @Provides
+    @ActivityRetainedScoped
     fun provideMusicServiceConnection(
-        context: Context
+        @ApplicationContext context: Context
     ): MusicServiceConnection {
-        // TODO uncomment to fix
-//        return MusicServiceConnection.getInstance(
-        return MusicServiceConnection( // TODO comment to fix
+        return MusicServiceConnection(
             context,
             ComponentName(context, MusicService::class.java)
         )

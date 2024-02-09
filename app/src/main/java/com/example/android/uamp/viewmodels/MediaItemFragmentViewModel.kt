@@ -20,7 +20,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import com.example.android.uamp.MediaItemData
@@ -31,16 +30,17 @@ import com.example.android.uamp.common.NOTHING_PLAYING
 import com.example.android.uamp.common.PlaybackState
 import com.example.android.uamp.fragments.MediaItemFragment
 import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 
 /**
  * [ViewModel] for [MediaItemFragment].
  */
+@HiltViewModel(assistedFactory = MediaItemViewModelFactory::class)
 class MediaItemFragmentViewModel @AssistedInject constructor(
     @Assisted private val mediaId: String,
-    musicServiceConnection: MusicServiceConnection
+    private val musicServiceConnection: MusicServiceConnection
 ) : ViewModel() {
 
     /**
@@ -55,7 +55,7 @@ class MediaItemFragmentViewModel @AssistedInject constructor(
      * Pass the status of the [MusicServiceConnection.networkFailure] through.
      */
     val networkError: LiveData<Boolean>
-        get() = musicServiceConnection.networkFailure
+        get() = serviceConnection.networkFailure
 
     /**
      * When the session's [PlaybackStateCompat] changes, the [mediaItems] need to be updated
@@ -99,7 +99,7 @@ class MediaItemFragmentViewModel @AssistedInject constructor(
      * [MusicServiceConnection.nowPlaying] changes based on the item that's being played,
      * which can also change the [MediaItemData.playbackRes]s in the list.
      */
-    private val musicServiceConnection = musicServiceConnection.also {
+    private val serviceConnection = musicServiceConnection.also {
         it.playbackState.observeForever(playbackStateObserver)
         it.nowPlaying.observeForever(nowPlayingObserver)
     }
@@ -120,22 +120,22 @@ class MediaItemFragmentViewModel @AssistedInject constructor(
     }
 
     /**
-     * Since we use [LiveData.observeForever] above (in [musicServiceConnection]), we want
+     * Since we use [LiveData.observeForever] above (in [serviceConnection]), we want
      * to call [LiveData.removeObserver] here to prevent leaking resources when the [ViewModel]
      * is not longer in use.
      *
-     * For more details, see the kdoc on [musicServiceConnection] above.
+     * For more details, see the kdoc on [serviceConnection] above.
      */
     override fun onCleared() {
         super.onCleared()
         // Remove the permanent observers from the MusicServiceConnection.
-        musicServiceConnection.playbackState.removeObserver(playbackStateObserver)
-        musicServiceConnection.nowPlaying.removeObserver(nowPlayingObserver)
+        serviceConnection.playbackState.removeObserver(playbackStateObserver)
+        serviceConnection.nowPlaying.removeObserver(nowPlayingObserver)
     }
 
     private fun getResourceForMediaId(mediaId: String): Int {
-        val isActive = mediaId == musicServiceConnection.nowPlaying.value?.mediaId
-        val isPlaying = musicServiceConnection.playbackState.value?.isPlaying ?: false
+        val isActive = mediaId == serviceConnection.nowPlaying.value?.mediaId
+        val isPlaying = serviceConnection.playbackState.value?.isPlaying ?: false
         return when {
             !isActive -> NO_RES
             isPlaying -> R.drawable.ic_pause_black_24dp
@@ -157,23 +157,6 @@ class MediaItemFragmentViewModel @AssistedInject constructor(
             val useResId = if (it.mediaItem.mediaId == nowPlaying.mediaId) newResId else NO_RES
             it.copy(playbackRes = useResId)
         } ?: emptyList()
-    }
-
-    companion object {
-        @Suppress("UNCHECKED_CAST")
-        fun factory(
-            factory: Factory,
-            mediaId: String
-        ) : ViewModelProvider.Factory {
-            return object : ViewModelProvider.Factory {
-                override fun <T : ViewModel> create(modelClass: Class<T>): T =
-                    factory.build(mediaId) as T
-            }
-        }
-    }
-    @AssistedFactory
-    interface Factory {
-        fun build(mediaId: String): MediaItemFragmentViewModel
     }
 }
 

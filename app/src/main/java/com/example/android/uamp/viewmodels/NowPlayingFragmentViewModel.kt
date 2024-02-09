@@ -23,7 +23,7 @@ import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.text.TextUtils
-import androidx.lifecycle.AndroidViewModel
+import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
@@ -32,6 +32,7 @@ import com.example.android.uamp.R
 import com.example.android.uamp.common.MusicServiceConnection
 import com.example.android.uamp.common.PlaybackState
 import com.example.android.uamp.fragments.NowPlayingFragment
+import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 /**
@@ -39,10 +40,13 @@ import javax.inject.Inject
  * It extends AndroidViewModel and uses the [Application]'s context to be able to reference string
  * resources.
  */
+
+private const val TAG = "NowPlayingFragmentViewM"
+
+@HiltViewModel
 class NowPlayingFragmentViewModel @Inject constructor(
-    app: Application,
     musicServiceConnection: MusicServiceConnection
-) : AndroidViewModel(app) {
+) : ViewModel() {
 
     val mediaItem = MutableLiveData<MediaItem>().apply {
         postValue(MediaItem.EMPTY)
@@ -66,6 +70,7 @@ class NowPlayingFragmentViewModel @Inject constructor(
      * (i.e.: play/pause button or blank)
      */
     private val playbackStateObserver = Observer<PlaybackState> {
+        Log.d(TAG, "nowPlaying: ${it.isPlaying}")
         updateState(it, musicServiceConnection.nowPlaying.value!!)
     }
 
@@ -76,6 +81,7 @@ class NowPlayingFragmentViewModel @Inject constructor(
      * changed. (i.e.: play/pause button or blank)
      */
     private val nowPlayingObserver = Observer<MediaItem> {
+        Log.d(TAG, "nowPlaying: ${it.mediaId}")
         updateState(musicServiceConnection.playbackState.value!!, it)
     }
 
