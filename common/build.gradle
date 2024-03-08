@@ -20,11 +20,10 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-android-extensions'
 
 android {
+    namespace "com.example.android.uamp.media"
     compileSdkVersion rootProject.compileSdkVersion
 
     defaultConfig {
-        versionCode 1
-        versionName "1.0"
 
         minSdkVersion rootProject.minSdkVersion
         targetSdkVersion rootProject.targetSdkVersion

@@ -20,12 +20,13 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-android-extensions'
 
 android {
+    namespace "com.example.android.uamp.automotive"
     compileSdkVersion rootProject.compileSdkVersion
 
     defaultConfig {
         applicationId "com.example.android.uamp.next"
 
-        minSdkVersion 21
+        minSdkVersion 26
         targetSdkVersion rootProject.targetSdkVersion
 
         versionCode 1

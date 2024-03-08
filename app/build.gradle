@@ -20,6 +20,7 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-android-extensions'
 
 android {
+    namespace "com.example.android.uamp"
     compileSdkVersion rootProject.compileSdkVersion
 
     defaultConfig {
@@ -29,7 +30,6 @@ android {
 
         minSdkVersion rootProject.minSdkVersion
         targetSdkVersion rootProject.targetSdkVersion
-        multiDexEnabled true
 
         compileOptions {
             sourceCompatibility JavaVersion.VERSION_1_8
@@ -58,8 +58,6 @@ android {
 }
 
 dependencies {
-    implementation "com.android.support:multidex:$multidex_version"
-
     implementation project(':common')
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
