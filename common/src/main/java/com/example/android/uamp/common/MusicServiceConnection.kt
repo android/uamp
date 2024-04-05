@@ -19,9 +19,6 @@ package com.example.android.uamp.common
 import android.content.ComponentName
 import android.content.Context
 import android.os.Bundle
-import android.support.v4.media.MediaBrowserCompat
-import android.support.v4.media.session.MediaControllerCompat
-import android.support.v4.media.session.MediaSessionCompat
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.media3.common.C

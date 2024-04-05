@@ -76,7 +76,6 @@ dependencies {
         api "androidx.media3:media3-datasource:$androidx_media3_version"
         api "androidx.media3:media3-ui:$androidx_media3_version"
         api "androidx.media3:media3-session:$androidx_media3_version"
-        api "androidx.media3:media3-cast:$androidx_media3_version"
     }
 
     // Glide dependencies

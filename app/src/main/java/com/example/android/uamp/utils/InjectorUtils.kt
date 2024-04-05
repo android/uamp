@@ -23,19 +23,19 @@ import com.example.android.uamp.media.MusicService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.components.ActivityRetainedComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
-import dagger.hilt.android.scopes.ActivityRetainedScoped
+import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 
 /**
  * Static methods used to inject classes needed for various Activities and Fragments.
  */
-@InstallIn(ActivityRetainedComponent::class)
+@InstallIn(SingletonComponent::class)
 @Module
 class InjectorUtils {
 
     @Provides
-    @ActivityRetainedScoped
+    @Singleton
     fun provideMusicServiceConnection(
         @ApplicationContext context: Context
     ): MusicServiceConnection {

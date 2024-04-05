@@ -27,8 +27,6 @@ import android.os.ConditionVariable
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.OptIn
-import androidx.media3.cast.CastPlayer
-import androidx.media3.cast.SessionAvailabilityListener
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -52,7 +50,6 @@ import com.example.android.uamp.media.library.MEDIA_SEARCH_SUPPORTED
 import com.example.android.uamp.media.library.MusicSource
 import com.example.android.uamp.media.library.UAMP_BROWSABLE_ROOT
 import com.example.android.uamp.media.library.UAMP_RECENT_ROOT
-import com.google.android.gms.cast.framework.CastContext
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -150,36 +147,6 @@ open class MusicService : MediaLibraryService() {
         player
     }
 
-    /**
-     * If Cast is available, create a CastPlayer to handle communication with a Cast session.
-     */
-    private val castPlayer: CastPlayer? by lazy {
-        try {
-            var castPlayer: CastPlayer? = null
-            CastContext.getSharedInstance(this, executorService).addOnSuccessListener {
-                castPlayer = CastPlayer(it, CastMediaItemConverter()).apply {
-                    setSessionAvailabilityListener(UampCastSessionAvailabilityListener())
-                    addListener(playerListener)
-                }
-            }
-            castPlayer
-        } catch (e: Exception) {
-            // We wouldn't normally catch the generic `Exception` however
-            // calling `CastContext.getSharedInstance` can throw various exceptions, all of which
-            // indicate that Cast is unavailable.
-            // Related internal bug b/68009560.
-            Log.i(
-                TAG, "Cast is not available on this device. " +
-                        "Exception thrown when attempting to obtain CastContext. " + e.message
-            )
-            null
-        }
-    }
-
-    private val replaceableForwardingPlayer: ReplaceableForwardingPlayer by lazy {
-        ReplaceableForwardingPlayer(exoPlayer)
-    }
-
     /** @return the {@link MediaLibrarySessionCallback} to be used to build the media session. */
     open fun getCallback(): MediaLibrarySession.Callback {
         return MusicServiceCallback()
@@ -188,13 +155,9 @@ open class MusicService : MediaLibraryService() {
     override fun onCreate() {
         super.onCreate()
 
-        if (castPlayer?.isCastSessionAvailable == true) {
-            replaceableForwardingPlayer.setPlayer(castPlayer!!)
-        }
-
         mediaSession = with(
             MediaLibrarySession.Builder(
-                this, replaceableForwardingPlayer, getCallback()
+                this, exoPlayer, getCallback()
             )
         ) {
             setId(packageName)
@@ -267,11 +230,11 @@ open class MusicService : MediaLibraryService() {
     private fun saveRecentSongToStorage() {
         // Obtain the current song details *before* saving them on a separate thread, otherwise
         // the current player may have been unloaded by the time the save routine runs.
-        val currentMediaItem = replaceableForwardingPlayer.currentMediaItem ?: return
+        val currentMediaItem = exoPlayer.currentMediaItem ?: return
         serviceScope.launch {
             val mediaItem =
                 browseTree.getMediaItemByMediaId(currentMediaItem.mediaId) ?: return@launch
-            storage.saveRecentSong(mediaItem, replaceableForwardingPlayer.currentPosition)
+            storage.saveRecentSong(mediaItem, exoPlayer.currentPosition)
         }
     }
 
@@ -441,24 +404,6 @@ open class MusicService : MediaLibraryService() {
             args: Bundle
         ): ListenableFuture<SessionResult> {
             return Futures.immediateFuture(SessionResult(SessionResult.RESULT_ERROR_NOT_SUPPORTED))
-        }
-    }
-
-    private inner class UampCastSessionAvailabilityListener : SessionAvailabilityListener {
-
-        /**
-         * Called when a Cast session has started and the user wishes to control playback on a
-         * remote Cast receiver rather than play audio locally.
-         */
-        override fun onCastSessionAvailable() {
-            replaceableForwardingPlayer.setPlayer(castPlayer!!)
-        }
-
-        /**
-         * Called when a Cast session has ended and the user wishes to control playback locally.
-         */
-        override fun onCastSessionUnavailable() {
-            replaceableForwardingPlayer.setPlayer(exoPlayer)
         }
     }
 
