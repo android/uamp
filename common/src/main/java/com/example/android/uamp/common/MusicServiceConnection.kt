@@ -45,6 +45,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
@@ -100,6 +101,8 @@ class MusicServiceConnection(
                     .buildAsync()
             val newBrowser = browserFuture.await()
             newBrowser.addListener(playerListener)
+            browser?.release()
+
             browser = newBrowser
             Log.d(TAG, "newBrowser: ${browser.hashCode()}")
             rootMediaItem.postValue(
@@ -135,6 +138,8 @@ class MusicServiceConnection(
 
     fun release(controller: MediaController? = null) {
         val browser = controller ?: this.browser
+        this.browser?.removeListener(playerListener)
+        this.browser?.release()
         Log.d(TAG, "releasing browser: ${browser.hashCode()}")
         rootMediaItem.postValue(MediaItem.EMPTY)
         nowPlaying.postValue(NOTHING_PLAYING)
@@ -153,6 +158,10 @@ class MusicServiceConnection(
                 player.duration
             )
         )
+    }
+
+    protected fun finalize() {
+        Log.w(TAG, "MusicServiceConnection getting destroyed!")
     }
 
     private fun updateNowPlaying(player: Player) {
@@ -174,6 +183,7 @@ class MusicServiceConnection(
     }
 
     private inner class BrowserListener : MediaBrowser.Listener {
+
         override fun onDisconnected(controller: MediaController) {
             Log.d(TAG, "onDisconnected(${controller.hashCode()})")
             release()

@@ -199,10 +199,8 @@ open class MusicService : MediaLibraryService() {
     override fun onTaskRemoved(rootIntent: Intent) {
         Log.d(TAG, "onTaskRemoved")
         saveRecentSongToStorage()
-        super.onTaskRemoved(rootIntent)
-        // The choice what to do here is app specific. Some apps stop playback, while others allow
-        // playback to continue and allow users to stop it with the notification.
         releaseMediaSession()
+        super.onTaskRemoved(rootIntent)
         Log.d(TAG, "stopSelf()")
         stopSelf()
     }
