@@ -73,7 +73,7 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$arch_lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:$arch_lifecycle_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-guava:$kotlin_coroutines_version"
-//    debugImplementation 'com.squareup.leakcanary:leakcanary-android:3.0-alpha-1'
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:3.0-alpha-1'
 
     implementation "com.google.dagger:hilt-android:$hilt_version"
     kapt "com.google.dagger:hilt-compiler:$hilt_version"
