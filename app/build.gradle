@@ -17,7 +17,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
-apply plugin: 'kotlin-android-extensions'
 
 android {
     namespace "com.example.android.uamp"
@@ -30,13 +29,14 @@ android {
 
         minSdkVersion rootProject.minSdkVersion
         targetSdkVersion rootProject.targetSdkVersion
+        multiDexEnabled true
 
         compileOptions {
-            sourceCompatibility JavaVersion.VERSION_1_8
-            targetCompatibility JavaVersion.VERSION_1_8
+            sourceCompatibility JavaVersion.VERSION_17
+            targetCompatibility JavaVersion.VERSION_17
         }
         kotlinOptions {
-            jvmTarget = "1.8"
+            jvmTarget = "17"
         }
 
         vectorDrawables {
@@ -58,6 +58,8 @@ android {
 }
 
 dependencies {
+    implementation "com.android.support:multidex:$multidex_version"
+
     implementation project(':common')
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"

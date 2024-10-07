@@ -17,7 +17,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
-apply plugin: 'kotlin-android-extensions'
 
 android {
     namespace "com.example.android.uamp.automotive"
@@ -26,7 +25,7 @@ android {
     defaultConfig {
         applicationId "com.example.android.uamp.next"
 
-        minSdkVersion 26
+        minSdkVersion 21
         targetSdkVersion rootProject.targetSdkVersion
 
         versionCode 1
@@ -40,11 +39,11 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility 1.8
-        targetCompatibility 1.8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
 
     buildTypes {
