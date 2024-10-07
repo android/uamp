@@ -18,7 +18,6 @@ package com.example.android.uamp
 
 import android.media.AudioManager
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -71,20 +70,19 @@ class MainActivity : AppCompatActivity() {
          * and the UI connects to [MusicService], this will be updated and the app will show
          * the initial list of media items.
          */
-        viewModel.rootMediaId.observe(this,
-            Observer<String> { rootMediaId ->
-                rootMediaId?.let { navigateToMediaItem(it) }
-            })
+        viewModel.rootMediaId.observe(this) { rootMediaId ->
+            rootMediaId?.let { navigateToMediaItem(it) }
+        }
 
         /**
          * Observe [MainActivityViewModel.navigateToMediaItem] for [Event]s indicating
          * the user has requested to browse to a different [MediaItemData].
          */
-        viewModel.navigateToMediaItem.observe(this, Observer {
+        viewModel.navigateToMediaItem.observe(this) {
             it?.getContentIfNotHandled()?.let { mediaId ->
                 navigateToMediaItem(mediaId)
             }
-        })
+        }
     }
 
     @Override

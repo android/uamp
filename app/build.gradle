@@ -36,7 +36,7 @@ android {
             targetCompatibility JavaVersion.VERSION_17
         }
         kotlinOptions {
-            jvmTarget = "17"
+            jvmTarget = '17'
         }
 
         vectorDrawables {
@@ -67,9 +67,16 @@ dependencies {
     implementation "androidx.appcompat:appcompat:$androidx_app_compat_version"
     implementation "androidx.fragment:fragment-ktx:$fragment_version"
     implementation "androidx.recyclerview:recyclerview:$recycler_view_version"
+    implementation "androidx.savedstate:savedstate:1.2.1"
 
     implementation "androidx.constraintlayout:constraintlayout:$constraint_layout_version"
-    implementation "androidx.lifecycle:lifecycle-extensions:$arch_lifecycle_version"
+    implementation "androidx.lifecycle:lifecycle-viewmodel:$androidx_lifecycle_version"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$androidx_lifecycle_version"
+    implementation "androidx.lifecycle:lifecycle-livedata:$androidx_lifecycle_version"
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$androidx_lifecycle_version"
+    implementation "androidx.lifecycle:lifecycle-runtime:$androidx_lifecycle_version"
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:$androidx_lifecycle_version"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-savedstate:$androidx_lifecycle_version"
 
     // Glide dependencies
     implementation "com.github.bumptech.glide:glide:$glide_version"

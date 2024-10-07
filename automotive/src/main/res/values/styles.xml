@@ -17,7 +17,7 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.MaterialComponents.NoActionBar.Bridge">
+    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="toolbarNavigationButtonStyle">@style/CarToolbarNavButton</item>
         <item name="colorPrimary">@color/colorPrimary</item>
@@ -41,10 +41,6 @@
         <item name="tint">@android:color/white</item>
         <item name="android:background">@drawable/sign_in_toolbar_back_ripple_background</item>
         <item name="android:minWidth">@dimen/sign_in_toolbar_nav_button_size</item>
-    </style>
-
-    <style name="AppTheme.Drawer" parent="Theme.Car.Dark.NoActionBar.Drawer">
-        <item name="carToolbarStyle">@style/CarToolbar</item>
     </style>
 
     <style name="CarButton" parent="Widget.AppCompat.Button">

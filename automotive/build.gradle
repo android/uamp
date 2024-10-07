@@ -25,7 +25,7 @@ android {
     defaultConfig {
         applicationId "com.example.android.uamp.next"
 
-        minSdkVersion 21
+        minSdkVersion 29
         targetSdkVersion rootProject.targetSdkVersion
 
         versionCode 1
@@ -43,7 +43,7 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "17"
+        jvmTarget = '17'
     }
 
     buildTypes {
@@ -62,10 +62,16 @@ dependencies {
 
     implementation "androidx.core:core-ktx:$androidx_core_ktx_version"
     implementation "androidx.preference:preference:$androidx_preference_version"
-    implementation "androidx.car:car:$androidx_car_version"
+    implementation "androidx.car.app:app:$androidx_car_version"
+    implementation "androidx.car.app:app-automotive:$androidx_car_version"
+    implementation "com.google.android.material:material:1.5.0"
+    implementation "androidx.savedstate:savedstate:1.2.1"
     implementation "androidx.constraintlayout:constraintlayout:$constraint_layout_version"
     implementation "androidx.appcompat:appcompat:$androidx_app_compat_version"
-    implementation "androidx.lifecycle:lifecycle-extensions:$arch_lifecycle_version"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$androidx_lifecycle_version"
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$androidx_lifecycle_version"
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:$androidx_lifecycle_version"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-savedstate:$androidx_lifecycle_version"
 
     implementation "com.google.android.gms:play-services-auth:$play_services_auth_version"
 

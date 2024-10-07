@@ -29,6 +29,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.CreationExtras
 import com.example.android.uamp.R
 import com.example.android.uamp.common.EMPTY_PLAYBACK_STATE
 import com.example.android.uamp.common.MusicServiceConnection
@@ -193,8 +194,8 @@ class NowPlayingFragmentViewModel(
         private val musicServiceConnection: MusicServiceConnection
     ) : ViewModelProvider.NewInstanceFactory() {
 
-        @Suppress("unchecked_cast")
-        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+        @Suppress("UNCHECKED_CAST")
+        override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
             return NowPlayingFragmentViewModel(app, musicServiceConnection) as T
         }
     }
