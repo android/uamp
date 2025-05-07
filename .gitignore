@@ -1,4 +1,4 @@
-*.iml
+1470*.iml
 .gradle
 /local.properties
 /.idea
@@ -11,3 +11,5 @@ build/
 
 # Extra (custom) settings
 extra-settings.gradle
+
+
