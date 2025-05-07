@@ -42,7 +42,7 @@
         android:layout_width="64dp"
         android:layout_height="64dp"
         android:layout_gravity="center"
-        android:tint="@color/colorAccent"
+        app:tint="@color/colorAccent"
         android:visibility="gone"
         app:srcCompat="@drawable/ic_signal_wifi_off_black_24dp" />
 
