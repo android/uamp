@@ -164,7 +164,7 @@ class MainActivityViewModel(
     ) : ViewModelProvider.NewInstanceFactory() {
 
         @Suppress("unchecked_cast")
-        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+        fun <T : ViewModel?> create(modelClass: Class<T>): T {
             return MainActivityViewModel(musicServiceConnection) as T
         }
     }
