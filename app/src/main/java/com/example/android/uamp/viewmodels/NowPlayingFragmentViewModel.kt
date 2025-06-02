@@ -16,41 +16,29 @@
 
 package com.example.android.uamp.viewmodels
 
-import android.app.Application
 import android.content.Context
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
-import android.support.v4.media.MediaBrowserCompat
-import android.support.v4.media.MediaMetadataCompat
-import android.support.v4.media.session.PlaybackStateCompat
-import androidx.lifecycle.AndroidViewModel
+import androidx.media3.session.MediaBrowser
+import androidx.media3.common.MediaMetadata
+import androidx.media3.common.Player
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.map
 import com.example.android.uamp.R
-import com.example.android.uamp.common.EMPTY_PLAYBACK_STATE
 import com.example.android.uamp.common.MusicServiceConnection
-import com.example.android.uamp.common.NOTHING_PLAYING
 import com.example.android.uamp.fragments.NowPlayingFragment
-import com.example.android.uamp.media.extensions.albumArtUri
-import com.example.android.uamp.media.extensions.currentPlayBackPosition
-import com.example.android.uamp.media.extensions.displaySubtitle
-import com.example.android.uamp.media.extensions.duration
-import com.example.android.uamp.media.extensions.id
-import com.example.android.uamp.media.extensions.isPlaying
-import com.example.android.uamp.media.extensions.title
 
 /**
  * [ViewModel] for [NowPlayingFragment] which displays the album art in full size.
- * It extends AndroidViewModel and uses the [Application]'s context to be able to reference string
- * resources.
  */
 class NowPlayingFragmentViewModel(
-    private val app: Application,
-    musicServiceConnection: MusicServiceConnection
-) : AndroidViewModel(app) {
+    private val musicServiceConnection: MusicServiceConnection
+) : ViewModel() {
 
     /**
      * Utility class used to represent the metadata necessary to display the
@@ -68,67 +56,77 @@ class NowPlayingFragmentViewModel(
             /**
              * Utility method to convert milliseconds to a display of minutes and seconds
              */
-            fun timestampToMSS(context: Context, position: Long): String {
+            fun timestampToMSS(position: Long): String {
                 val totalSeconds = Math.floor(position / 1E3).toInt()
                 val minutes = totalSeconds / 60
                 val remainingSeconds = totalSeconds - (minutes * 60)
-                return if (position < 0) context.getString(R.string.duration_unknown)
-                else context.getString(R.string.duration_format).format(minutes, remainingSeconds)
+                return String.format("%d:%02d", minutes, remainingSeconds)
             }
         }
     }
 
-    private var playbackState: PlaybackStateCompat = EMPTY_PLAYBACK_STATE
-    val mediaMetadata = MutableLiveData<NowPlayingMetadata>()
-    val mediaPosition = MutableLiveData<Long>().apply {
-        postValue(0L)
-    }
-    val mediaButtonRes = MutableLiveData<Int>().apply {
-        postValue(R.drawable.ic_album_black_24dp)
+    private val _mediaMetadata = MutableLiveData<NowPlayingMetadata>()
+    val mediaMetadata: LiveData<NowPlayingMetadata> = _mediaMetadata
+
+    private val _playbackState = MutableLiveData<Int>()
+    val playbackState: LiveData<Int> = _playbackState
+
+    private val _mediaButtonRes = MutableLiveData<Int>()
+    val mediaButtonRes: LiveData<Int> = _mediaButtonRes
+
+    val mediaPosition: LiveData<Long> = musicServiceConnection.currentPosition
+
+    val mediaMetadataText: LiveData<String> = musicServiceConnection.nowPlaying.map { metadata ->
+        metadata?.title?.toString() ?: ""
     }
 
     private var updatePosition = true
     private val handler = Handler(Looper.getMainLooper())
 
-    /**
-     * When the session's [PlaybackStateCompat] changes, the [mediaItems] need to be updated
-     * so the correct [MediaItemData.playbackRes] is displayed on the active item.
-     * (i.e.: play/pause button or blank)
-     */
-    private val playbackStateObserver = Observer<PlaybackStateCompat> {
-        playbackState = it ?: EMPTY_PLAYBACK_STATE
-        val metadata = musicServiceConnection.nowPlaying.value ?: NOTHING_PLAYING
-        updateState(playbackState, metadata)
+    private val playbackStateObserver = Observer<Int> { state ->
+        _playbackState.postValue(state ?: Player.STATE_IDLE)
+        updateState(state)
+    }
+
+    private val mediaMetadataObserver = Observer<MediaMetadata> { metadata ->
+        updateMetadata(metadata)
+    }
+
+    init {
+        musicServiceConnection.playbackState.observeForever(playbackStateObserver)
+        musicServiceConnection.nowPlaying.observeForever(mediaMetadataObserver)
     }
 
     /**
-     * When the session's [MediaMetadataCompat] changes, the [mediaItems] need to be updated
-     * as it means the currently active item has changed. As a result, the new, and potentially
-     * old item (if there was one), both need to have their [MediaItemData.playbackRes]
-     * changed. (i.e.: play/pause button or blank)
+     * Play or pause the current media item
      */
-    private val mediaMetadataObserver = Observer<MediaMetadataCompat> {
-        updateState(playbackState, it)
+    fun playPause() {
+        if (musicServiceConnection.isPlaying.value == true) {
+            musicServiceConnection.pause()
+        } else {
+            musicServiceConnection.play()
+        }
     }
 
     /**
-     * Because there's a complex dance between this [ViewModel] and the [MusicServiceConnection]
-     * (which is wrapping a [MediaBrowserCompat] object), the usual guidance of using
-     * [Transformations] doesn't quite work.
-     *
-     * Specifically there's three things that are watched that will cause the single piece of
-     * [LiveData] exposed from this class to be updated.
-     *
-     * [MusicServiceConnection.playbackState] changes state based on the playback state of
-     * the player, which can change the [MediaItemData.playbackRes]s in the list.
-     *
-     * [MusicServiceConnection.nowPlaying] changes based on the item that's being played,
-     * which can also change the [MediaItemData.playbackRes]s in the list.
+     * Skip to the next track
      */
-    private val musicServiceConnection = musicServiceConnection.also {
-        it.playbackState.observeForever(playbackStateObserver)
-        it.nowPlaying.observeForever(mediaMetadataObserver)
-        checkPlaybackPosition()
+    fun skipNext() {
+        musicServiceConnection.skipNext()
+    }
+
+    /**
+     * Skip to the previous track
+     */
+    fun skipPrevious() {
+        musicServiceConnection.skipPrevious()
+    }
+
+    /**
+     * Seek to a specific position
+     */
+    fun seekTo(position: Long) {
+        musicServiceConnection.seekTo(position)
     }
 
     /**
@@ -137,9 +135,9 @@ class NowPlayingFragmentViewModel(
      * has changed.
      */
     private fun checkPlaybackPosition(): Boolean = handler.postDelayed({
-        val currPosition = playbackState.currentPlayBackPosition
+        val currPosition = musicServiceConnection.currentPosition.value ?: 0L
         if (mediaPosition.value != currPosition)
-            mediaPosition.postValue(currPosition)
+            _playbackState.postValue(playbackState.value)
         if (updatePosition)
             checkPlaybackPosition()
     }, POSITION_UPDATE_INTERVAL_MILLIS)
@@ -154,7 +152,6 @@ class NowPlayingFragmentViewModel(
     override fun onCleared() {
         super.onCleared()
 
-        // Remove the permanent observers from the MusicServiceConnection.
         musicServiceConnection.playbackState.removeObserver(playbackStateObserver)
         musicServiceConnection.nowPlaying.removeObserver(mediaMetadataObserver)
 
@@ -162,40 +159,47 @@ class NowPlayingFragmentViewModel(
         updatePosition = false
     }
 
-    private fun updateState(
-        playbackState: PlaybackStateCompat,
-        mediaMetadata: MediaMetadataCompat
-    ) {
-
-        // Only update media item once we have duration available
-        if (mediaMetadata.duration != 0L && mediaMetadata.id != null) {
-            val nowPlayingMetadata = NowPlayingMetadata(
-                mediaMetadata.id!!,
-                mediaMetadata.albumArtUri,
-                mediaMetadata.title?.trim(),
-                mediaMetadata.displaySubtitle?.trim(),
-                NowPlayingMetadata.timestampToMSS(app, mediaMetadata.duration)
-            )
-            this.mediaMetadata.postValue(nowPlayingMetadata)
+    private fun updateMetadata(metadata: MediaMetadata?) {
+        metadata?.let {
+            val title = it.title?.toString()
+            if (title != null) {
+                val duration = musicServiceConnection.duration.value ?: 0L
+                val nowPlayingMetadata = NowPlayingMetadata(
+                    title, // Use title as ID since mediaId doesn't exist
+                    it.artworkUri ?: Uri.EMPTY,
+                    it.title?.toString()?.trim(),
+                    it.artist?.toString()?.trim(),
+                    NowPlayingMetadata.timestampToMSS(duration)
+                )
+                _mediaMetadata.postValue(nowPlayingMetadata)
+            }
         }
 
         // Update the media button resource ID
-        mediaButtonRes.postValue(
-            when (playbackState.isPlaying) {
-                true -> R.drawable.ic_pause_black_24dp
+        _mediaButtonRes.postValue(
+            when {
+                musicServiceConnection.isPlaying.value == true -> R.drawable.ic_pause
+                else -> R.drawable.ic_play_arrow_black_24dp
+            }
+        )
+    }
+
+    private fun updateState(state: Int?) {
+        _mediaButtonRes.postValue(
+            when {
+                musicServiceConnection.isPlaying.value == true -> R.drawable.ic_pause
                 else -> R.drawable.ic_play_arrow_black_24dp
             }
         )
     }
 
     class Factory(
-        private val app: Application,
         private val musicServiceConnection: MusicServiceConnection
     ) : ViewModelProvider.NewInstanceFactory() {
 
         @Suppress("unchecked_cast")
-        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-            return NowPlayingFragmentViewModel(app, musicServiceConnection) as T
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            return NowPlayingFragmentViewModel(musicServiceConnection) as T
         }
     }
 }

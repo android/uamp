@@ -43,8 +43,8 @@
         <item name="android:minWidth">@dimen/sign_in_toolbar_nav_button_size</item>
     </style>
 
-    <style name="AppTheme.Drawer" parent="Theme.Car.Dark.NoActionBar.Drawer">
-        <item name="carToolbarStyle">@style/CarToolbar</item>
+    <style name="AppTheme.Drawer" parent="Theme.MaterialComponents.NoActionBar">
+        <item name="toolbarStyle">@style/CarToolbar</item>
     </style>
 
     <style name="CarButton" parent="Widget.AppCompat.Button">

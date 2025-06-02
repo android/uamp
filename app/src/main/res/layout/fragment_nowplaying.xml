@@ -25,9 +25,11 @@
     <ImageView
         android:id="@+id/albumArt"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
         android:contentDescription="@string/album_art_alt"
         android:scaleType="centerCrop"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/divider"
         app:srcCompat="@android:color/transparent" />
 
     <androidx.constraintlayout.widget.Guideline
@@ -35,26 +37,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_end="64dp" />
+        app:layout_constraintGuide_end="160dp" />
 
     <View
         android:layout_width="match_parent"
-        android:layout_height="96dp"
-        android:layout_marginTop="-24dp"
+        android:layout_height="160dp"
         android:background="@drawable/media_overlay_background"
-        app:layout_constraintBottom_toBottomOf="@+id/albumArt"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/divider" />
-
-    <ImageButton
-        android:id="@+id/media_button"
-        android:layout_width="@dimen/exo_media_button_width"
-        android:layout_height="@dimen/exo_media_button_height"
-        android:background="?attr/selectableItemBackground"
-        android:scaleType="centerInside"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/divider"
-        app:srcCompat="@drawable/ic_play_arrow_black_24dp"
-        tools:ignore="ContentDescription" />
 
     <TextView
         android:id="@+id/title"
@@ -66,8 +56,8 @@
         android:ellipsize="end"
         android:maxLines="1"
         android:textAppearance="@style/TextAppearance.Uamp.Title"
-        app:layout_constraintLeft_toRightOf="@id/media_button"
-        app:layout_constraintRight_toLeftOf="@id/position"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/divider"
         tools:text="Song Title" />
 
@@ -80,36 +70,60 @@
         android:ellipsize="end"
         android:maxLines="1"
         android:textAppearance="@style/TextAppearance.Uamp.Subtitle"
-        app:layout_constraintLeft_toRightOf="@id/media_button"
-        app:layout_constraintRight_toLeftOf="@id/position"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/title"
         tools:text="Artist" />
 
-    <TextView
-        android:id="@+id/position"
+    <SeekBar
+        android:id="@+id/seekBar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/text_margin"
+        android:layout_marginEnd="@dimen/text_margin"
         android:layout_marginTop="8dp"
-        android:layout_marginEnd="@dimen/text_margin"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:textAppearance="@style/TextAppearance.Uamp.Title"
+        app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/divider"
-        tools:text="0:00" />
+        app:layout_constraintTop_toBottomOf="@+id/subtitle" />
 
-    <TextView
-        android:id="@+id/duration"
-        android:layout_width="0dp"
+    <LinearLayout
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/text_margin"
-        android:layout_marginEnd="@dimen/text_margin"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:textAppearance="@style/TextAppearance.Uamp.Subtitle"
+        android:orientation="horizontal"
+        android:layout_marginTop="8dp"
+        app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/position"
-        tools:text="0:00" />
+        app:layout_constraintTop_toBottomOf="@+id/seekBar">
+
+        <ImageButton
+            android:id="@+id/previousButton"
+            android:layout_width="@dimen/exo_media_button_width"
+            android:layout_height="@dimen/exo_media_button_height"
+            android:background="?attr/selectableItemBackground"
+            android:scaleType="centerInside"
+            app:srcCompat="@drawable/ic_skip_previous_black_24dp"
+            tools:ignore="ContentDescription" />
+
+        <ImageButton
+            android:id="@+id/media_button"
+            android:layout_width="@dimen/exo_media_button_width"
+            android:layout_height="@dimen/exo_media_button_height"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:background="?attr/selectableItemBackground"
+            android:scaleType="centerInside"
+            app:srcCompat="@drawable/ic_play_arrow_black_24dp"
+            tools:ignore="ContentDescription" />
+
+        <ImageButton
+            android:id="@+id/nextButton"
+            android:layout_width="@dimen/exo_media_button_width"
+            android:layout_height="@dimen/exo_media_button_height"
+            android:background="?attr/selectableItemBackground"
+            android:scaleType="centerInside"
+            app:srcCompat="@drawable/ic_skip_next_black_24dp"
+            tools:ignore="ContentDescription" />
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

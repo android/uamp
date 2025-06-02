@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Google Inc. All rights reserved.
+ * Copyright 2019 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,28 +17,32 @@
 package com.example.android.uamp.media
 
 import android.content.Context
-import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
-import android.support.v4.media.MediaBrowserCompat
-import android.support.v4.media.MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
-import android.support.v4.media.MediaDescriptionCompat
-import com.bumptech.glide.Glide
-import com.example.android.uamp.media.extensions.asAlbumArtContentUri
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
+import com.example.android.uamp.media.extensions.album
+import com.example.android.uamp.media.extensions.artist
+import com.example.android.uamp.media.extensions.duration
+import com.example.android.uamp.media.extensions.id
+import com.example.android.uamp.media.extensions.mediaUri
+import com.example.android.uamp.media.extensions.title
+import com.example.android.uamp.media.extensions.toMediaItem
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 
-internal class PersistentStorage private constructor(val context: Context) {
+/**
+ * Utility class to persist the last played media item and position.
+ */
+class PersistentStorage private constructor(context: Context) {
 
-    /**
-     * Store any data which must persist between restarts, such as the most recently played song.
-     */
-    private var preferences: SharedPreferences = context.getSharedPreferences(
-        PREFERENCES_NAME,
-        Context.MODE_PRIVATE
-    )
+    private var preferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
+    private val gson = Gson()
 
     companion object {
+        private const val PREFERENCES_NAME = "uamp"
+        private const val MEDIA_METADATA_KEY = "media_metadata"
+        private const val POSITION_KEY = "position"
 
         @Volatile
         private var instance: PersistentStorage? = null
@@ -49,56 +53,36 @@ internal class PersistentStorage private constructor(val context: Context) {
             }
     }
 
-    suspend fun saveRecentSong(description: MediaDescriptionCompat, position: Long) {
-
-        withContext(Dispatchers.IO) {
-
-            /**
-             * After booting, Android will attempt to build static media controls for the most
-             * recently played song. Artwork for these media controls should not be loaded
-             * from the network as it may be too slow or unavailable immediately after boot. Instead
-             * we convert the iconUri to point to the Glide on-disk cache.
-             */
-            val localIconUri = Glide.with(context).asFile().load(description.iconUri)
-                .submit(NOTIFICATION_LARGE_ICON_SIZE, NOTIFICATION_LARGE_ICON_SIZE).get()
-                .asAlbumArtContentUri()
-
-            preferences.edit()
-                .putString(RECENT_SONG_MEDIA_ID_KEY, description.mediaId)
-                .putString(RECENT_SONG_TITLE_KEY, description.title.toString())
-                .putString(RECENT_SONG_SUBTITLE_KEY, description.subtitle.toString())
-                .putString(RECENT_SONG_ICON_URI_KEY, localIconUri.toString())
-                .putLong(RECENT_SONG_POSITION_KEY, position)
-                .apply()
+    fun loadRecentSong(): MediaItem? {
+        val mediaMetadataString = preferences.getString(MEDIA_METADATA_KEY, null)
+        if (mediaMetadataString == null) {
+            return null
         }
+
+        val mediaMetadata = gson.fromJson<MediaMetadata>(
+            mediaMetadataString,
+            object : TypeToken<MediaMetadata>() {}.type
+        )
+
+        val position = preferences.getLong(POSITION_KEY, 0L)
+
+        // Add the saved position to the metadata object so it can be used by the player.
+        val extras = Bundle().apply {
+            putLong(MEDIA_DESCRIPTION_EXTRAS_START_PLAYBACK_POSITION_MS, position)
+        }
+
+        return mediaMetadata.toMediaItem()
     }
 
-    fun loadRecentSong(): MediaBrowserCompat.MediaItem? {
-        val mediaId = preferences.getString(RECENT_SONG_MEDIA_ID_KEY, null)
-        return if (mediaId == null) {
-            null
-        } else {
-            val extras = Bundle().also {
-                val position = preferences.getLong(RECENT_SONG_POSITION_KEY, 0L)
-                it.putLong(MEDIA_DESCRIPTION_EXTRAS_START_PLAYBACK_POSITION_MS, position)
-            }
+    fun saveRecentSong(metadata: MediaMetadata, position: Long) {
+        val mediaMetadataString = gson.toJson(
+            metadata,
+            object : TypeToken<MediaMetadata>() {}.type
+        )
 
-            MediaBrowserCompat.MediaItem(
-                MediaDescriptionCompat.Builder()
-                    .setMediaId(mediaId)
-                    .setTitle(preferences.getString(RECENT_SONG_TITLE_KEY, ""))
-                    .setSubtitle(preferences.getString(RECENT_SONG_SUBTITLE_KEY, ""))
-                    .setIconUri(Uri.parse(preferences.getString(RECENT_SONG_ICON_URI_KEY, "")))
-                    .setExtras(extras)
-                    .build(), FLAG_PLAYABLE
-            )
-        }
+        preferences.edit()
+            .putString(MEDIA_METADATA_KEY, mediaMetadataString)
+            .putLong(POSITION_KEY, position)
+            .apply()
     }
 }
-
-private const val PREFERENCES_NAME = "uamp"
-private const val RECENT_SONG_MEDIA_ID_KEY = "recent_song_media_id"
-private const val RECENT_SONG_TITLE_KEY = "recent_song_title"
-private const val RECENT_SONG_SUBTITLE_KEY = "recent_song_subtitle"
-private const val RECENT_SONG_ICON_URI_KEY = "recent_song_icon_uri"
-private const val RECENT_SONG_POSITION_KEY = "recent_song_position"

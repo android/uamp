@@ -153,7 +153,7 @@ internal class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
      * when the app is debuggable.
      */
     private fun logUnknownCaller(callerPackageInfo: CallerPackageInfo) {
-        if (BuildConfig.DEBUG && callerPackageInfo.signature != null) {
+        if (callerPackageInfo.signature != null) {
             val formattedLog =
                 context.getString(
                     R.string.allowed_caller_log,

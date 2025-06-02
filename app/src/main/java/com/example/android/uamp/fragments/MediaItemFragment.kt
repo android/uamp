@@ -20,78 +20,152 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
-import com.example.android.uamp.MediaItemAdapter
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.example.android.uamp.R
+import com.example.android.uamp.MediaItemData
 import com.example.android.uamp.databinding.FragmentMediaitemListBinding
 import com.example.android.uamp.utils.InjectorUtils
-import com.example.android.uamp.viewmodels.MainActivityViewModel
 import com.example.android.uamp.viewmodels.MediaItemFragmentViewModel
 
 /**
  * A fragment representing a list of MediaItems.
  */
 class MediaItemFragment : Fragment() {
-    private val mainActivityViewModel by activityViewModels<MainActivityViewModel> {
-        InjectorUtils.provideMainActivityViewModel(requireContext())
-    }
-    private val mediaItemFragmentViewModel by viewModels<MediaItemFragmentViewModel> {
-        InjectorUtils.provideMediaItemFragmentViewModel(requireContext(), mediaId)
-    }
-
-    private lateinit var mediaId: String
-    private lateinit var binding: FragmentMediaitemListBinding
-
-    private val listAdapter = MediaItemAdapter { clickedItem ->
-        mainActivityViewModel.mediaItemClicked(clickedItem)
-    }
 
     companion object {
         fun newInstance(mediaId: String): MediaItemFragment {
-
             return MediaItemFragment().apply {
                 arguments = Bundle().apply {
-                    putString(MEDIA_ID_ARG, mediaId)
+                    putString(ARG_MEDIA_ID, mediaId)
                 }
             }
         }
     }
 
+    private lateinit var mediaId: String
+    private val viewModel by viewModels<MediaItemFragmentViewModel> {
+        InjectorUtils.provideMediaItemFragmentViewModel(requireContext(), mediaId)
+    }
+
+    private var _binding: FragmentMediaitemListBinding? = null
+    private val binding get() = _binding!!
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        mediaId = arguments?.getString(ARG_MEDIA_ID) ?: ""
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        binding = FragmentMediaitemListBinding.inflate(inflater, container, false)
+    ): View {
+        _binding = FragmentMediaitemListBinding.inflate(inflater, container, false)
         return binding.root
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-        // Always true, but lets lint know that as well.
-        mediaId = arguments?.getString(MEDIA_ID_ARG) ?: return
+        binding.list.apply {
+            layoutManager = LinearLayoutManager(context)
+            adapter = MediaItemAdapter { clickedItem ->
+                viewModel.playMediaId(clickedItem.mediaId)
+            }
+        }
 
-        mediaItemFragmentViewModel.mediaItems.observe(viewLifecycleOwner,
-            Observer { list ->
-                binding.loadingSpinner.visibility =
-                    if (list?.isNotEmpty() == true) View.GONE else View.VISIBLE
-                listAdapter.submitList(list)
-            })
-        mediaItemFragmentViewModel.networkError.observe(viewLifecycleOwner,
-            Observer { error ->
-                if (error) {
-                    binding.loadingSpinner.visibility = View.GONE
-                    binding.networkError.visibility = View.VISIBLE
-                } else {
-                    binding.networkError.visibility = View.GONE
-                }
-            })
+        // Subscribe to the media items
+        viewModel.mediaItems.observe(viewLifecycleOwner) { list ->
+            (binding.list.adapter as MediaItemAdapter).submitList(list)
+        }
 
-        // Set the adapter
-        binding.list.adapter = listAdapter
+        viewModel.networkError.observe(viewLifecycleOwner) { error ->
+            if (error) {
+                binding.networkError.visibility = View.VISIBLE
+            } else {
+                binding.networkError.visibility = View.GONE
+            }
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }
 
-private const val MEDIA_ID_ARG = "com.example.android.uamp.fragments.MediaItemFragment.MEDIA_ID"
+private const val ARG_MEDIA_ID = "media_id"
+
+/**
+ * RecyclerView Adapter for displaying media items.
+ */
+class MediaItemAdapter(
+    private val itemClickedListener: (MediaItemData) -> Unit
+) : RecyclerView.Adapter<MediaItemViewHolder>() {
+
+    private var mediaItems = emptyList<MediaItemData>()
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MediaItemViewHolder {
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.fragment_mediaitem, parent, false)
+        return MediaItemViewHolder(view, itemClickedListener)
+    }
+
+    override fun onBindViewHolder(holder: MediaItemViewHolder, position: Int) {
+        val item = mediaItems[position]
+        holder.bind(item)
+    }
+
+    override fun getItemCount() = mediaItems.size
+
+    fun submitList(list: List<MediaItemData>) {
+        mediaItems = list
+        notifyDataSetChanged()
+    }
+}
+
+class MediaItemViewHolder(
+    view: View,
+    private val itemClickedListener: (MediaItemData) -> Unit
+) : RecyclerView.ViewHolder(view) {
+
+    private var item: MediaItemData? = null
+    private val titleView: TextView = view.findViewById(R.id.title)
+    private val subtitleView: TextView = view.findViewById(R.id.subtitle)
+    private val albumArt: ImageView = view.findViewById(R.id.albumArt)
+    private val playButton: ImageView = view.findViewById(R.id.item_state)
+
+    init {
+        view.setOnClickListener {
+            item?.let { itemClickedListener(it) }
+        }
+    }
+
+    fun bind(item: MediaItemData) {
+        this.item = item
+
+        titleView.text = item.title
+        subtitleView.text = item.subtitle
+
+        if (item.browsable) {
+            playButton.visibility = View.GONE
+        } else {
+            playButton.visibility = View.VISIBLE
+            playButton.setImageResource(item.playbackRes)
+            playButton.setOnClickListener {
+                itemClickedListener(item)
+            }
+        }
+
+        Glide.with(albumArt)
+            .load(item.albumArtUri)
+            .placeholder(R.drawable.default_art)
+            .into(albumArt)
+    }
+}

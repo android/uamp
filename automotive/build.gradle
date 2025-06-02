@@ -14,36 +14,23 @@
  * limitations under the License.
  */
 
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-kapt'
-apply plugin: 'kotlin-android-extensions'
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+    id 'kotlin-kapt'
+}
 
 android {
-    compileSdkVersion rootProject.compileSdkVersion
+    compileSdk 34
+    namespace "com.example.android.uamp.automotive"
 
     defaultConfig {
-        applicationId "com.example.android.uamp.next"
-
-        minSdkVersion 21
-        targetSdkVersion rootProject.targetSdkVersion
-
+        applicationId "com.example.android.uamp.automotive"
+        minSdk 29
+        targetSdk 34
         versionCode 1
         versionName "1.0"
-
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-    }
-
-    buildFeatures {
-        viewBinding true
-    }
-
-    compileOptions {
-        sourceCompatibility 1.8
-        targetCompatibility 1.8
-    }
-    kotlinOptions {
-        jvmTarget = "1.8"
     }
 
     buildTypes {
@@ -53,24 +40,42 @@ android {
         }
     }
 
+    buildFeatures {
+        viewBinding true
+        buildConfig true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
 }
 
 dependencies {
     implementation project(':common')
-
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.11.0'
+    
+    // Car library dependencies
+    implementation 'androidx.car.app:app:1.4.0'
+    implementation 'androidx.car.app:app-automotive:1.4.0'
 
-    implementation "androidx.core:core-ktx:$androidx_core_ktx_version"
-    implementation "androidx.preference:preference:$androidx_preference_version"
-    implementation "androidx.car:car:$androidx_car_version"
-    implementation "androidx.constraintlayout:constraintlayout:$constraint_layout_version"
-    implementation "androidx.appcompat:appcompat:$androidx_app_compat_version"
-    implementation "androidx.lifecycle:lifecycle-extensions:$arch_lifecycle_version"
+    // Media3 dependencies
+    def media3_version = "1.2.1"
+    implementation "androidx.media3:media3-exoplayer:$media3_version"
+    implementation "androidx.media3:media3-session:$media3_version"
+    implementation "androidx.media3:media3-common:$media3_version"
+    implementation "androidx.media3:media3-ui:$media3_version"
+    implementation "androidx.media3:media3-cast:$media3_version"
 
-    implementation "com.google.android.gms:play-services-auth:$play_services_auth_version"
-
-    testImplementation "junit:junit:$junit_version"
-
-    androidTestImplementation "androidx.test:runner:$androidx_test_runner_version"
-    androidTestImplementation "androidx.test.espresso:espresso-core:$espresso_version"
+    // Testing dependencies
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 }

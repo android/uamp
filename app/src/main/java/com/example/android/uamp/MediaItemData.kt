@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Google Inc. All rights reserved.
+ * Copyright 2019 Google Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,19 +17,20 @@
 package com.example.android.uamp
 
 import android.net.Uri
-import android.support.v4.media.MediaBrowserCompat
-import android.support.v4.media.MediaBrowserCompat.MediaItem
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.recyclerview.widget.DiffUtil
 import com.example.android.uamp.viewmodels.MediaItemFragmentViewModel
 
 /**
- * Data class to encapsulate properties of a [MediaItem].
+ * Data class to encapsulate properties of a [MediaMetadata].
  *
- * If an item is [browsable] it means that it has a list of child media items that
- * can be retrieved by passing the mediaId to [MediaBrowserCompat.subscribe].
- *
- * Objects of this class are built from [MediaItem]s in
- * [MediaItemFragmentViewModel.subscriptionCallback].
+ * @param mediaId Unique ID for the item.
+ * @param title Title of the item.
+ * @param subtitle Subtitle of the item.
+ * @param albumArtUri URI of the album art.
+ * @param browsable Whether the item is browsable (i.e. has children).
+ * @param playbackRes The playback resource (e.g. play/pause icon) to show.
  */
 data class MediaItemData(
     val mediaId: String,
@@ -37,10 +38,24 @@ data class MediaItemData(
     val subtitle: String,
     val albumArtUri: Uri,
     val browsable: Boolean,
-    var playbackRes: Int
+    val playbackRes: Int
 ) {
 
     companion object {
+        /**
+         * Convenience method to convert a [MediaItem] to a [MediaItemData].
+         */
+        fun fromMediaItem(mediaItem: MediaItem): MediaItemData {
+            return MediaItemData(
+                mediaId = mediaItem.mediaId,
+                title = mediaItem.mediaMetadata.title?.toString() ?: "",
+                subtitle = mediaItem.mediaMetadata.subtitle?.toString() ?: "",
+                albumArtUri = mediaItem.mediaMetadata.artworkUri ?: Uri.EMPTY,
+                browsable = mediaItem.mediaMetadata.isBrowsable ?: false,
+                playbackRes = 0
+            )
+        }
+
         /**
          * Indicates [playbackRes] has changed.
          */

@@ -27,9 +27,14 @@ import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import androidx.core.content.edit
 import com.example.android.uamp.media.MusicService
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import androidx.media3.common.Player
+import androidx.media3.session.MediaSession
+import com.example.android.uamp.media.library.BrowseTree
+import com.example.android.uamp.media.library.JsonSource
+import com.example.android.uamp.media.library.MEDIA_SEARCH_SUPPORTED
+import com.example.android.uamp.media.library.MusicSource
+import com.example.android.uamp.media.library.UAMP_BROWSABLE_ROOT
+import com.example.android.uamp.media.library.UAMP_EMPTY_ROOT
 
 /** UAMP specific command for logging into the service. */
 const val LOGIN = "com.example.android.uamp.automotive.COMMAND.LOGIN"
@@ -54,7 +59,6 @@ typealias CommandHandler = (parameters: Bundle, callback: ResultReceiver?) -> Bo
  */
 class AutomotiveMusicService : MusicService() {
 
-    @ExperimentalCoroutinesApi
     override fun onCreate() {
         super.onCreate()
 
@@ -64,6 +68,41 @@ class AutomotiveMusicService : MusicService() {
         // Require the user to be logged in for demonstration purposes.
         if (!isAuthenticated()) {
             requireLogin()
+        }
+
+        // Build a PendingIntent that can be used to launch the UI.
+        val sessionActivityPendingIntent =
+            packageManager?.getLaunchIntentForPackage(packageName)?.let { sessionIntent ->
+                PendingIntent.getActivity(this, 0, sessionIntent, PendingIntent.FLAG_IMMUTABLE)
+            }
+
+        // Create a new MediaSession.
+        mediaSession = MediaSession.Builder(this, player)
+            .setSessionActivity(sessionActivityPendingIntent)
+            .build()
+    }
+
+    override fun onGetRoot(
+        clientPackageName: String,
+        clientUid: Int,
+        rootHints: Bundle?
+    ): BrowserRoot? {
+        /*
+         * By default, all known clients are permitted to search, but only tell unknown callers
+         * about search if permitted by the [BrowseTree].
+         */
+        val isKnownCaller = packageValidator.isKnownCaller(clientPackageName, clientUid)
+        val rootExtras = Bundle().apply {
+            putBoolean(
+                MEDIA_SEARCH_SUPPORTED,
+                isKnownCaller || browseTree.searchableByUnknownCaller
+            )
+        }
+
+        return if (isKnownCaller) {
+            BrowserRoot(UAMP_BROWSABLE_ROOT, rootExtras)
+        } else {
+            BrowserRoot(UAMP_EMPTY_ROOT, rootExtras)
         }
     }
 

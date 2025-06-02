@@ -28,6 +28,7 @@ import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 /**
  * A small set of Android integration tests for (primarily) [AbstractMusicSource].

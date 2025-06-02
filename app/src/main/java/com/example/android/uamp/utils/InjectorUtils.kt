@@ -29,11 +29,16 @@ import com.example.android.uamp.viewmodels.NowPlayingFragmentViewModel
  * Static methods used to inject classes needed for various Activities and Fragments.
  */
 object InjectorUtils {
+    private var musicServiceConnection: MusicServiceConnection? = null
+
     private fun provideMusicServiceConnection(context: Context): MusicServiceConnection {
-        return MusicServiceConnection.getInstance(
-            context,
-            ComponentName(context, MusicService::class.java)
-        )
+        if (musicServiceConnection == null) {
+            musicServiceConnection = MusicServiceConnection(
+                context,
+                ComponentName(context, MusicService::class.java)
+            )
+        }
+        return musicServiceConnection!!
     }
 
     fun provideMainActivityViewModel(context: Context): MainActivityViewModel.Factory {
@@ -42,19 +47,15 @@ object InjectorUtils {
         return MainActivityViewModel.Factory(musicServiceConnection)
     }
 
-    fun provideMediaItemFragmentViewModel(context: Context, mediaId: String)
-            : MediaItemFragmentViewModel.Factory {
+    fun provideMediaItemFragmentViewModel(context: Context, mediaId: String): MediaItemFragmentViewModel.Factory {
         val applicationContext = context.applicationContext
         val musicServiceConnection = provideMusicServiceConnection(applicationContext)
         return MediaItemFragmentViewModel.Factory(mediaId, musicServiceConnection)
     }
 
-    fun provideNowPlayingFragmentViewModel(context: Context)
-            : NowPlayingFragmentViewModel.Factory {
+    fun provideNowPlayingFragmentViewModel(context: Context): NowPlayingFragmentViewModel.Factory {
         val applicationContext = context.applicationContext
         val musicServiceConnection = provideMusicServiceConnection(applicationContext)
-        return NowPlayingFragmentViewModel.Factory(
-            applicationContext as Application, musicServiceConnection
-        )
+        return NowPlayingFragmentViewModel.Factory(musicServiceConnection)
     }
 }
