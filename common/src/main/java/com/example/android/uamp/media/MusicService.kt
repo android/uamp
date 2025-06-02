@@ -307,10 +307,38 @@ class MusicService : MediaSessionService() {
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
-        return if (packageValidator.isKnownCaller(controllerInfo.packageName, controllerInfo.uid)) {
-            mediaSession
-        } else {
-            null
+        return try {
+            // Allow connection if it's the same process (app connecting to its own service)
+            if (controllerInfo.uid == android.os.Process.myUid()) {
+                return mediaSession
+            }
+            
+            // Check if we have a valid package name
+            val packageName = controllerInfo.packageName
+            if (packageName.isNullOrEmpty() || packageName.contains('.') && !packageName.matches(Regex("^[a-zA-Z][a-zA-Z0-9_]*(\\.[a-zA-Z][a-zA-Z0-9_]*)*$"))) {
+                // Invalid package name format (likely a class name) - allow if same UID
+                return if (controllerInfo.uid == android.os.Process.myUid()) {
+                    mediaSession
+                } else {
+                    null
+                }
+            }
+            
+            // Use package validator for external callers
+            if (packageValidator.isKnownCaller(packageName, controllerInfo.uid)) {
+                mediaSession
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            // If package validation fails for any reason (like NameNotFoundException),
+            // allow the connection if it's from the same process
+            Log.w(TAG, "Package validation failed for ${controllerInfo.packageName}: ${e.message}")
+            if (controllerInfo.uid == android.os.Process.myUid()) {
+                mediaSession
+            } else {
+                null
+            }
         }
     }
 }

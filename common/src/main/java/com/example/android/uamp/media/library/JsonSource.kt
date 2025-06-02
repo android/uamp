@@ -131,7 +131,17 @@ class JsonSource(private val source: Uri) : AbstractMusicSource() {
     private fun downloadJson(catalogUri: Uri): List<JsonMusic> {
         val catalogConn = URL(catalogUri.toString())
         val reader = BufferedReader(InputStreamReader(catalogConn.openStream()))
-        return Gson().fromJson(reader, object : TypeToken<List<JsonMusic>>() {}.type)
+        
+        // Parse the JSON object that contains a "music" array
+        val jsonObject = Gson().fromJson(reader, JsonCatalog::class.java)
+        return jsonObject.music
+    }
+
+    /**
+     * Wrapper object for the JSON catalog structure.
+     */
+    private class JsonCatalog {
+        var music: List<JsonMusic> = emptyList()
     }
 
     /**
@@ -148,8 +158,10 @@ class JsonSource(private val source: Uri) : AbstractMusicSource() {
         var source: String = ""
         var image: String = ""
         var trackNumber: Int? = null
+        var totalTrackCount: Int? = null
         var discNumber: Int? = null
         var duration: Long = -1
+        var site: String = ""
     }
 
     companion object {
