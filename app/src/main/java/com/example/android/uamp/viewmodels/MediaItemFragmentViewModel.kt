@@ -16,6 +16,7 @@
 
 package com.example.android.uamp.viewmodels
 
+import android.net.Uri
 import androidx.media3.session.MediaBrowser
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
@@ -91,10 +92,20 @@ class MediaItemFragmentViewModel(
     }
 
     private fun loadMediaItems() {
-        // For now, create a simple mock implementation
-        // In a real implementation, this would subscribe to a MediaBrowser
-        val items = listOf<MediaItemData>()
-        _mediaItems.value = items
+        // Subscribe to the MediaBrowser to get media items for this mediaId
+        musicServiceConnection.subscribe(mediaId) { mediaItems ->
+            val itemData = mediaItems.map { item ->
+                MediaItemData(
+                    mediaId = item.mediaId ?: "",
+                    title = item.mediaMetadata.title?.toString() ?: "Unknown Title",
+                    subtitle = item.mediaMetadata.artist?.toString() ?: "Unknown Artist",
+                    albumArtUri = item.mediaMetadata.artworkUri ?: Uri.EMPTY,
+                    browsable = item.mediaMetadata.isBrowsable ?: false,
+                    playbackRes = getResourceForMediaId(item.mediaMetadata.title?.toString() ?: "")
+                )
+            }
+            _mediaItems.postValue(itemData)
+        }
     }
 
     /**

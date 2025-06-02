@@ -50,8 +50,15 @@ import kotlinx.coroutines.launch
  */
 class MusicService : MediaSessionService() {
 
+    companion object {
+        @Volatile
+        private var INSTANCE: MusicService? = null
+        
+        fun getInstance(): MusicService? = INSTANCE
+    }
+
     private lateinit var notificationManager: UampNotificationManager
-    private lateinit var mediaSource: MusicSource
+    lateinit var mediaSource: MusicSource
     private lateinit var packageValidator: PackageValidator
 
     private lateinit var player: Player
@@ -106,6 +113,7 @@ class MusicService : MediaSessionService() {
 
     override fun onCreate() {
         super.onCreate()
+        INSTANCE = this
 
         // Build a PendingIntent that can be used to launch the UI.
         val sessionActivityPendingIntent =
@@ -171,6 +179,7 @@ class MusicService : MediaSessionService() {
 
     override fun onDestroy() {
         super.onDestroy()
+        INSTANCE = null
         
         mediaSession.release()
 

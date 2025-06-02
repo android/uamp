@@ -29,6 +29,7 @@ import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionToken
 import androidx.media3.session.SessionResult
 import com.example.android.uamp.media.NETWORK_FAILURE
+import com.example.android.uamp.media.MusicService
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 
@@ -88,6 +89,8 @@ class MusicServiceConnection(
             }
         }
     }
+
+    private val subscriptions = mutableMapOf<String, (List<MediaItem>) -> Unit>()
 
     init {
         mediaBrowserFuture.addListener({
@@ -156,14 +159,38 @@ class MusicServiceConnection(
         }
     }
 
+    /**
+     * Subscribe to a parent media ID to get its children
+     */
     fun subscribe(parentId: String, callback: (List<MediaItem>) -> Unit) {
-        // In Media3, we would typically handle subscription differently
-        // For now, we'll store this callback for future use
+        subscriptions[parentId] = callback
+        
+        if (isConnected.value == true && parentId == "/") {
+            // Get the catalog directly from the service
+            val service = MusicService.getInstance()
+            if (service != null) {
+                val mediaItems = service.mediaSource.map { metadata ->
+                    val mediaId = metadata.extras?.getString("media_id") ?: ""
+                    val mediaUri = metadata.extras?.getString("media_uri") ?: ""
+                    
+                    MediaItem.Builder()
+                        .setMediaId(mediaId)
+                        .setUri(mediaUri)
+                        .setMediaMetadata(metadata)
+                        .build()
+                }
+                callback(mediaItems)
+            } else {
+                callback(emptyList())
+            }
+        }
     }
 
+    /**
+     * Unsubscribe from a parent media ID
+     */
     fun unsubscribe(parentId: String, callback: ((List<MediaItem>) -> Unit)? = null) {
-        // In Media3, we would typically handle unsubscription differently
-        // For now, this is a placeholder
+        subscriptions.remove(parentId)
     }
 
     fun sendCommand(command: String, parameters: Bundle?) {
