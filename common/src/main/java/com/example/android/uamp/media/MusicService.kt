@@ -147,7 +147,18 @@ class MusicService : MediaSessionService() {
         // and then use a suspend function to perform the download off the main thread.
         mediaSource = JsonSource(source = remoteJsonSource)
         serviceScope.launch {
+            Log.d(TAG, "Starting to load catalog from: $remoteJsonSource")
             mediaSource.load()
+            
+            // Check if loading was successful using the public API
+            mediaSource.whenReady { success ->
+                if (success) {
+                    val catalogSize = mediaSource.count()
+                    Log.d(TAG, "Catalog loading completed successfully. Items: $catalogSize")
+                } else {
+                    Log.e(TAG, "Catalog loading failed")
+                }
+            }
         }
 
         // Show notification for the player
