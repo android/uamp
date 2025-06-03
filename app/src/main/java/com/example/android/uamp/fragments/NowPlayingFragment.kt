@@ -153,11 +153,17 @@ class NowPlayingFragment : Fragment() {
                 .placeholder(R.drawable.default_art)
                 .into(object : CustomTarget<Bitmap>() {
                     override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                        // Check if fragment is still valid before accessing binding
+                        if (_binding == null) return
+                        
                         // Set the album art
                         binding.albumArt.setImageBitmap(resource)
                         
                         // Generate color palette from the bitmap
                         Palette.from(resource).generate { palette ->
+                            // Check again in case fragment was destroyed during palette generation
+                            if (_binding == null) return@generate
+                            
                             palette?.let { extractedPalette ->
                                 applyPaletteColors(extractedPalette)
                             }
@@ -165,6 +171,9 @@ class NowPlayingFragment : Fragment() {
                     }
 
                     override fun onLoadCleared(placeholder: Drawable?) {
+                        // Check if fragment is still valid before accessing binding
+                        if (_binding == null) return
+                        
                         // Set placeholder and use default white colors
                         binding.albumArt.setImageDrawable(placeholder)
                         applyDefaultColors()
@@ -174,6 +183,9 @@ class NowPlayingFragment : Fragment() {
     }
 
     private fun applyPaletteColors(palette: Palette) {
+        // Check if fragment is still valid before accessing binding
+        if (_binding == null) return
+        
         // Extract colors with fallbacks
         val vibrantColor = palette.vibrantSwatch?.rgb
         val darkVibrantColor = palette.darkVibrantSwatch?.rgb
@@ -197,11 +209,17 @@ class NowPlayingFragment : Fragment() {
     }
 
     private fun applyDefaultColors() {
+        // Check if fragment is still valid before accessing binding
+        if (_binding == null) return
+        
         val whiteColor = ContextCompat.getColor(requireContext(), android.R.color.white)
         applyColorsToUI(whiteColor, whiteColor)
     }
 
     private fun applyColorsToUI(primaryColor: Int, secondaryColor: Int) {
+        // Check if fragment is still valid before accessing binding
+        if (_binding == null) return
+        
         // Apply colors to text
         binding.title.setTextColor(primaryColor)
         binding.subtitle.setTextColor(secondaryColor)
