@@ -33,6 +33,21 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:srcCompat="@drawable/default_art" />
 
+    <!-- Collapse button at the top -->
+    <ImageButton
+        android:id="@+id/collapseButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="16dp"
+        android:background="@android:color/transparent"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_keyboard_arrow_down_24dp"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="ContentDescription" />
+
     <!-- Transparent container for bottom controls -->
     <LinearLayout
         android:layout_width="match_parent"

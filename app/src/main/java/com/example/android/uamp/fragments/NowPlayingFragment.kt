@@ -44,7 +44,11 @@ import com.example.android.uamp.viewmodels.NowPlayingFragmentViewModel
 class NowPlayingFragment : Fragment() {
 
     companion object {
-        fun newInstance() = NowPlayingFragment()
+        fun newInstance(isFullScreen: Boolean = false) = NowPlayingFragment().apply {
+            arguments = Bundle().apply {
+                putBoolean("isFullScreen", isFullScreen)
+            }
+        }
     }
 
     private val viewModel by viewModels<NowPlayingFragmentViewModel> {
@@ -53,6 +57,9 @@ class NowPlayingFragment : Fragment() {
 
     private var _binding: FragmentNowplayingBinding? = null
     private val binding get() = _binding!!
+    
+    private val isFullScreen: Boolean
+        get() = arguments?.getBoolean("isFullScreen", false) ?: false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -82,6 +89,9 @@ class NowPlayingFragment : Fragment() {
             binding.root.visibility = if (state != Player.STATE_IDLE) View.VISIBLE else View.GONE
         }
 
+        // Show/hide collapse button based on mode
+        binding.collapseButton.visibility = if (isFullScreen) View.VISIBLE else View.GONE
+
         // Set up click listeners
         binding.mediaButton.setOnClickListener {
             viewModel.playPause()
@@ -95,6 +105,11 @@ class NowPlayingFragment : Fragment() {
             viewModel.skipPrevious()
         }
 
+        // Collapse button click listener
+        binding.collapseButton.setOnClickListener {
+            collapseFromFullScreen()
+        }
+
         binding.seekBar.setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: android.widget.SeekBar?, progress: Int, fromUser: Boolean) {
                 if (fromUser) {
@@ -106,9 +121,11 @@ class NowPlayingFragment : Fragment() {
             override fun onStopTrackingTouch(seekBar: android.widget.SeekBar?) {}
         })
 
-        // Click on the entire mini player to expand to full screen
-        binding.root.setOnClickListener {
-            expandToFullScreen()
+        // Click on the entire mini player to expand to full screen (only in mini mode)
+        if (!isFullScreen) {
+            binding.root.setOnClickListener {
+                expandToFullScreen()
+            }
         }
     }
 
@@ -189,6 +206,7 @@ class NowPlayingFragment : Fragment() {
         binding.mediaButton.drawable?.colorFilter = android.graphics.BlendModeColorFilter(primaryColor, android.graphics.BlendMode.SRC_IN)
         binding.previousButton.drawable?.colorFilter = android.graphics.BlendModeColorFilter(secondaryColor, android.graphics.BlendMode.SRC_IN)
         binding.nextButton.drawable?.colorFilter = android.graphics.BlendModeColorFilter(secondaryColor, android.graphics.BlendMode.SRC_IN)
+        binding.collapseButton.drawable?.colorFilter = android.graphics.BlendModeColorFilter(primaryColor, android.graphics.BlendMode.SRC_IN)
 
         // Apply colors to seek bar
         binding.seekBar.progressTintList = android.content.res.ColorStateList.valueOf(primaryColor)
@@ -205,10 +223,20 @@ class NowPlayingFragment : Fragment() {
     private fun expandToFullScreen() {
         // Create a new instance for full screen - this will use the same layout
         // but without height constraints, showing the full album art
-        val fullScreenFragment = NowPlayingFragment.newInstance()
+        val fullScreenFragment = NowPlayingFragment.newInstance(true)
         parentFragmentManager.beginTransaction()
             .replace(android.R.id.content, fullScreenFragment)
             .addToBackStack(null)
             .commit()
+    }
+
+    private fun collapseFromFullScreen() {
+        // Navigate back to the previous fragment (MediaItemFragment)
+        if (parentFragmentManager.backStackEntryCount > 0) {
+            parentFragmentManager.popBackStack()
+        } else {
+            // Fallback: if no back stack, finish the activity
+            activity?.finish()
+        }
     }
 }
