@@ -19,6 +19,8 @@ package com.example.android.uamp.common
 import android.content.ComponentName
 import android.content.Context
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.media3.common.MediaItem
@@ -208,41 +210,54 @@ class MusicServiceConnection(
             if (service != null) {
                 Log.d(TAG, "Service found, checking if catalog is ready")
                 
-                // Check if catalog is ready using the public API
-                val isReady = service.mediaSource.whenReady { success ->
-                    if (success) {
-                        Log.d(TAG, "Catalog is ready via whenReady callback")
-                        val mediaItems = service.mediaSource.map { metadata ->
-                            val mediaId = metadata.extras?.getString("media_id") ?: ""
-                            val mediaUri = metadata.extras?.getString("media_uri") ?: ""
-                            
-                            MediaItem.Builder()
-                                .setMediaId(mediaId)
-                                .setUri(mediaUri)
-                                .setMediaMetadata(metadata)
-                                .build()
-                        }
-                        Log.d(TAG, "Returning ${mediaItems.size} media items via whenReady")
-                        callback(mediaItems)
-                    } else {
-                        Log.w(TAG, "Catalog failed to load")
-                        callback(emptyList())
-                    }
-                }
-                
-                if (isReady) {
-                    // Catalog was already ready, the callback was called synchronously
-                    Log.d(TAG, "Catalog was already ready")
-                } else {
-                    // Catalog is still loading, the callback will be called later
-                    Log.d(TAG, "Catalog is still loading, callback will be called when ready")
-                }
+                // Try to get the catalog immediately, if not ready, poll for it
+                checkCatalogAndCallback(service, callback, 0)
             } else {
                 Log.w(TAG, "Service not found")
                 callback(emptyList())
             }
         } else {
             Log.d(TAG, "Not connected or not root path")
+        }
+    }
+
+    private fun checkCatalogAndCallback(service: MusicService, callback: (List<MediaItem>) -> Unit, attempt: Int) {
+        val isReady = service.mediaSource.whenReady { success ->
+            if (success) {
+                Log.d(TAG, "Catalog is ready via whenReady callback (attempt $attempt)")
+                val mediaItems = service.mediaSource.map { metadata ->
+                    val mediaId = metadata.extras?.getString("media_id") ?: ""
+                    val mediaUri = metadata.extras?.getString("media_uri") ?: ""
+                    
+                    MediaItem.Builder()
+                        .setMediaId(mediaId)
+                        .setUri(mediaUri)
+                        .setMediaMetadata(metadata)
+                        .build()
+                }
+                Log.d(TAG, "Returning ${mediaItems.size} media items via whenReady")
+                callback(mediaItems)
+            } else {
+                Log.w(TAG, "Catalog failed to load")
+                callback(emptyList())
+            }
+        }
+        
+        if (isReady) {
+            // Catalog was already ready, callback was called synchronously
+            Log.d(TAG, "Catalog was already ready (attempt $attempt)")
+        } else {
+            // Catalog is still loading - set up a retry mechanism
+            Log.d(TAG, "Catalog is still loading, will retry (attempt $attempt)")
+            if (attempt < 10) { // Max 10 attempts (10 seconds)
+                Handler(Looper.getMainLooper()).postDelayed({
+                    Log.d(TAG, "Retrying catalog check (attempt ${attempt + 1})")
+                    checkCatalogAndCallback(service, callback, attempt + 1)
+                }, 1000) // Check again in 1 second
+            } else {
+                Log.e(TAG, "Catalog loading timed out after 10 attempts")
+                callback(emptyList())
+            }
         }
     }
 
