@@ -16,14 +16,22 @@
 
 package com.example.android.uamp.fragments
 
+import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
+import android.graphics.PorterDuff
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.SeekBar
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.media3.common.Player
+import androidx.palette.graphics.Palette
 import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import com.example.android.uamp.MainActivity
 import com.example.android.uamp.R
 import com.example.android.uamp.databinding.FragmentNowplayingBinding
@@ -115,12 +123,83 @@ class NowPlayingFragment : Fragment() {
             binding.title.text = it.title
             binding.subtitle.text = it.subtitle
             binding.duration.text = it.duration
-            // Load album art
+            
+            // Load album art with dynamic color extraction
             Glide.with(this)
+                .asBitmap()
                 .load(it.albumArtUri)
                 .placeholder(R.drawable.default_art)
-                .into(binding.albumArt)
+                .into(object : CustomTarget<Bitmap>() {
+                    override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                        // Set the album art
+                        binding.albumArt.setImageBitmap(resource)
+                        
+                        // Generate color palette from the bitmap
+                        Palette.from(resource).generate { palette ->
+                            palette?.let { extractedPalette ->
+                                applyPaletteColors(extractedPalette)
+                            }
+                        }
+                    }
+
+                    override fun onLoadCleared(placeholder: Drawable?) {
+                        // Set placeholder and use default white colors
+                        binding.albumArt.setImageDrawable(placeholder)
+                        applyDefaultColors()
+                    }
+                })
         }
+    }
+
+    private fun applyPaletteColors(palette: Palette) {
+        // Extract colors with fallbacks
+        val vibrantColor = palette.vibrantSwatch?.rgb
+        val darkVibrantColor = palette.darkVibrantSwatch?.rgb
+        val lightVibrantColor = palette.lightVibrantSwatch?.rgb
+        val mutedColor = palette.mutedSwatch?.rgb
+        val darkMutedColor = palette.darkMutedSwatch?.rgb
+
+        // Choose the best color for text and controls
+        val primaryColor = vibrantColor 
+            ?: lightVibrantColor 
+            ?: mutedColor 
+            ?: ContextCompat.getColor(requireContext(), android.R.color.white)
+
+        val secondaryColor = darkVibrantColor 
+            ?: darkMutedColor 
+            ?: vibrantColor 
+            ?: ContextCompat.getColor(requireContext(), android.R.color.white)
+
+        // Apply colors to UI elements
+        applyColorsToUI(primaryColor, secondaryColor)
+    }
+
+    private fun applyDefaultColors() {
+        val whiteColor = ContextCompat.getColor(requireContext(), android.R.color.white)
+        applyColorsToUI(whiteColor, whiteColor)
+    }
+
+    private fun applyColorsToUI(primaryColor: Int, secondaryColor: Int) {
+        // Apply colors to text
+        binding.title.setTextColor(primaryColor)
+        binding.subtitle.setTextColor(secondaryColor)
+        binding.duration.setTextColor(secondaryColor)
+
+        // Apply colors to control buttons using modern ColorFilter approach
+        binding.mediaButton.drawable?.colorFilter = android.graphics.BlendModeColorFilter(primaryColor, android.graphics.BlendMode.SRC_IN)
+        binding.previousButton.drawable?.colorFilter = android.graphics.BlendModeColorFilter(secondaryColor, android.graphics.BlendMode.SRC_IN)
+        binding.nextButton.drawable?.colorFilter = android.graphics.BlendModeColorFilter(secondaryColor, android.graphics.BlendMode.SRC_IN)
+
+        // Apply colors to seek bar
+        binding.seekBar.progressTintList = android.content.res.ColorStateList.valueOf(primaryColor)
+        binding.seekBar.thumbTintList = android.content.res.ColorStateList.valueOf(primaryColor)
+        binding.seekBar.progressBackgroundTintList = android.content.res.ColorStateList.valueOf(
+            android.graphics.Color.argb(100, 
+                android.graphics.Color.red(secondaryColor),
+                android.graphics.Color.green(secondaryColor),
+                android.graphics.Color.blue(secondaryColor)
+            )
+        )
     }
 
     private fun expandToFullScreen() {
