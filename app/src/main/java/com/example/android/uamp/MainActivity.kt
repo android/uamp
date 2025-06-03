@@ -18,6 +18,7 @@ package com.example.android.uamp
 
 import android.media.AudioManager
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -61,17 +62,20 @@ class MainActivity : AppCompatActivity() {
         }
 
         /**
-         * Observe changes to the [MainActivityViewModel.rootMediaId] property and update the
-         * navigation drawer when the root media ID changes.
+         * Observe changes to the connection state and root media ID.
+         * Create the main fragment when both are ready.
          */
         viewModel.isConnected.observe(this) { connected: Boolean ->
+            Log.d(TAG, "Connection state changed: $connected")
             if (connected) {
-                viewModel.musicServiceConnection.rootMediaId.value?.let { rootMediaId ->
-                    val fragment = MediaItemFragment.newInstance(rootMediaId)
-                    supportFragmentManager.beginTransaction()
-                        .replace(R.id.mediaItemFragment, fragment)
-                        .commit()
-                }
+                checkAndCreateMainFragment()
+            }
+        }
+        
+        viewModel.musicServiceConnection.rootMediaId.observe(this) { rootMediaId ->
+            Log.d(TAG, "Root media ID changed: $rootMediaId")
+            if (!rootMediaId.isNullOrEmpty()) {
+                checkAndCreateMainFragment()
             }
         }
     }
@@ -101,4 +105,29 @@ class MainActivity : AppCompatActivity() {
     private fun getBrowseFragment(mediaId: String): MediaItemFragment? {
         return supportFragmentManager.findFragmentByTag(mediaId) as MediaItemFragment?
     }
+
+    private fun checkAndCreateMainFragment() {
+        val isConnected = viewModel.isConnected.value == true
+        val rootMediaId = viewModel.musicServiceConnection.rootMediaId.value
+        
+        Log.d(TAG, "checkAndCreateMainFragment: isConnected=$isConnected, rootMediaId=$rootMediaId")
+        
+        if (isConnected && !rootMediaId.isNullOrEmpty()) {
+            // Only create fragment if it doesn't already exist
+            val existingFragment = supportFragmentManager.findFragmentById(R.id.mediaItemFragment)
+            if (existingFragment == null) {
+                Log.d(TAG, "Creating MediaItemFragment with rootMediaId: $rootMediaId")
+                val fragment = MediaItemFragment.newInstance(rootMediaId)
+                supportFragmentManager.beginTransaction()
+                    .replace(R.id.mediaItemFragment, fragment)
+                    .commit()
+            } else {
+                Log.d(TAG, "MediaItemFragment already exists")
+            }
+        } else {
+            Log.d(TAG, "Not ready to create fragment yet")
+        }
+    }
 }
+
+private const val TAG = "MainActivity"

@@ -17,6 +17,7 @@
 package com.example.android.uamp.viewmodels
 
 import android.net.Uri
+import android.util.Log
 import androidx.media3.session.MediaBrowser
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
@@ -83,6 +84,7 @@ class MediaItemFragmentViewModel(
     }
 
     init {
+        Log.d(TAG, "MediaItemFragmentViewModel created for mediaId: $mediaId")
         // Subscribe to changes
         musicServiceConnection.playbackState.observeForever(playbackStateObserver)
         musicServiceConnection.nowPlaying.observeForever(mediaMetadataObserver)
@@ -92,8 +94,10 @@ class MediaItemFragmentViewModel(
     }
 
     private fun loadMediaItems() {
+        Log.d(TAG, "loadMediaItems called for mediaId: $mediaId")
         // Subscribe to the MediaBrowser to get media items for this mediaId
         musicServiceConnection.subscribe(mediaId) { mediaItems ->
+            Log.d(TAG, "Received ${mediaItems.size} media items in callback")
             val itemData = mediaItems.map { item ->
                 MediaItemData(
                     mediaId = item.mediaId ?: "",
@@ -104,6 +108,7 @@ class MediaItemFragmentViewModel(
                     playbackRes = getResourceForMediaId(item.mediaMetadata.title?.toString() ?: "")
                 )
             }
+            Log.d(TAG, "Posting ${itemData.size} MediaItemData items to LiveData")
             _mediaItems.postValue(itemData)
         }
     }
