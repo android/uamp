@@ -82,7 +82,7 @@
         </activity>
 
         <!--
-        Declare the common MediaBrowserService for use in the mobile app, including
+        Declare the common MediaSessionService for use in the mobile app, including
         with the Android Auto app.
         -->
         <service
@@ -92,7 +92,7 @@
             tools:ignore="ExportedService">
 
             <intent-filter>
-                <action android:name="android.media.browse.MediaBrowserService" />
+                <action android:name="androidx.media3.session.MediaSessionService" />
             </intent-filter>
         </service>
 
