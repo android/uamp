@@ -62,9 +62,16 @@ class NowPlayingFragment : Fragment() {
             updateUI(metadata)
         }
 
+        // Subscribe to the media button resource to update play/pause icon
+        viewModel.mediaButtonRes.observe(viewLifecycleOwner) { resId ->
+            binding.mediaButton.setImageResource(resId)
+        }
+
         // Subscribe to the playback state
         viewModel.playbackState.observe(viewLifecycleOwner) { state: Int ->
             binding.mediaButton.isEnabled = state != Player.STATE_IDLE
+            // Show/hide the fragment based on playback state
+            binding.root.visibility = if (state != Player.STATE_IDLE) View.VISIBLE else View.GONE
         }
 
         // Set up click listeners
@@ -90,6 +97,19 @@ class NowPlayingFragment : Fragment() {
             override fun onStartTrackingTouch(seekBar: android.widget.SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: android.widget.SeekBar?) {}
         })
+
+        // Click on album art or title area to expand to full screen
+        binding.albumArt.setOnClickListener {
+            expandToFullScreen()
+        }
+        
+        binding.title.setOnClickListener {
+            expandToFullScreen()
+        }
+        
+        binding.subtitle.setOnClickListener {
+            expandToFullScreen()
+        }
     }
 
     override fun onDestroyView() {
@@ -108,5 +128,15 @@ class NowPlayingFragment : Fragment() {
                 .placeholder(R.drawable.default_art)
                 .into(binding.albumArt)
         }
+    }
+
+    private fun expandToFullScreen() {
+        // Create a new instance for full screen - this will use the same layout
+        // but without height constraints, showing the full album art
+        val fullScreenFragment = NowPlayingFragment.newInstance()
+        parentFragmentManager.beginTransaction()
+            .replace(android.R.id.content, fullScreenFragment)
+            .addToBackStack(null)
+            .commit()
     }
 }

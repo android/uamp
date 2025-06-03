@@ -79,16 +79,36 @@ class MusicServiceConnection(
 
     private val mediaBrowserCallback = object : Player.Listener {
         override fun onPlaybackStateChanged(state: Int) {
+            Log.d(TAG, "onPlaybackStateChanged: $state")
             playbackState.postValue(state)
+            
+            // Also check and update current media item when playback state changes
+            updateCurrentMediaMetadata()
         }
 
         override fun onIsPlayingChanged(playing: Boolean) {
+            Log.d(TAG, "onIsPlayingChanged: $playing")
             isPlaying.postValue(playing)
+            
+            // Update metadata when playing state changes
+            updateCurrentMediaMetadata()
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            Log.d(TAG, "onMediaItemTransition: ${mediaItem?.mediaMetadata?.title}, reason: $reason")
             mediaItem?.mediaMetadata?.let { metadata ->
                 nowPlaying.postValue(metadata)
+            }
+        }
+        
+        private fun updateCurrentMediaMetadata() {
+            val browser = getMediaBrowser()
+            if (browser != null && browser.currentMediaItem != null) {
+                val currentMetadata = browser.currentMediaItem?.mediaMetadata
+                Log.d(TAG, "updateCurrentMediaMetadata: ${currentMetadata?.title}")
+                currentMetadata?.let { 
+                    nowPlaying.postValue(it)
+                }
             }
         }
     }
@@ -99,10 +119,19 @@ class MusicServiceConnection(
         mediaBrowserFuture.addListener({
             try {
                 mediaBrowserInstance = mediaBrowserFuture.get()
+                // MediaBrowser implements Player interface, so we can add listener directly
                 mediaBrowserInstance?.addListener(mediaBrowserCallback)
                 isConnected.postValue(true)
                 rootMediaId.postValue("/")
-                Log.d(TAG, "MediaBrowser connected successfully")
+                Log.d(TAG, "MediaBrowser connected successfully, listener added")
+                
+                // Immediately check and update current state
+                val currentState = mediaBrowserInstance?.playbackState ?: Player.STATE_IDLE
+                val currentPlaying = mediaBrowserInstance?.isPlaying ?: false
+                Log.d(TAG, "Initial state: playbackState=$currentState, isPlaying=$currentPlaying")
+                playbackState.postValue(currentState)
+                isPlaying.postValue(currentPlaying)
+                
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to connect MediaBrowser: ${e.message}")
                 isConnected.postValue(false)

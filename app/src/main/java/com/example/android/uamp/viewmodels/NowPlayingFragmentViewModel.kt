@@ -92,9 +92,14 @@ class NowPlayingFragmentViewModel(
         updateMetadata(metadata)
     }
 
+    private val isPlayingObserver = Observer<Boolean> { 
+        updatePlayPauseButton()
+    }
+
     init {
         musicServiceConnection.playbackState.observeForever(playbackStateObserver)
         musicServiceConnection.nowPlaying.observeForever(mediaMetadataObserver)
+        musicServiceConnection.isPlaying.observeForever(isPlayingObserver)
     }
 
     /**
@@ -154,6 +159,7 @@ class NowPlayingFragmentViewModel(
 
         musicServiceConnection.playbackState.removeObserver(playbackStateObserver)
         musicServiceConnection.nowPlaying.removeObserver(mediaMetadataObserver)
+        musicServiceConnection.isPlaying.removeObserver(isPlayingObserver)
 
         // Stop updating the position
         updatePosition = false
@@ -175,16 +181,16 @@ class NowPlayingFragmentViewModel(
             }
         }
 
-        // Update the media button resource ID
-        _mediaButtonRes.postValue(
-            when {
-                musicServiceConnection.isPlaying.value == true -> R.drawable.ic_pause
-                else -> R.drawable.ic_play_arrow_black_24dp
-            }
-        )
+        // Update the media button when metadata changes
+        updatePlayPauseButton()
     }
 
     private fun updateState(state: Int?) {
+        // Update the media button when playback state changes
+        updatePlayPauseButton()
+    }
+
+    private fun updatePlayPauseButton() {
         _mediaButtonRes.postValue(
             when {
                 musicServiceConnection.isPlaying.value == true -> R.drawable.ic_pause

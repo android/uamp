@@ -62,11 +62,7 @@ class MediaItemFragmentViewModel(
      * (i.e.: play/pause button or blank)
      */
     private val playbackStateObserver = Observer<Int> {
-        val playbackState = it ?: Player.STATE_IDLE
-        val metadata = musicServiceConnection.nowPlaying.value
-        if (metadata != null) {
-            _mediaItems.postValue(updateState(playbackState, metadata))
-        }
+        updatePlaybackState()
     }
 
     /**
@@ -76,11 +72,14 @@ class MediaItemFragmentViewModel(
      * changed. (i.e.: play/pause button or blank)
      */
     private val mediaMetadataObserver = Observer<MediaMetadata> {
-        val playbackState = musicServiceConnection.playbackState.value ?: Player.STATE_IDLE
-        val metadata = it
-        if (metadata != null) {
-            _mediaItems.postValue(updateState(playbackState, metadata))
-        }
+        updatePlaybackState()
+    }
+
+    /**
+     * When the isPlaying state changes, update the play/pause button
+     */
+    private val isPlayingObserver = Observer<Boolean> {
+        updatePlaybackState()
     }
 
     init {
@@ -88,6 +87,7 @@ class MediaItemFragmentViewModel(
         // Subscribe to changes
         musicServiceConnection.playbackState.observeForever(playbackStateObserver)
         musicServiceConnection.nowPlaying.observeForever(mediaMetadataObserver)
+        musicServiceConnection.isPlaying.observeForever(isPlayingObserver)
         
         // Load the media items for this mediaId
         loadMediaItems()
@@ -122,23 +122,37 @@ class MediaItemFragmentViewModel(
 
     private fun getResourceForMediaId(itemTitle: String): Int {
         val isActive = itemTitle == currentMediaTitle
-        val isPlaying = musicServiceConnection.playbackState.value == Player.STATE_READY && 
-                       musicServiceConnection.isPlaying.value == true
+        val playbackState = musicServiceConnection.playbackState.value ?: Player.STATE_IDLE
+        val isPlaying = musicServiceConnection.isPlaying.value ?: false
+        
+        Log.d(TAG, "getResourceForMediaId: title=$itemTitle, isActive=$isActive, state=$playbackState, isPlaying=$isPlaying")
 
         return when {
-            !isActive -> 0
-            isPlaying -> R.drawable.ic_pause
-            else -> R.drawable.ic_play_arrow_black_24dp
+            isActive && playbackState == Player.STATE_READY && isPlaying -> R.drawable.ic_pause
+            else -> R.drawable.ic_play_arrow_black_24dp // Show play button for all tracks
+        }
+    }
+
+    private fun updatePlaybackState() {
+        val playbackState = musicServiceConnection.playbackState.value ?: Player.STATE_IDLE
+        val metadata = musicServiceConnection.nowPlaying.value
+        val isPlaying = musicServiceConnection.isPlaying.value ?: false
+        
+        Log.d(TAG, "updatePlaybackState: state=$playbackState, isPlaying=$isPlaying, currentTrack=${metadata?.title}")
+        
+        if (metadata != null) {
+            _mediaItems.postValue(updateState(playbackState, metadata, isPlaying))
         }
     }
 
     private fun updateState(
         playbackState: Int,
-        mediaMetadata: MediaMetadata
+        mediaMetadata: MediaMetadata,
+        isPlaying: Boolean
     ): List<MediaItemData> {
 
         val newResId = when {
-            playbackState == Player.STATE_READY && musicServiceConnection.isPlaying.value == true -> 
+            playbackState == Player.STATE_READY && isPlaying -> 
                 R.drawable.ic_pause
             else -> R.drawable.ic_play_arrow_black_24dp
         }
@@ -159,6 +173,7 @@ class MediaItemFragmentViewModel(
         // Remove the permanent observers from the MusicServiceConnection.
         musicServiceConnection.playbackState.removeObserver(playbackStateObserver)
         musicServiceConnection.nowPlaying.removeObserver(mediaMetadataObserver)
+        musicServiceConnection.isPlaying.removeObserver(isPlayingObserver)
     }
 
     class Factory(
