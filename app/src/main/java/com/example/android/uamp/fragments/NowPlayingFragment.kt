@@ -126,6 +126,11 @@ class NowPlayingFragment : Fragment() {
             binding.root.setOnClickListener {
                 expandToFullScreen()
             }
+        } else {
+            // In full-screen mode, block all touch events from reaching underlying fragments
+            binding.root.setOnTouchListener { _, _ ->
+                true // Consume all touch events to prevent them from reaching fragments underneath
+            }
         }
     }
 
