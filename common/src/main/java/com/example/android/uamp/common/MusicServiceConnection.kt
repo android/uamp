@@ -75,7 +75,7 @@ class MusicServiceConnection(
         )
         .buildAsync()
 
-    val mediaBrowser: MediaBrowser get() = mediaBrowserFuture.get()
+    private var mediaBrowserInstance: MediaBrowser? = null
 
     private val mediaBrowserCallback = object : Player.Listener {
         override fun onPlaybackStateChanged(state: Int) {
@@ -97,10 +97,21 @@ class MusicServiceConnection(
 
     init {
         mediaBrowserFuture.addListener({
-            mediaBrowser.addListener(mediaBrowserCallback)
-            isConnected.postValue(true)
-            rootMediaId.postValue("/")
+            try {
+                mediaBrowserInstance = mediaBrowserFuture.get()
+                mediaBrowserInstance?.addListener(mediaBrowserCallback)
+                isConnected.postValue(true)
+                rootMediaId.postValue("/")
+                Log.d(TAG, "MediaBrowser connected successfully")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to connect MediaBrowser: ${e.message}")
+                isConnected.postValue(false)
+            }
         }, MoreExecutors.directExecutor())
+    }
+
+    private fun getMediaBrowser(): MediaBrowser? {
+        return if (isConnected.value == true) mediaBrowserInstance else null
     }
 
     /**
@@ -138,9 +149,9 @@ class MusicServiceConnection(
                             val startIndex = allTracks.indexOfFirst { it.mediaId == mediaId }
                             Log.d(TAG, "Playing track at index $startIndex of ${allTracks.size} tracks")
                             
-                            mediaBrowser.setMediaItems(allTracks, startIndex, 0)
-                            mediaBrowser.prepare()
-                            mediaBrowser.play()
+                            getMediaBrowser()?.setMediaItems(allTracks, startIndex, 0)
+                            getMediaBrowser()?.prepare()
+                            getMediaBrowser()?.play()
                         } else {
                             Log.w(TAG, "Track not found: $mediaId")
                         }
@@ -157,7 +168,7 @@ class MusicServiceConnection(
      */
     fun play() {
         if (isConnected.value == true) {
-            mediaBrowser.play()
+            getMediaBrowser()?.play()
         }
     }
 
@@ -166,7 +177,7 @@ class MusicServiceConnection(
      */
     fun pause() {
         if (isConnected.value == true) {
-            mediaBrowser.pause()
+            getMediaBrowser()?.pause()
         }
     }
 
@@ -175,7 +186,7 @@ class MusicServiceConnection(
      */
     fun skipNext() {
         if (isConnected.value == true) {
-            mediaBrowser.seekToNext()
+            getMediaBrowser()?.seekToNext()
         }
     }
 
@@ -184,7 +195,7 @@ class MusicServiceConnection(
      */
     fun skipPrevious() {
         if (isConnected.value == true) {
-            mediaBrowser.seekToPrevious()
+            getMediaBrowser()?.seekToPrevious()
         }
     }
 
@@ -193,7 +204,7 @@ class MusicServiceConnection(
      */
     fun seekTo(position: Long) {
         if (isConnected.value == true) {
-            mediaBrowser.seekTo(position)
+            getMediaBrowser()?.seekTo(position)
         }
     }
 
@@ -269,7 +280,7 @@ class MusicServiceConnection(
     }
 
     fun sendCommand(command: String, parameters: Bundle?) {
-        mediaBrowser.sendCustomCommand(
+        getMediaBrowser()?.sendCustomCommand(
             SessionCommand(command, Bundle.EMPTY),
             parameters ?: Bundle.EMPTY
         )

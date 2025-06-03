@@ -82,12 +82,15 @@ class MediaItemFragment : Fragment() {
 
         // Subscribe to the media items
         viewModel.mediaItems.observe(viewLifecycleOwner) { list ->
+            // Hide loading spinner when data is loaded
+            binding.loadingSpinner.visibility = if (list.isNotEmpty()) View.GONE else View.VISIBLE
             (binding.list.adapter as MediaItemAdapter).submitList(list)
         }
 
         viewModel.networkError.observe(viewLifecycleOwner) { error ->
             if (error) {
                 binding.networkError.visibility = View.VISIBLE
+                binding.loadingSpinner.visibility = View.GONE
             } else {
                 binding.networkError.visibility = View.GONE
             }

@@ -21,6 +21,9 @@
     <!-- Required permissions for internet access to download music catalog -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    
+    <!-- Required for foreground media playback service on Android 14+ -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
 
     <application
         android:allowBackup="true"
@@ -89,6 +92,7 @@
             android:name=".media.MusicService"
             android:enabled="true"
             android:exported="true"
+            android:foregroundServiceType="mediaPlayback"
             tools:ignore="ExportedService">
 
             <intent-filter>

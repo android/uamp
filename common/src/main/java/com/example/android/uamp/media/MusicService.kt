@@ -223,9 +223,21 @@ class MusicService : MediaSessionService() {
     }
 
     private fun saveRecentSongToStorage() {
+        // Safety check: only save if we have a valid playlist and current item
+        if (currentPlaylistItems.isEmpty()) {
+            Log.d(TAG, "No current playlist items to save")
+            return
+        }
+        
+        val currentIndex = player.currentMediaItemIndex
+        if (currentIndex < 0 || currentIndex >= currentPlaylistItems.size) {
+            Log.d(TAG, "Invalid current media item index: $currentIndex")
+            return
+        }
+        
         // Obtain the current song details *before* saving them on a separate thread, otherwise
         // the current player may have been unloaded by the time the save routine runs.
-        val mediaMetadata = currentPlaylistItems[currentMediaItemIndex].mediaMetadata
+        val mediaMetadata = currentPlaylistItems[currentIndex].mediaMetadata
         val position = player.currentPosition
 
         serviceScope.launch {
@@ -300,7 +312,19 @@ class MusicService : MediaSessionService() {
         override fun onEvents(player: Player, events: Player.Events) {
             if (events.contains(Player.EVENT_POSITION_DISCONTINUITY)
                 || events.contains(Player.EVENT_MEDIA_ITEM_TRANSITION)
-                || events.contains(Player.EVENT_PLAY_WHEN_READY_CHANGED)) {
+                || events.contains(Player.EVENT_PLAY_WHEN_READY_CHANGED)
+                || events.contains(Player.EVENT_TIMELINE_CHANGED)) {
+                
+                // Sync currentPlaylistItems with the player's actual media items
+                val playerMediaItems = mutableListOf<MediaItem>()
+                for (i in 0 until player.mediaItemCount) {
+                    player.getMediaItemAt(i)?.let { playerMediaItems.add(it) }
+                }
+                if (playerMediaItems.isNotEmpty()) {
+                    currentPlaylistItems = playerMediaItems
+                    Log.d(TAG, "Updated currentPlaylistItems with ${playerMediaItems.size} items from player")
+                }
+                
                 currentMediaItemIndex = if (currentPlaylistItems.isNotEmpty()) {
                     player.currentMediaItemIndex.coerceIn(0, currentPlaylistItems.size - 1)
                 } else {
