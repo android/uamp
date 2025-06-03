@@ -37,12 +37,12 @@
         <!-- Enable instant app support -->
         <dist:module dist:instant="true" />
 
-        <!-- Declare that UAMP supports Android Auto. -->
+        <!-- Declare that Mixtape supports Android Auto. -->
         <meta-data
             android:name="com.google.android.gms.car.application"
             android:resource="@xml/automotive_app_desc" />
 
-        <!-- Declare that UAMP supports Cast. -->
+        <!-- Declare that Mixtape supports Cast. -->
         <meta-data android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
             android:value="com.example.android.uamp.cast.UampCastOptionsProvider"/>
 

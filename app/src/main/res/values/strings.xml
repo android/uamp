@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 <resources>
-    <string name="app_name">UAMP</string>
+    <string name="app_name">Mixtape</string>
 
     <string name="skip_back_10s">Skip back 10s</string>
     <string name="skip_forward_10s">Skip forward 10s</string>

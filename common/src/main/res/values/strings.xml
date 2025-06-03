@@ -17,7 +17,7 @@
 <resources>
     <!-- Notificaiton Channel -->
     <string name="notification_channel">Now Playing</string>
-    <string name="notification_channel_description">Shows what music is currently playing in UAMP</string>
+    <string name="notification_channel_description">Shows what music is currently playing in Mixtape</string>
 
     <!-- Notification actions -->
     <string name="notification_skip_to_previous">Skip to previous track</string>

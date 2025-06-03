@@ -15,8 +15,8 @@
   ~ limitations under the License.
   -->
 <resources>
-    <string name="app_name">UAMP</string>
-    <string name="settings_label">UAMP Settings</string>
+    <string name="app_name">Mixtape</string>
+    <string name="settings_label">Mixtape Settings</string>
 
     <!-- Sign in -->
     <string name="error_login_button">Login</string>

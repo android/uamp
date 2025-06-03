@@ -23,11 +23,11 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <style name="TextAppearance.Uamp.Title" parent="@style/TextAppearance.AppCompat.Title">
+    <style name="TextAppearance.Mixtape.Title" parent="@style/TextAppearance.AppCompat.Title">
         <item name="android:textColor">?android:textColorSecondary</item>
     </style>
 
-    <style name="TextAppearance.Uamp.Subtitle" parent="@style/TextAppearance.AppCompat.Small">
+    <style name="TextAppearance.Mixtape.Subtitle" parent="@style/TextAppearance.AppCompat.Small">
         <item name="android:textColor">?android:textColorSecondary</item>
     </style>
 

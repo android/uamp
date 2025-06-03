@@ -16,7 +16,7 @@
   -->
 <automotiveApp>
     <!--
-      ~ This lets Android Auto know that UAMP can act as a media app.
+      ~ This lets Android Auto know that Mixtape can act as a media app.
       ~ See: https://developer.android.com/training/auto/audio/ for more info.
       -->
     <uses name="media" />

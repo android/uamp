@@ -50,7 +50,7 @@
             android:layout_marginBottom="4dp"
             android:ellipsize="end"
             android:maxLines="1"
-            android:textAppearance="@style/TextAppearance.Uamp.Title"
+            android:textAppearance="@style/TextAppearance.Mixtape.Title"
             android:textColor="@android:color/white"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -70,7 +70,7 @@
                 android:layout_weight="1"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:textAppearance="@style/TextAppearance.Uamp.Subtitle"
+                android:textAppearance="@style/TextAppearance.Mixtape.Subtitle"
                 android:textColor="@android:color/white"
                 android:textSize="14sp"
                 tools:text="Silent Partner" />
