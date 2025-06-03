@@ -2,12 +2,11 @@
     android:width="24dp"
     android:height="24dp"
     android:viewportWidth="24"
-    android:viewportHeight="24"
-    android:tint="?attr/colorOnSurface">
+    android:viewportHeight="24">
   <path
-      android:fillColor="@android:color/white"
+      android:fillColor="#FFFFFFFF"
       android:pathData="M6,6h2v12h-2z"/>
   <path
-      android:fillColor="@android:color/white"
+      android:fillColor="#FFFFFFFF"
       android:pathData="m9.5,12 l8.5,6L18,6z"/>
 </vector> 

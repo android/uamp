@@ -98,16 +98,8 @@ class NowPlayingFragment : Fragment() {
             override fun onStopTrackingTouch(seekBar: android.widget.SeekBar?) {}
         })
 
-        // Click on album art or title area to expand to full screen
-        binding.albumArt.setOnClickListener {
-            expandToFullScreen()
-        }
-        
-        binding.title.setOnClickListener {
-            expandToFullScreen()
-        }
-        
-        binding.subtitle.setOnClickListener {
+        // Click on the entire mini player to expand to full screen
+        binding.root.setOnClickListener {
             expandToFullScreen()
         }
     }
@@ -122,6 +114,7 @@ class NowPlayingFragment : Fragment() {
         metadata?.let {
             binding.title.text = it.title
             binding.subtitle.text = it.subtitle
+            binding.duration.text = it.duration
             // Load album art
             Glide.with(this)
                 .load(it.albumArtUri)
