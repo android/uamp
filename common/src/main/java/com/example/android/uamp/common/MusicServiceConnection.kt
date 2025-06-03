@@ -70,7 +70,7 @@ class MusicServiceConnection(
 
     private val mediaBrowserFuture: ListenableFuture<MediaBrowser> =
         MediaBrowser.Builder(
-            context,
+        context,
             SessionToken(context, serviceComponent)
         )
         .buildAsync()
