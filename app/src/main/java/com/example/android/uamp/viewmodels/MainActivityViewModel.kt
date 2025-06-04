@@ -44,11 +44,24 @@ class MainActivityViewModel(
     val musicServiceConnection: MusicServiceConnection
 ) : ViewModel() {
 
+    /**
+     * Data class to hold dynamic theme colors
+     */
+    data class AppTheme(
+        val primaryColor: Int,
+        val secondaryColor: Int,
+        val backgroundColor: Int,
+        val textColor: Int
+    )
+
     private val _mediaItems = MutableLiveData<List<MediaItemData>>()
     val mediaItems: LiveData<List<MediaItemData>> = _mediaItems
 
     private val _navigateToMediaItem = MutableLiveData<Event<String>>()
     val navigateToMediaItem: LiveData<Event<String>> = _navigateToMediaItem
+
+    private val _appTheme = MutableLiveData<AppTheme>()
+    val appTheme: LiveData<AppTheme> = _appTheme
 
     val isConnected = musicServiceConnection.isConnected
     val networkError = musicServiceConnection.networkFailure
@@ -57,6 +70,25 @@ class MainActivityViewModel(
 
     private val currentMediaId: String?
         get() = musicServiceConnection.nowPlaying.value?.title?.toString()
+
+    /**
+     * Update the app's color theme based on extracted colors from album art
+     */
+    fun updateAppTheme(primaryColor: Int, secondaryColor: Int, backgroundColor: Int, textColor: Int) {
+        _appTheme.postValue(AppTheme(primaryColor, secondaryColor, backgroundColor, textColor))
+    }
+
+    /**
+     * Reset app theme to default colors
+     */
+    fun resetAppThemeToDefault() {
+        val defaultPrimary = android.graphics.Color.WHITE
+        val defaultSecondary = android.graphics.Color.LTGRAY
+        val defaultBackground = android.graphics.Color.BLACK
+        val defaultText = android.graphics.Color.WHITE
+        
+        _appTheme.postValue(AppTheme(defaultPrimary, defaultSecondary, defaultBackground, defaultText))
+    }
 
     private fun getResourceForMediaId(mediaId: String): Int {
         val isActive = mediaId == currentMediaId

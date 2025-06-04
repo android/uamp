@@ -119,9 +119,19 @@
             android:orientation="horizontal">
 
             <ImageButton
+                android:id="@+id/repeatButton"
+                android:layout_width="@dimen/exo_media_button_width"
+                android:layout_height="@dimen/exo_media_button_height"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:scaleType="centerInside"
+                app:srcCompat="@drawable/ic_repeat_black_24dp"
+                tools:ignore="ContentDescription" />
+
+            <ImageButton
                 android:id="@+id/previousButton"
                 android:layout_width="@dimen/exo_media_button_width"
                 android:layout_height="@dimen/exo_media_button_height"
+                android:layout_marginStart="8dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:scaleType="centerInside"
                 app:srcCompat="@drawable/ic_skip_previous_black_24dp"
@@ -145,6 +155,16 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:scaleType="centerInside"
                 app:srcCompat="@drawable/ic_skip_next_black_24dp"
+                tools:ignore="ContentDescription" />
+
+            <ImageButton
+                android:id="@+id/shuffleButton"
+                android:layout_width="@dimen/exo_media_button_width"
+                android:layout_height="@dimen/exo_media_button_height"
+                android:layout_marginStart="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:scaleType="centerInside"
+                app:srcCompat="@drawable/ic_shuffle_black_24dp"
                 tools:ignore="ContentDescription" />
 
         </LinearLayout>

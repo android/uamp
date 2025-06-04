@@ -33,6 +33,8 @@ import com.example.android.uamp.MediaItemData
 import com.example.android.uamp.databinding.FragmentMediaitemListBinding
 import com.example.android.uamp.utils.InjectorUtils
 import com.example.android.uamp.viewmodels.MediaItemFragmentViewModel
+import com.example.android.uamp.viewmodels.MainActivityViewModel
+import com.example.android.uamp.MainActivity
 
 /**
  * A fragment representing a list of MediaItems.
@@ -52,6 +54,10 @@ class MediaItemFragment : Fragment() {
     private lateinit var mediaId: String
     private val viewModel by viewModels<MediaItemFragmentViewModel> {
         InjectorUtils.provideMediaItemFragmentViewModel(requireContext(), mediaId)
+    }
+
+    private val mainActivityViewModel by lazy {
+        (activity as? MainActivity)?.viewModel
     }
 
     private var _binding: FragmentMediaitemListBinding? = null
@@ -78,6 +84,18 @@ class MediaItemFragment : Fragment() {
             adapter = MediaItemAdapter { clickedItem ->
                 viewModel.playMediaId(clickedItem.mediaId)
             }
+            
+            // Add scroll listener to show mini player when scrolling
+            addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                    super.onScrollStateChanged(recyclerView, newState)
+                    
+                    // When user starts scrolling, show the mini player if music is playing
+                    if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
+                        showMiniPlayerIfPlaying()
+                    }
+                }
+            })
         }
 
         // Subscribe to the media items
@@ -95,6 +113,29 @@ class MediaItemFragment : Fragment() {
                 binding.networkError.visibility = View.GONE
             }
         }
+
+        // Observe app theme changes and apply them to the list
+        mainActivityViewModel?.appTheme?.observe(viewLifecycleOwner) { theme ->
+            theme?.let { applyAppTheme(it) }
+        }
+    }
+
+    private fun applyAppTheme(theme: MainActivityViewModel.AppTheme) {
+        // Apply theme colors to the fragment background
+        binding.root.setBackgroundColor(theme.backgroundColor)
+        
+        // Update the adapter to use the new theme colors
+        (binding.list.adapter as? MediaItemAdapter)?.updateTheme(theme)
+    }
+
+    private fun showMiniPlayerIfPlaying() {
+        // Find the NowPlayingFragment in the parent activity
+        val activity = activity ?: return
+        val nowPlayingFragment = activity.supportFragmentManager
+            .findFragmentById(R.id.nowPlayingFragment) as? NowPlayingFragment
+        
+        // Call the method to show mini player on scroll
+        nowPlayingFragment?.showMiniPlayerOnScroll()
     }
 
     override fun onDestroyView() {
@@ -113,6 +154,7 @@ class MediaItemAdapter(
 ) : RecyclerView.Adapter<MediaItemViewHolder>() {
 
     private var mediaItems = emptyList<MediaItemData>()
+    private var currentTheme: MainActivityViewModel.AppTheme? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MediaItemViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -122,7 +164,7 @@ class MediaItemAdapter(
 
     override fun onBindViewHolder(holder: MediaItemViewHolder, position: Int) {
         val item = mediaItems[position]
-        holder.bind(item)
+        holder.bind(item, currentTheme)
     }
 
     override fun getItemCount() = mediaItems.size
@@ -130,6 +172,11 @@ class MediaItemAdapter(
     fun submitList(list: List<MediaItemData>) {
         mediaItems = list
         notifyDataSetChanged()
+    }
+
+    fun updateTheme(theme: MainActivityViewModel.AppTheme) {
+        currentTheme = theme
+        notifyDataSetChanged() // Refresh all items with new theme
     }
 }
 
@@ -150,7 +197,7 @@ class MediaItemViewHolder(
         }
     }
 
-    fun bind(item: MediaItemData) {
+    fun bind(item: MediaItemData, theme: MainActivityViewModel.AppTheme?) {
         this.item = item
 
         titleView.text = item.title
@@ -170,5 +217,31 @@ class MediaItemViewHolder(
             .load(item.albumArtUri)
             .placeholder(R.drawable.default_art)
             .into(albumArt)
+
+        // Apply theme colors to the item
+        theme?.let { applyTheme(it) }
+    }
+
+    private fun applyTheme(theme: MainActivityViewModel.AppTheme) {
+        // Apply theme colors to text views
+        titleView.setTextColor(theme.textColor)
+        subtitleView.setTextColor(theme.secondaryColor)
+        
+        // Apply subtle background tint to the item
+        val backgroundTint = android.graphics.Color.argb(
+            30, // Low alpha for subtle effect
+            android.graphics.Color.red(theme.primaryColor),
+            android.graphics.Color.green(theme.primaryColor),
+            android.graphics.Color.blue(theme.primaryColor)
+        )
+        itemView.setBackgroundColor(backgroundTint)
+        
+        // Apply color filter to play button if it's visible
+        if (playButton.visibility == View.VISIBLE) {
+            playButton.colorFilter = android.graphics.BlendModeColorFilter(
+                theme.primaryColor, 
+                android.graphics.BlendMode.SRC_IN
+            )
+        }
     }
 }

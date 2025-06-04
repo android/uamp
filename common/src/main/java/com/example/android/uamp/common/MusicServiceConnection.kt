@@ -68,6 +68,12 @@ class MusicServiceConnection(
     val duration = MutableLiveData<Long>()
         .apply { postValue(0L) }
 
+    val repeatMode = MutableLiveData<Int>()
+        .apply { postValue(Player.REPEAT_MODE_ALL) } // Default to repeat all
+
+    val shuffleMode = MutableLiveData<Boolean>()
+        .apply { postValue(false) } // Default to shuffle off
+
     private val mediaBrowserFuture: ListenableFuture<MediaBrowser> =
         MediaBrowser.Builder(
         context,
@@ -101,6 +107,16 @@ class MusicServiceConnection(
             }
         }
         
+        override fun onRepeatModeChanged(repeatMode: Int) {
+            Log.d(TAG, "onRepeatModeChanged: $repeatMode")
+            this@MusicServiceConnection.repeatMode.postValue(repeatMode)
+        }
+        
+        override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
+            Log.d(TAG, "onShuffleModeEnabledChanged: $shuffleModeEnabled")
+            this@MusicServiceConnection.shuffleMode.postValue(shuffleModeEnabled)
+        }
+        
         private fun updateCurrentMediaMetadata() {
             val browser = getMediaBrowser()
             if (browser != null && browser.currentMediaItem != null) {
@@ -132,6 +148,13 @@ class MusicServiceConnection(
                 playbackState.postValue(currentState)
                 isPlaying.postValue(currentPlaying)
                 
+                // Set default repeat mode to REPEAT_MODE_ALL and update state
+                mediaBrowserInstance?.repeatMode = Player.REPEAT_MODE_ALL
+                repeatMode.postValue(Player.REPEAT_MODE_ALL)
+                
+                // Get current shuffle state
+                val currentShuffle = mediaBrowserInstance?.shuffleModeEnabled ?: false
+                shuffleMode.postValue(currentShuffle)
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to connect MediaBrowser: ${e.message}")
                 isConnected.postValue(false)
@@ -234,6 +257,24 @@ class MusicServiceConnection(
     fun seekTo(position: Long) {
         if (isConnected.value == true) {
             getMediaBrowser()?.seekTo(position)
+        }
+    }
+
+    /**
+     * Set repeat mode
+     */
+    fun setRepeatMode(repeatMode: Int) {
+        if (isConnected.value == true) {
+            getMediaBrowser()?.repeatMode = repeatMode
+        }
+    }
+
+    /**
+     * Toggle shuffle mode
+     */
+    fun setShuffleMode(enabled: Boolean) {
+        if (isConnected.value == true) {
+            getMediaBrowser()?.shuffleModeEnabled = enabled
         }
     }
 

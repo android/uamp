@@ -80,6 +80,9 @@ class NowPlayingFragmentViewModel(
         metadata?.title?.toString() ?: ""
     }
 
+    val repeatMode: LiveData<Int> = musicServiceConnection.repeatMode
+    val shuffleMode: LiveData<Boolean> = musicServiceConnection.shuffleMode
+
     private var updatePosition = true
     private val handler = Handler(Looper.getMainLooper())
 
@@ -132,6 +135,28 @@ class NowPlayingFragmentViewModel(
      */
     fun seekTo(position: Long) {
         musicServiceConnection.seekTo(position)
+    }
+
+    /**
+     * Toggle repeat mode between off, one, and all
+     */
+    fun toggleRepeatMode() {
+        val currentMode = repeatMode.value ?: Player.REPEAT_MODE_OFF
+        val nextMode = when (currentMode) {
+            Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ONE
+            Player.REPEAT_MODE_ONE -> Player.REPEAT_MODE_ALL
+            Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_OFF
+            else -> Player.REPEAT_MODE_OFF
+        }
+        musicServiceConnection.setRepeatMode(nextMode)
+    }
+
+    /**
+     * Toggle shuffle mode
+     */
+    fun toggleShuffleMode() {
+        val currentShuffle = shuffleMode.value ?: false
+        musicServiceConnection.setShuffleMode(!currentShuffle)
     }
 
     /**

@@ -29,7 +29,7 @@ import com.google.android.gms.cast.framework.CastContext
 
 class MainActivity : AppCompatActivity() {
 
-    private val viewModel by viewModels<MainActivityViewModel> {
+    val viewModel by viewModels<MainActivityViewModel> {
         InjectorUtils.provideMainActivityViewModel(this)
     }
     private var castContext: CastContext? = null
@@ -75,6 +75,23 @@ class MainActivity : AppCompatActivity() {
                 checkAndCreateMainFragment()
             }
         }
+
+        // Observe app theme changes and apply them
+        viewModel.appTheme.observe(this) { theme ->
+            theme?.let { applyAppTheme(it) }
+        }
+
+        // Initialize with default theme
+        viewModel.resetAppThemeToDefault()
+    }
+
+    private fun applyAppTheme(theme: MainActivityViewModel.AppTheme) {
+        // Apply theme colors to the activity
+        window.statusBarColor = theme.backgroundColor
+        window.navigationBarColor = theme.backgroundColor
+        
+        // You can extend this to apply colors to other UI elements
+        // For example, action bar, background colors, etc.
     }
 
     private fun navigateToMediaItem(mediaId: String) {
