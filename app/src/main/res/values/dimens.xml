@@ -41,4 +41,58 @@
 
     <dimen name="now_playing_title_size">32sp</dimen>
     <dimen name="now_playing_artist_size">18sp</dimen>
+
+    <!-- Automotive Dimensions for Android Auto projection -->
+    
+    <!-- Automotive Spacing Dimensions -->
+    <dimen name="automotive_spacing_tiny">4dp</dimen>
+    <dimen name="automotive_spacing_small">8dp</dimen>
+    <dimen name="automotive_spacing_medium">16dp</dimen>
+    <dimen name="automotive_spacing_large">24dp</dimen>
+    <dimen name="automotive_spacing_xlarge">32dp</dimen>
+    <dimen name="automotive_spacing_xxlarge">48dp</dimen>
+    
+    <!-- Automotive Button Sizes -->
+    <dimen name="automotive_button_size">48dp</dimen>
+    <dimen name="automotive_button_size_large">56dp</dimen>
+    <dimen name="automotive_button_min_width">88dp</dimen>
+    <dimen name="automotive_button_min_height">48dp</dimen>
+    
+    <!-- Automotive Touch Target Sizes -->
+    <dimen name="automotive_touch_target_min">48dp</dimen>
+    <dimen name="automotive_touch_target_large">56dp</dimen>
+    
+    <!-- Automotive List Item Dimensions -->
+    <dimen name="automotive_list_item_height">88dp</dimen>
+    <dimen name="automotive_list_item_min_height">72dp</dimen>
+    <dimen name="automotive_album_art_size">64dp</dimen>
+    
+    <!-- Automotive Corner Radius -->
+    <dimen name="automotive_corner_radius">8dp</dimen>
+    <dimen name="automotive_corner_radius_large">12dp</dimen>
+    
+    <!-- Automotive Elevation -->
+    <dimen name="automotive_elevation_low">2dp</dimen>
+    <dimen name="automotive_elevation_medium">4dp</dimen>
+    <dimen name="automotive_elevation_high">8dp</dimen>
+    
+    <!-- Automotive Text Sizes -->
+    <dimen name="automotive_text_size_small">12sp</dimen>
+    <dimen name="automotive_text_size_medium">14sp</dimen>
+    <dimen name="automotive_text_size_large">16sp</dimen>
+    <dimen name="automotive_text_size_xlarge">20sp</dimen>
+    <dimen name="automotive_text_size_title">24sp</dimen>
+    
+    <!-- Automotive Icon Sizes -->
+    <dimen name="automotive_icon_size_small">20dp</dimen>
+    <dimen name="automotive_icon_size_medium">24dp</dimen>
+    <dimen name="automotive_icon_size_large">32dp</dimen>
+    
+    <!-- Automotive Content Padding -->
+    <dimen name="automotive_content_padding">16dp</dimen>
+    <dimen name="automotive_content_padding_large">24dp</dimen>
+    
+    <!-- Automotive Card Dimensions -->
+    <dimen name="automotive_card_margin">8dp</dimen>
+    <dimen name="automotive_card_padding">16dp</dimen>
 </resources>

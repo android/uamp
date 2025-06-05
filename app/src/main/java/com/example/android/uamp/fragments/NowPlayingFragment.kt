@@ -19,7 +19,6 @@ package com.example.android.uamp.fragments
 import android.animation.ObjectAnimator
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
-import android.graphics.PorterDuff
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -28,7 +27,6 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.widget.SeekBar
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -42,7 +40,6 @@ import com.example.android.uamp.R
 import com.example.android.uamp.databinding.FragmentNowplayingBinding
 import com.example.android.uamp.utils.InjectorUtils
 import com.example.android.uamp.viewmodels.NowPlayingFragmentViewModel
-import com.example.android.uamp.viewmodels.MainActivityViewModel
 import kotlin.math.abs
 
 /**

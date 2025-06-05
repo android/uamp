@@ -29,4 +29,18 @@
     <string name="media_route_menu_title">Cast</string>
 
     <string name="cast_context_error">Failed to get Cast context. Try updating Google Play Services and restart the app.</string>
+
+    <!-- Automotive specific strings -->
+    <string name="automotive_empty_state">No music available</string>
+    <string name="album_art">Album artwork</string>
+    <string name="play_pause">Play or pause</string>
+    <string name="previous">Previous track</string>
+    <string name="next">Next track</string>
+    <string name="shuffle">Shuffle</string>
+    <string name="repeat">Repeat</string>
+    <string name="automotive_browse_title">Browse Music</string>
+    <string name="automotive_now_playing">Now Playing</string>
+    <string name="automotive_loading">Loading music...</string>
+    <string name="automotive_error_network">Network error. Please check your connection.</string>
+    <string name="automotive_error_generic">Something went wrong. Please try again.</string>
 </resources>

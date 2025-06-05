@@ -48,7 +48,7 @@ import kotlinx.coroutines.launch
  * For more information on implementing a MediaSessionService,
  * visit [https://developer.android.com/guide/topics/media/media3].
  */
-class MusicService : MediaSessionService() {
+open class MusicService : MediaSessionService() {
 
     companion object {
         @Volatile

@@ -46,4 +46,47 @@
         <item name="android:paddingTop">2dp</item>
     </style>
 
+    <!-- Automotive Themes for Android Auto projection -->
+
+    <!-- Automotive NoActionBar theme -->
+    <style name="AppTheme.Automotive" parent="Theme.MaterialComponents.NoActionBar">
+        <item name="colorPrimary">@color/automotive_primary</item>
+        <item name="colorPrimaryDark">@color/automotive_primary_variant</item>
+        <item name="colorAccent">@color/automotive_secondary</item>
+        <item name="android:windowBackground">@color/automotive_background</item>
+        <item name="android:textColorPrimary">@color/automotive_on_background</item>
+        <item name="android:statusBarColor">@color/automotive_primary</item>
+        <item name="android:navigationBarColor">@color/automotive_background</item>
+    </style>
+
+    <!-- AppBar Overlay Theme -->
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.MaterialComponents.ActionBar">
+        <item name="colorPrimary">@color/automotive_primary</item>
+        <item name="colorOnPrimary">@color/automotive_on_primary</item>
+    </style>
+
+    <!-- Popup Overlay Theme -->
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.MaterialComponents.Light">
+        <item name="colorPrimary">@color/automotive_primary</item>
+        <item name="colorSurface">@color/automotive_surface</item>
+    </style>
+
+    <!-- Automotive specific styles -->
+    <style name="AutomotiveCard" parent="Widget.MaterialComponents.CardView">
+        <item name="cardBackgroundColor">@color/automotive_surface</item>
+        <item name="cardCornerRadius">@dimen/automotive_corner_radius</item>
+        <item name="cardElevation">@dimen/automotive_elevation_low</item>
+        <item name="android:layout_margin">@dimen/automotive_spacing_small</item>
+    </style>
+
+    <style name="AutomotiveButton" parent="Widget.MaterialComponents.Button.UnelevatedButton">
+        <item name="android:layout_width">@dimen/automotive_button_size</item>
+        <item name="android:layout_height">@dimen/automotive_button_size</item>
+        <item name="android:minWidth">@dimen/automotive_button_size</item>
+        <item name="android:minHeight">@dimen/automotive_button_size</item>
+        <item name="backgroundTint">@color/automotive_surface</item>
+        <item name="android:textColor">@color/automotive_on_surface</item>
+        <item name="rippleColor">@color/automotive_ripple</item>
+    </style>
+
 </resources>
