@@ -84,6 +84,17 @@
             </intent-filter>
         </activity>
 
+        <!-- Automotive Activity for Android Auto projection -->
+        <activity 
+            android:name=".automotive.AutomotiveMainActivity"
+            android:exported="false"
+            android:theme="@style/AppTheme.Automotive">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
         <!--
         Declare the common MediaSessionService for use in the mobile app, including
         with the Android Auto app.
@@ -97,6 +108,11 @@
 
             <intent-filter>
                 <action android:name="androidx.media3.session.MediaSessionService" />
+            </intent-filter>
+            
+            <!-- Android Auto support -->
+            <intent-filter>
+                <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
         </service>
 

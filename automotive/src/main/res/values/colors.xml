@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2019 Google LLC
+  ~ Copyright 2024 Mixtape Player
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -14,18 +14,54 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+
 <resources>
-    <color name="colorPrimary">#840255</color>
-    <color name="colorPrimaryDark">#710144</color>
-    <color name="colorAccent">#14A5A1</color>
-    <color name="darkBackground">#202020</color>
-
-    <color name="grey_100">#fff1f3f4</color>
+    <!-- Legacy colors for compatibility -->
     <color name="grey_300">#ffdadce0</color>
-
+    <color name="colorPrimary">#1DB954</color>
+    <color name="colorPrimaryDark">#1AA34A</color>
+    <color name="colorAccent">#03DAC6</color>
+    <color name="darkBackground">#121212</color>
     <color name="google_sign_in_button_background_color">#ffffffff</color>
-
-    <!-- Workaround for issue where unfocused state for textInputLayout outline box does not reflect
-     set color. Resolved in 1.1.0-alpha2 . -->
-    <color name="mtrl_textinput_default_box_stroke_color">@color/grey_300</color>
+    
+    <!-- Automotive Color Palette -->
+    
+    <!-- Primary Colors -->
+    <color name="automotive_primary">#1DB954</color>
+    <color name="automotive_primary_variant">#1AA34A</color>
+    <color name="automotive_on_primary">#FFFFFF</color>
+    
+    <!-- Secondary Colors -->
+    <color name="automotive_secondary">#03DAC6</color>
+    <color name="automotive_secondary_variant">#018786</color>
+    <color name="automotive_on_secondary">#000000</color>
+    
+    <!-- Background Colors -->
+    <color name="automotive_background">#121212</color>
+    <color name="automotive_on_background">#FFFFFF</color>
+    
+    <!-- Surface Colors -->
+    <color name="automotive_surface">#1E1E1E</color>
+    <color name="automotive_surface_variant">#2D2D2D</color>
+    <color name="automotive_on_surface">#FFFFFF</color>
+    <color name="automotive_on_surface_variant">#B3B3B3</color>
+    
+    <!-- Error Colors -->
+    <color name="automotive_error">#CF6679</color>
+    <color name="automotive_on_error">#000000</color>
+    
+    <!-- Additional Automotive Colors -->
+    <color name="automotive_ripple">#33FFFFFF</color>
+    <color name="automotive_divider">#1F1F1F</color>
+    <color name="automotive_overlay">#80000000</color>
+    
+    <!-- Status Colors -->
+    <color name="automotive_playing">#1DB954</color>
+    <color name="automotive_paused">#B3B3B3</color>
+    <color name="automotive_disabled">#666666</color>
+    
+    <!-- Special UI Colors -->
+    <color name="automotive_card_background">#1E1E1E</color>
+    <color name="automotive_button_background">#2D2D2D</color>
+    <color name="automotive_accent">#FF6B35</color>
 </resources>

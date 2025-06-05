@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2019 Google Inc. All rights reserved.
+  ~ Copyright 2024 Mixtape Player
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
   ~ You may obtain a copy of the License at
   ~
-  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~     https://www.apache.org/licenses/LICENSE-2.0
   ~
   ~ Unless required by applicable law or agreed to in writing, software
   ~ distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,6 +14,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+
 <resources>
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
@@ -58,4 +59,59 @@
     <dimen name="sign_in_footer_bottom_margin">32dp</dimen>
     <dimen name="sign_in_horizontal_start_guideline">0.1</dimen>
     <dimen name="sign_in_horizontal_end_guideline">0.9</dimen>
+
+    <!-- Automotive Spacing Dimensions -->
+    <dimen name="automotive_spacing_tiny">4dp</dimen>
+    <dimen name="automotive_spacing_small">8dp</dimen>
+    <dimen name="automotive_spacing_medium">16dp</dimen>
+    <dimen name="automotive_spacing_large">24dp</dimen>
+    <dimen name="automotive_spacing_xlarge">32dp</dimen>
+    <dimen name="automotive_spacing_xxlarge">48dp</dimen>
+    
+    <!-- Automotive Button Sizes -->
+    <dimen name="automotive_button_size">48dp</dimen>
+    <dimen name="automotive_button_size_large">56dp</dimen>
+    <dimen name="automotive_button_min_width">88dp</dimen>
+    <dimen name="automotive_button_min_height">48dp</dimen>
+    
+    <!-- Automotive Touch Target Sizes -->
+    <dimen name="automotive_touch_target_min">48dp</dimen>
+    <dimen name="automotive_touch_target_large">56dp</dimen>
+    
+    <!-- Automotive List Item Dimensions -->
+    <dimen name="automotive_list_item_height">88dp</dimen>
+    <dimen name="automotive_list_item_min_height">72dp</dimen>
+    <dimen name="automotive_album_art_size">64dp</dimen>
+    
+    <!-- Automotive Corner Radius -->
+    <dimen name="automotive_corner_radius">8dp</dimen>
+    <dimen name="automotive_corner_radius_large">12dp</dimen>
+    
+    <!-- Automotive Elevation -->
+    <dimen name="automotive_elevation_low">2dp</dimen>
+    <dimen name="automotive_elevation_medium">4dp</dimen>
+    <dimen name="automotive_elevation_high">8dp</dimen>
+    
+    <!-- Automotive Text Sizes -->
+    <dimen name="automotive_text_size_small">12sp</dimen>
+    <dimen name="automotive_text_size_medium">14sp</dimen>
+    <dimen name="automotive_text_size_large">16sp</dimen>
+    <dimen name="automotive_text_size_xlarge">20sp</dimen>
+    <dimen name="automotive_text_size_title">24sp</dimen>
+    
+    <!-- Automotive Icon Sizes -->
+    <dimen name="automotive_icon_size_small">20dp</dimen>
+    <dimen name="automotive_icon_size_medium">24dp</dimen>
+    <dimen name="automotive_icon_size_large">32dp</dimen>
+    
+    <!-- Automotive Content Padding -->
+    <dimen name="automotive_content_padding">16dp</dimen>
+    <dimen name="automotive_content_padding_large">24dp</dimen>
+    
+    <!-- Automotive Card Dimensions -->
+    <dimen name="automotive_card_margin">8dp</dimen>
+    <dimen name="automotive_card_padding">16dp</dimen>
+
+    <!-- Legacy dimensions for compatibility -->
+    <dimen name="car_button_radius">8dp</dimen>
 </resources>

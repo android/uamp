@@ -39,6 +39,4 @@ if (extraSettings.exists()) {
     apply from: extraSettings
 }
 
-include ':app', ':common'
-// Temporarily excluded automotive module due to missing car library resources
-// include ':automotive'
+include ':app', ':common', ':automotive'
