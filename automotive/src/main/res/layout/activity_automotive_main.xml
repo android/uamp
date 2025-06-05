@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2024 Mixtape Player
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     https://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/automotive_background"
+    tools:context=".AutomotiveMainActivity">
+
+    <!-- App Bar -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/AppTheme.AppBarOverlay">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/automotive_primary"
+            app:popupTheme="@style/AppTheme.PopupOverlay"
+            app:title="Mixtape"
+            app:titleTextColor="@color/automotive_on_primary" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Main Content -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Browse Music Section -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/browseRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/automotive_spacing_medium"
+                android:clipToPadding="false"
+                android:nestedScrollingEnabled="false"
+                android:paddingBottom="@dimen/automotive_spacing_large"
+                tools:listitem="@layout/item_automotive_browse" />
+
+            <!-- Empty State -->
+            <TextView
+                android:id="@+id/emptyStateText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="@dimen/automotive_spacing_xlarge"
+                android:gravity="center"
+                android:text="@string/automotive_empty_state"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
+                android:textColor="@color/automotive_on_background"
+                android:visibility="gone" />
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Now Playing Section (Bottom Sheet) -->
+    <LinearLayout
+        android:id="@+id/nowPlayingSection"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@color/automotive_surface"
+        android:elevation="@dimen/automotive_elevation_high"
+        android:orientation="vertical"
+        android:padding="@dimen/automotive_spacing_medium"
+        android:visibility="gone"
+        app:layout_behavior="@string/hide_bottom_view_on_scroll_behavior">
+
+        <!-- Now Playing Info -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- Track Info -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/songTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+                    android:textColor="@color/automotive_on_surface"
+                    android:textStyle="bold"
+                    tools:text="Song Title" />
+
+                <TextView
+                    android:id="@+id/artistName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+                    android:textColor="@color/automotive_on_surface_variant"
+                    tools:text="Artist Name" />
+
+            </LinearLayout>
+
+            <!-- Playback Controls -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/automotive_spacing_medium"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <!-- Shuffle Button -->
+                <ImageButton
+                    android:id="@+id/shuffleButton"
+                    android:layout_width="@dimen/automotive_button_size"
+                    android:layout_height="@dimen/automotive_button_size"
+                    android:layout_marginEnd="@dimen/automotive_spacing_small"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/shuffle"
+                    android:src="@drawable/ic_shuffle_black_24dp"
+                    app:tint="@color/automotive_on_surface" />
+
+                <!-- Previous Button -->
+                <ImageButton
+                    android:id="@+id/previousButton"
+                    android:layout_width="@dimen/automotive_button_size"
+                    android:layout_height="@dimen/automotive_button_size"
+                    android:layout_marginEnd="@dimen/automotive_spacing_small"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/previous"
+                    android:src="@drawable/ic_skip_previous_black_24dp"
+                    app:tint="@color/automotive_on_surface" />
+
+                <!-- Play/Pause Button -->
+                <ImageButton
+                    android:id="@+id/playPauseButton"
+                    android:layout_width="@dimen/automotive_button_size_large"
+                    android:layout_height="@dimen/automotive_button_size_large"
+                    android:layout_marginEnd="@dimen/automotive_spacing_small"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/play_pause"
+                    android:src="@drawable/ic_play_arrow_black_24dp"
+                    app:tint="@color/automotive_primary" />
+
+                <!-- Next Button -->
+                <ImageButton
+                    android:id="@+id/nextButton"
+                    android:layout_width="@dimen/automotive_button_size"
+                    android:layout_height="@dimen/automotive_button_size"
+                    android:layout_marginEnd="@dimen/automotive_spacing_small"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/next"
+                    android:src="@drawable/ic_skip_next_black_24dp"
+                    app:tint="@color/automotive_on_surface" />
+
+                <!-- Repeat Button -->
+                <ImageButton
+                    android:id="@+id/repeatButton"
+                    android:layout_width="@dimen/automotive_button_size"
+                    android:layout_height="@dimen/automotive_button_size"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/repeat"
+                    android:src="@drawable/ic_repeat_black_24dp"
+                    app:tint="@color/automotive_on_surface" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout> 
