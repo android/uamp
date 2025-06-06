@@ -87,17 +87,22 @@
         <!-- Automotive Activity for Android Auto projection -->
         <activity 
             android:name=".automotive.AutomotiveMainActivity"
-            android:exported="false"
-            android:theme="@style/AppTheme.Automotive">
+            android:exported="true"
+            android:theme="@style/AppTheme.Automotive"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
+            <!-- Intent filter for Android Auto projection -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.google.android.gms.car.category.CATEGORY_PROJECTION" />
+            </intent-filter>
         </activity>
 
         <!--
-        Declare the common MediaSessionService for use in the mobile app, including
-        with the Android Auto app.
+        Declare the common MediaSessionService for use in the mobile app.
         -->
         <service
             android:name=".media.MusicService"
@@ -109,8 +114,20 @@
             <intent-filter>
                 <action android:name="androidx.media3.session.MediaSessionService" />
             </intent-filter>
-            
-            <!-- Android Auto support -->
+        </service>
+
+        <!--
+        Declare the AndroidAutoService specifically for Android Auto browsing.
+        This provides the MediaBrowserService interface that Android Auto requires
+        while the MusicService handles actual playback for the phone app.
+        -->
+        <service
+            android:name=".media.AndroidAutoService"
+            android:enabled="true"
+            android:exported="true"
+            tools:ignore="ExportedService">
+
+            <!-- Android Auto MediaBrowserService support -->
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>

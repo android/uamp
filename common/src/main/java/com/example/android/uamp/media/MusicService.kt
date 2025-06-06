@@ -20,6 +20,7 @@ import android.app.Notification
 import android.app.PendingIntent
 import android.content.Intent
 import android.net.Uri
+import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.core.content.ContextCompat
@@ -35,6 +36,7 @@ import androidx.media3.ui.PlayerNotificationManager
 import com.example.android.uamp.media.library.JsonSource
 import com.example.android.uamp.media.library.MusicSource
 import com.google.android.gms.cast.framework.CastContext
+import com.google.common.util.concurrent.ListenableFuture
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -45,7 +47,7 @@ import kotlinx.coroutines.launch
  * and other apps that wish to play music via UAMP (for example, Android Auto or
  * the Google Assistant).
  *
- * For more information on implementing a MediaSessionService,
+ * For more information on implementing a MediaLibraryService,
  * visit [https://developer.android.com/guide/topics/media/media3].
  */
 open class MusicService : MediaSessionService() {
@@ -55,6 +57,11 @@ open class MusicService : MediaSessionService() {
         private var INSTANCE: MusicService? = null
         
         fun getInstance(): MusicService? = INSTANCE
+
+        /**
+         * Get the MediaSession for external connections (like phone app)
+         */
+        fun getMediaSession(): MediaSession? = INSTANCE?.mediaSession
     }
 
     private lateinit var notificationManager: UampNotificationManager
@@ -65,7 +72,8 @@ open class MusicService : MediaSessionService() {
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
 
-    private lateinit var mediaSession: MediaSession
+    lateinit var mediaSession: MediaSession
+
     private var currentPlaylistItems: List<MediaItem> = emptyList()
     private var currentMediaItemIndex: Int = 0
 
@@ -124,10 +132,19 @@ open class MusicService : MediaSessionService() {
         // Create the player instance
         player = exoPlayer
 
-        // Create a new MediaSession.
+        // Create a new MediaSession for Media3 with Android Auto support.
         mediaSession = MediaSession.Builder(this, player)
             .apply {
                 sessionActivityPendingIntent?.let { setSessionActivity(it) }
+                setCallback(UampMediaSessionCallback())
+                
+                // Set session extras to enable Android Auto
+                val sessionExtras = Bundle().apply {
+                    putBoolean("android.media.browse.CONTENT_STYLE_SUPPORTED", true)
+                    putInt("android.media.browse.CONTENT_STYLE_BROWSABLE_HINT", 1)
+                    putInt("android.media.browse.CONTENT_STYLE_PLAYABLE_HINT", 1)
+                }
+                setExtras(sessionExtras)
             }
             .build()
 
@@ -153,7 +170,7 @@ open class MusicService : MediaSessionService() {
             // Check if loading was successful using the public API
             mediaSource.whenReady { success ->
                 if (success) {
-                    val catalogSize = mediaSource.count()
+                    val catalogSize = mediaSource.toList().size
                     Log.d(TAG, "Catalog loading completed successfully. Items: $catalogSize")
                 } else {
                     Log.e(TAG, "Catalog loading failed")
@@ -245,6 +262,70 @@ open class MusicService : MediaSessionService() {
                 mediaMetadata,
                 position
             )
+        }
+    }
+
+    /**
+     * MediaSession.Callback that handles commands from Android Auto and other external controllers
+     */
+    private inner class UampMediaSessionCallback : MediaSession.Callback {
+        
+        override fun onAddMediaItems(
+            mediaSession: MediaSession,
+            controller: MediaSession.ControllerInfo,
+            mediaItems: List<MediaItem>
+        ): ListenableFuture<List<MediaItem>> {
+            Log.d(TAG, "onAddMediaItems: ${mediaItems.size} items")
+            
+            // Convert media IDs to full MediaItems with metadata
+            val updatedMediaItems = mediaItems.map { mediaItem ->
+                mediaItem.mediaId?.let { mediaId ->
+                    // Find the metadata in our catalog
+                    val catalogMetadata = mediaSource.find { metadata ->
+                        metadata.extras?.getString("media_id") == mediaId
+                    }
+                    
+                    if (catalogMetadata != null) {
+                        val uri = catalogMetadata.extras?.getString("media_uri") ?: ""
+                        MediaItem.Builder()
+                            .setMediaId(mediaId)
+                            .setUri(uri)
+                            .setMediaMetadata(catalogMetadata)
+                            .build()
+                    } else {
+                        mediaItem
+                    }
+                } ?: mediaItem
+            }
+            
+            return com.google.common.util.concurrent.Futures.immediateFuture(updatedMediaItems)
+        }
+        
+        override fun onPlaybackResumption(
+            mediaSession: MediaSession,
+            controller: MediaSession.ControllerInfo
+        ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
+            Log.d(TAG, "onPlaybackResumption")
+            
+            // Load the full catalog for resumption
+            val catalogItems = mediaSource.map { metadata ->
+                val mediaId = metadata.extras?.getString("media_id") ?: ""
+                val uri = metadata.extras?.getString("media_uri") ?: ""
+                
+                MediaItem.Builder()
+                    .setMediaId(mediaId)
+                    .setUri(uri)
+                    .setMediaMetadata(metadata)
+                    .build()
+            }
+            
+            val startPosition = MediaSession.MediaItemsWithStartPosition(
+                catalogItems,
+                /* startIndex= */ 0,
+                /* startPositionMs= */ 0
+            )
+            
+            return com.google.common.util.concurrent.Futures.immediateFuture(startPosition)
         }
     }
 
@@ -351,39 +432,7 @@ open class MusicService : MediaSessionService() {
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
-        return try {
-            // Allow connection if it's the same process (app connecting to its own service)
-            if (controllerInfo.uid == android.os.Process.myUid()) {
-                return mediaSession
-            }
-            
-            // Check if we have a valid package name
-            val packageName = controllerInfo.packageName
-            if (packageName.isNullOrEmpty() || packageName.contains('.') && !packageName.matches(Regex("^[a-zA-Z][a-zA-Z0-9_]*(\\.[a-zA-Z][a-zA-Z0-9_]*)*$"))) {
-                // Invalid package name format (likely a class name) - allow if same UID
-                return if (controllerInfo.uid == android.os.Process.myUid()) {
-                    mediaSession
-                } else {
-                    null
-                }
-            }
-            
-            // Use package validator for external callers
-            if (packageValidator.isKnownCaller(packageName, controllerInfo.uid)) {
-                mediaSession
-            } else {
-                null
-            }
-        } catch (e: Exception) {
-            // If package validation fails for any reason (like NameNotFoundException),
-            // allow the connection if it's from the same process
-            Log.w(TAG, "Package validation failed for ${controllerInfo.packageName}: ${e.message}")
-            if (controllerInfo.uid == android.os.Process.myUid()) {
-                mediaSession
-            } else {
-                null
-            }
-        }
+        return mediaSession
     }
 }
 
@@ -391,13 +440,6 @@ open class MusicService : MediaSessionService() {
  * (Media) Session events
  */
 const val NETWORK_FAILURE = "com.example.android.uamp.media.session.NETWORK_FAILURE"
-
-/** Content styling constants */
-private const val CONTENT_STYLE_BROWSABLE_HINT = "android.media.browse.CONTENT_STYLE_BROWSABLE_HINT"
-private const val CONTENT_STYLE_PLAYABLE_HINT = "android.media.browse.CONTENT_STYLE_PLAYABLE_HINT"
-private const val CONTENT_STYLE_SUPPORTED = "android.media.browse.CONTENT_STYLE_SUPPORTED"
-private const val CONTENT_STYLE_LIST = 1
-private const val CONTENT_STYLE_GRID = 2
 
 private const val UAMP_USER_AGENT = "uamp.next"
 
