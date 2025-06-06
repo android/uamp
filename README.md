@@ -11,7 +11,9 @@ A modern Android music player with comprehensive Android Auto integration, built
 - **Complete playback controls**: play, pause, skip, seek, shuffle, repeat modes
 - **Remote music catalog** loaded from cloud sources with local fallback
 
-### 🚗 **Android Auto Integration** 
+### 🚗 **In-Vehicle Integration** 
+
+#### **Android Auto**
 - **Dual service architecture**: 
   - MusicService (MediaSessionService) for phone app compatibility
   - AndroidAutoService (MediaBrowserServiceCompat) for Android Auto browsing
@@ -20,11 +22,28 @@ A modern Android music player with comprehensive Android Auto integration, built
 - **Seamless synchronization** between phone app and in-vehicle display
 - **Voice command support** through Google Assistant integration
 
-### 📱 **Phone App**
+#### **CarPlay (iOS)**
+- **Native CarPlay integration** with CPListTemplate for music browsing
+- **Tab-based interface** for songs, artists, and albums
+- **Now Playing integration** with playback controls and artwork
+- **Voice control** through Siri integration
+- **Background audio** maintains playback when switching apps
+
+### 📱 **Phone Apps (Android & iOS)**
+
+#### **Android**
 - **Material Design 3** with dynamic theming
 - **Multiple viewing modes**: library browsing, now playing, mini player
 - **Album art integration** throughout the interface
 - **Real-time playback state** synchronized across all interfaces
+
+#### **iOS** 
+- **SwiftUI implementation** with native iOS design patterns
+- **CarPlay integration** for in-vehicle control and browsing
+- **Dynamic color theming** extracted from album artwork
+- **Background audio** with lock screen and Control Center integration
+- **Apple Watch support** and Shortcuts app compatibility
+- **Feature parity** with Android version using same music catalog
 
 ## 🏗️ Architecture
 
@@ -96,12 +115,26 @@ adb shell am start -n "com.google.android.projection.gearhead/.MainActivity"
 
 ## 🛠️ Development
 
-### **Project Structure**
+### **Monorepo Structure**
 ```
-├── app/                    # Main Android application module
-├── common/                 # Shared code and services  
-├── automotive/            # Android Automotive OS specific code
-└── docs/                  # Documentation and guides
+├── Android/
+│   ├── app/                    # Main Android application module
+│   ├── common/                 # Shared Android code and services  
+│   ├── automotive/            # Android Automotive OS specific code
+│   ├── gradle/                # Gradle wrapper and configuration
+│   ├── build.gradle           # Android project build configuration
+│   └── settings.gradle        # Android module settings
+├── iOS/
+│   └── ios-mixtape/           # Complete iOS Xcode project
+│       ├── Mixtape/           # Main iOS app source code
+│       │   ├── Views/         # SwiftUI views (NowPlaying, MiniPlayer, etc.)
+│       │   ├── Services/      # AudioManager, CarPlaySceneDelegate
+│       │   └── Models/        # MusicCatalog and data models
+│       ├── Mixtape.xcodeproj/ # Xcode project configuration
+│       ├── Package.swift      # Swift Package Manager dependencies
+│       ├── build.sh           # iOS build and testing script
+│       └── README.md          # iOS-specific documentation
+└── docs/                      # Shared documentation and guides
 ```
 
 ### **Key Files**
