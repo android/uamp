@@ -1,72 +1,181 @@
-Universal Android Music Player Sample
-=====================================
-The goal of this sample is to show how to implement an audio media app that works
-across multiple form factors and provides a consistent user experience
-on Android phones, tablets, Android Auto, Android Wear, Android TV, Google Cast devices,
-and with the Google Assistant. 
+# Mixtape Player
 
-To get started with UAMP please read the [full guide](docs/FullGuide.md).
+A modern Android music player with comprehensive Android Auto integration, built on the foundation of Google's Universal Android Music Player (UAMP) sample with significant enhancements for real-world use.
 
-![Screenshot showing UAMP's UI for browsing albums and songs](docs/images/1-browse-albums-screenshot.png "Browse albums screenshot")
-![Screenshot showing UAMP's UI for playing a song](docs/images/2-play-song-screenshot.png "Play song screenshot")
+## ✨ Features
 
-Pre-requisites
---------------
+### 🎵 **Music Experience**
+- **Full-screen album art backgrounds** with dynamic color theming extracted from artwork
+- **Gesture controls**: swipe for track navigation, tap to expand, swipe down to dismiss
+- **Smart mini player** with auto-hide after 5 seconds of inactivity
+- **Complete playback controls**: play, pause, skip, seek, shuffle, repeat modes
+- **Remote music catalog** loaded from cloud sources with local fallback
 
-- Android Studio 3.x
+### 🚗 **Android Auto Integration** 
+- **Dual service architecture**: 
+  - MusicService (MediaSessionService) for phone app compatibility
+  - AndroidAutoService (MediaBrowserServiceCompat) for Android Auto browsing
+- **Full browsing capability** in Android Auto with searchable music library
+- **Now Playing screen** with track metadata, album artwork, and progress tracking
+- **Seamless synchronization** between phone app and in-vehicle display
+- **Voice command support** through Google Assistant integration
 
-Getting Started
----------------
+### 📱 **Phone App**
+- **Material Design 3** with dynamic theming
+- **Multiple viewing modes**: library browsing, now playing, mini player
+- **Album art integration** throughout the interface
+- **Real-time playback state** synchronized across all interfaces
 
-This sample uses the Gradle build system. To build this project, use the
-"gradlew build" command or use "Import Project" in Android Studio.
+## 🏗️ Architecture
 
-Support
--------
+### **Service Architecture**
+```
+┌─ Phone App ────────────────┐    ┌─ Android Auto ─────────────┐
+│                            │    │                            │
+│  MainActivity              │    │  Car Infotainment System   │
+│  NowPlayingFragment        │    │  Browse + Now Playing UI   │
+│  MiniPlayerFragment        │    │                            │
+│                            │    │                            │
+└────────────┬───────────────┘    └────────────┬───────────────┘
+             │                                 │
+             ▼                                 ▼
+    ┌────────────────────┐            ┌─────────────────────┐
+    │   MusicService     │            │ AndroidAutoService  │
+    │ (MediaSessionService)          │ (MediaBrowserService) │
+    │                    │            │                     │
+    │ - ExoPlayer        │◄───────────┤ - Shared Player     │
+    │ - MediaSession     │            │ - MediaSession Sync │
+    │ - Notifications    │            │ - Browse Capability │
+    └────────────────────┘            └─────────────────────┘
+```
 
-- Check out the [FAQs page](docs/FAQs.md)
-- Stack Overflow: http://stackoverflow.com/questions/tagged/android
+### **Key Components**
+- **MusicService**: Core playback service using Media3 ExoPlayer
+- **AndroidAutoService**: Browser service for Android Auto UI
+- **MusicServiceConnection**: Bridge between UI and services
+- **JsonSource**: Remote catalog management with network loading
+- **UampNotificationManager**: Rich media notifications
 
-If you've found an error in this sample, please
-[file an issue](https://github.com/android/UAMP/issues)
+## 🚀 Getting Started
 
-Patches are encouraged and may be submitted by forking this project and
-submitting a pull request through GitHub. Please see [CONTRIBUTING.md](CONTRIBUTING.md) for more
-details.
+### **Prerequisites**
+- Android Studio Arctic Fox (2020.3.1) or later
+- Android 6.0 (API level 23) or higher
+- Android Auto compatible vehicle or Android Auto Desktop Head Unit for testing
 
-Audio
------
+### **Building the App**
+```bash
+# Clone the repository
+git clone <repository-url>
+cd mixtape-player
 
-Music provided by the [Free Music Archive](http://freemusicarchive.org/).
+# Build debug APK
+./gradlew assembleDebug
 
-- [Wake Up](http://freemusicarchive.org/music/The_Kyoto_Connection/Wake_Up_1957/) by
-[The Kyoto Connection](http://freemusicarchive.org/music/The_Kyoto_Connection/).
+# Install on connected device
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
 
-Recordings provided by the [Ambisonic Sound Library](https://library.soundfield.com/).
+### **Android Auto Testing**
 
-- [Pre Game Marching Band](https://library.soundfield.com/track/163) by Watson Wu
-- [Chickens on a Farm](https://library.soundfield.com/track/129) by Watson Wu
-- [Rural Market Busker](https://library.soundfield.com/track/55) by Stephan Schutze
-- [Steamtrain Interior](https://library.soundfield.com/track/65) by Stephan Schutze
-- [Rural Road Car Pass](https://library.soundfield.com/track/57) by Stephan Schutze
-- [10 Feet from Shore](https://library.soundfield.com/track/114) by Watson Wu
+#### **Option 1: Real Vehicle Testing**
+1. Connect phone via USB to Android Auto compatible vehicle
+2. Launch Mixtape app and start playing music
+3. Access through vehicle's Android Auto interface
 
-License
--------
+#### **Option 2: Desktop Head Unit (Development)**
+```bash
+# Install Android Auto Desktop Head Unit
+# Available from: https://developer.android.com/training/cars/testing
 
+# Enable Android Auto developer mode on phone
+adb shell am start -n "com.google.android.projection.gearhead/.MainActivity"
+
+# Launch Desktop Head Unit and connect phone
+```
+
+## 🛠️ Development
+
+### **Project Structure**
+```
+├── app/                    # Main Android application module
+├── common/                 # Shared code and services  
+├── automotive/            # Android Automotive OS specific code
+└── docs/                  # Documentation and guides
+```
+
+### **Key Files**
+- `MusicService.kt` - Core music playback service
+- `AndroidAutoService.kt` - Android Auto browsing integration
+- `MusicServiceConnection.kt` - Service communication layer
+- `JsonSource.kt` - Music catalog management
+
+### **Testing Android Auto Integration**
+1. **Enable Developer Options** on Android device
+2. **Install Android Auto** from Play Store
+3. **Connect to Desktop Head Unit** or vehicle
+4. **Test browsing and playback** functionality
+
+## 🎵 Music Catalog
+
+The app loads music from a remote JSON catalog with fallback to local tracks:
+- Dynamic loading from cloud sources
+- Automatic retry with exponential backoff
+- Local fallback catalog for offline testing
+- Support for album artwork URLs
+
+## 🔧 Configuration
+
+### **Android Auto Setup**
+The app includes proper Android Auto configuration:
+- `automotive_app_desc.xml` - Android Auto app descriptor
+- `allowed_media_browser_callers.xml` - Security for media browsing
+- Manifest declarations for Android Auto support
+
+### **Media Session Integration**
+- Full Media3 MediaSession implementation
+- Proper metadata handling for Now Playing display
+- Synchronized playback state across all interfaces
+
+## 📖 Documentation
+
+- [Android Auto Integration Guide](docs/android-auto-integration.md)
+- [Service Architecture](docs/service-architecture.md)  
+- [Original UAMP Documentation](docs/FullGuide.md)
+
+## 🐛 Known Issues
+
+- Shuffle and repeat buttons may not appear in some Android Auto implementations
+- Album art loading may be slow on poor network connections
+- Some vehicles may have limited Android Auto UI capabilities
+
+## 🤝 Contributing
+
+This project is based on Google's UAMP sample with significant enhancements for Android Auto integration. Contributions welcome!
+
+## 📄 License
+
+Based on Google's Universal Android Music Player sample:
+
+```
 Copyright 2017 Google Inc.
 
-Licensed to the Apache Software Foundation (ASF) under one or more contributor
-license agreements.  See the NOTICE file distributed with this work for
-additional information regarding copyright ownership.  The ASF licenses this
-file to you under the Apache License, Version 2.0 (the "License"); you may not
-use this file except in compliance with the License.  You may obtain a copy of
-the License at
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-  http://www.apache.org/licenses/LICENSE-2.0
+    http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
-License for the specific language governing permissions and limitations under
-the License.
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+```
+
+## 🎵 Music Credits
+
+Music provided by the [Free Music Archive](http://freemusicarchive.org/):
+- **The Kyoto Connection** - [Wake Up](http://freemusicarchive.org/music/The_Kyoto_Connection/Wake_Up_1957/)
+
+Ambisonic recordings by [Ambisonic Sound Library](https://library.soundfield.com/).
