@@ -19,9 +19,14 @@ package com.example.android.uamp.media
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaDescriptionCompat
+import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
+import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import androidx.media.MediaBrowserServiceCompat
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
+import androidx.media3.common.Player
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -38,6 +43,34 @@ class AndroidAutoService : MediaBrowserServiceCompat() {
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
 
+    // Player listener to sync with MusicService
+    private val playerListener = object : Player.Listener {
+        override fun onPlaybackStateChanged(playbackState: Int) {
+            Log.d(TAG, "onPlaybackStateChanged: $playbackState")
+            updateMediaSessionPlaybackState()
+        }
+
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            Log.d(TAG, "onIsPlayingChanged: $isPlaying")
+            updateMediaSessionPlaybackState()
+        }
+
+        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            Log.d(TAG, "onMediaItemTransition: ${mediaItem?.mediaMetadata?.title}")
+            mediaItem?.let { updateMediaSessionMetadata(it.mediaMetadata) }
+        }
+
+        override fun onRepeatModeChanged(repeatMode: Int) {
+            Log.d(TAG, "onRepeatModeChanged: $repeatMode")
+            updateMediaSessionPlaybackState()
+        }
+
+        override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
+            Log.d(TAG, "onShuffleModeEnabledChanged: $shuffleModeEnabled")
+            updateMediaSessionPlaybackState()
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
         Log.d(TAG, "AndroidAutoService onCreate")
@@ -45,6 +78,11 @@ class AndroidAutoService : MediaBrowserServiceCompat() {
         // Create MediaSessionCompat for Android Auto
         mediaSessionCompat = MediaSessionCompat(this, TAG).apply {
             setCallback(AndroidAutoSessionCallback())
+            
+            // Initialize shuffle and repeat modes for Android Auto
+            setShuffleMode(PlaybackStateCompat.SHUFFLE_MODE_NONE)
+            setRepeatMode(PlaybackStateCompat.REPEAT_MODE_NONE)
+            
             isActive = true
         }
 
@@ -52,13 +90,118 @@ class AndroidAutoService : MediaBrowserServiceCompat() {
         sessionToken = mediaSessionCompat.sessionToken
 
         packageValidator = PackageValidator(this, R.xml.allowed_media_browser_callers)
+
+        // Setup listener to sync with MusicService player
+        setupPlayerListener()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         Log.d(TAG, "AndroidAutoService onDestroy")
+        
+        // Remove player listener
+        MusicService.getInstance()?.mediaSession?.player?.removeListener(playerListener)
+        
         mediaSessionCompat.release()
         serviceJob.cancel()
+    }
+
+    private fun setupPlayerListener() {
+        // Add listener to MusicService player if available
+        MusicService.getInstance()?.let { service ->
+            Log.d(TAG, "Adding player listener to MusicService")
+            service.mediaSession.player.addListener(playerListener)
+            
+            // Initialize with current state
+            val currentMediaItem = service.mediaSession.player.currentMediaItem
+            currentMediaItem?.let { updateMediaSessionMetadata(it.mediaMetadata) }
+            updateMediaSessionPlaybackState()
+        } ?: run {
+            // MusicService not ready yet, try again in a moment
+            serviceScope.launch {
+                var attempts = 0
+                while (attempts < 10) {
+                    kotlinx.coroutines.delay(500)
+                    MusicService.getInstance()?.let { service ->
+                        Log.d(TAG, "Adding player listener to MusicService (attempt ${attempts + 1})")
+                        service.mediaSession.player.addListener(playerListener)
+                        
+                        // Initialize with current state
+                        val currentMediaItem = service.mediaSession.player.currentMediaItem
+                        currentMediaItem?.let { updateMediaSessionMetadata(it.mediaMetadata) }
+                        updateMediaSessionPlaybackState()
+                        return@launch
+                    }
+                    attempts++
+                }
+                Log.w(TAG, "Could not connect to MusicService after 10 attempts")
+            }
+        }
+    }
+
+    private fun updateMediaSessionMetadata(metadata: MediaMetadata?) {
+        metadata?.let {
+            Log.d(TAG, "Updating MediaSession metadata: ${it.title}")
+            
+            val metadataBuilder = MediaMetadataCompat.Builder()
+                .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, it.extras?.getString("media_id"))
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, it.title?.toString())
+                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, it.artist?.toString())
+                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, it.albumTitle?.toString())
+                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ARTIST, it.albumArtist?.toString())
+                .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, it.extras?.getLong("duration") ?: 0L)
+            
+            // Add album art URI if available
+            it.artworkUri?.let { artworkUri ->
+                metadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, artworkUri.toString())
+                metadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_ART_URI, artworkUri.toString())
+                metadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI, artworkUri.toString())
+            }
+            
+            mediaSessionCompat.setMetadata(metadataBuilder.build())
+        }
+    }
+
+    private fun updateMediaSessionPlaybackState() {
+        MusicService.getInstance()?.let { service ->
+            val player = service.mediaSession.player
+            
+            val playbackState = when {
+                player.playbackState == Player.STATE_READY && player.isPlaying -> PlaybackStateCompat.STATE_PLAYING
+                player.playbackState == Player.STATE_READY && !player.isPlaying -> PlaybackStateCompat.STATE_PAUSED
+                player.playbackState == Player.STATE_BUFFERING -> PlaybackStateCompat.STATE_BUFFERING
+                player.playbackState == Player.STATE_ENDED -> PlaybackStateCompat.STATE_STOPPED
+                else -> PlaybackStateCompat.STATE_NONE
+            }
+
+            val actions = PlaybackStateCompat.ACTION_PLAY or
+                    PlaybackStateCompat.ACTION_PAUSE or
+                    PlaybackStateCompat.ACTION_SKIP_TO_NEXT or
+                    PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS or
+                    PlaybackStateCompat.ACTION_SEEK_TO or
+                    PlaybackStateCompat.ACTION_SET_SHUFFLE_MODE or
+                    PlaybackStateCompat.ACTION_SET_REPEAT_MODE or
+                    PlaybackStateCompat.ACTION_PLAY_FROM_MEDIA_ID
+
+            val stateBuilder = PlaybackStateCompat.Builder()
+                .setState(playbackState, player.currentPosition, 1.0f)
+                .setActions(actions)
+
+            mediaSessionCompat.setPlaybackState(stateBuilder.build())
+            
+            // Set shuffle and repeat modes directly on the MediaSession for Android Auto
+            val shuffleMode = if (player.shuffleModeEnabled) PlaybackStateCompat.SHUFFLE_MODE_ALL else PlaybackStateCompat.SHUFFLE_MODE_NONE
+            val repeatMode = when (player.repeatMode) {
+                Player.REPEAT_MODE_ONE -> PlaybackStateCompat.REPEAT_MODE_ONE
+                Player.REPEAT_MODE_ALL -> PlaybackStateCompat.REPEAT_MODE_ALL
+                else -> PlaybackStateCompat.REPEAT_MODE_NONE
+            }
+            
+            mediaSessionCompat.setShuffleMode(shuffleMode)
+            mediaSessionCompat.setRepeatMode(repeatMode)
+            
+            Log.d(TAG, "Updated MediaSession: state=$playbackState, pos=${player.currentPosition}, shuffle=$shuffleMode, repeat=$repeatMode")
+        }
     }
 
     /**
@@ -217,6 +360,8 @@ class AndroidAutoService : MediaBrowserServiceCompat() {
                 service.mediaSession.player.repeatMode = repeatMode
             }
         }
+
+
 
         override fun onPlayFromMediaId(mediaId: String?, extras: Bundle?) {
             Log.d(TAG, "onPlayFromMediaId: $mediaId")
