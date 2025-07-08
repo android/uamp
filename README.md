@@ -1,3 +1,8 @@
+> **Warning**
+> This sample has been deprecated and is no longer being maintained.
+> 
+> To find other samples that may be of interest, see [https://developer.android.com/samples](https://developer.android.com/samples).
+
 Universal Android Music Player Sample
 =====================================
 The goal of this sample is to show how to implement an audio media app that works
