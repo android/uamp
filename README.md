@@ -59,7 +59,7 @@ Recordings provided by the [Ambisonic Sound Library](https://library.soundfield.
 License
 -------
 
-Copyright 2017 Google Inc.
+Copyright 2025 Google Inc.
 
 Licensed to the Apache Software Foundation (ASF) under one or more contributor
 license agreements.  See the NOTICE file distributed with this work for
