@@ -35,6 +35,10 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.media.MediaBrowserServiceCompat
 import androidx.media.MediaBrowserServiceCompat.BrowserRoot.EXTRA_RECENT
+import androidx.mediarouter.media.MediaControlIntent
+import androidx.mediarouter.media.MediaRouteSelector
+import androidx.mediarouter.media.MediaRouter
+import androidx.mediarouter.media.MediaRouterParams
 import com.example.android.uamp.media.extensions.album
 import com.example.android.uamp.media.extensions.flag
 import com.example.android.uamp.media.extensions.id
@@ -109,6 +113,10 @@ open class MusicService : MediaBrowserServiceCompat() {
     private var currentMediaItemIndex: Int = 0
 
     private lateinit var storage: PersistentStorage
+
+    private lateinit var mediaRouteSelector: MediaRouteSelector
+    private lateinit var mediaRouter: MediaRouter
+    private val mediaRouterCallback = MediaRouterCallback()
 
     /**
      * This must be `by lazy` because the source won't initially be ready.
@@ -224,6 +232,18 @@ open class MusicService : MediaBrowserServiceCompat() {
         packageValidator = PackageValidator(this, R.xml.allowed_media_browser_callers)
 
         storage = PersistentStorage.getInstance(applicationContext)
+
+        mediaRouter = MediaRouter.getInstance(this)
+        mediaRouter.setMediaSessionCompat(mediaSession)
+        mediaRouteSelector = MediaRouteSelector.Builder()
+            .addControlCategory(MediaControlIntent.CATEGORY_REMOTE_PLAYBACK)
+            .build()
+        mediaRouter.routerParams =
+            MediaRouterParams.Builder().setTransferToLocalEnabled(true).build()
+        mediaRouter.addCallback(
+            mediaRouteSelector, mediaRouterCallback,
+            MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY
+        )
     }
 
     /**
@@ -258,6 +278,9 @@ open class MusicService : MediaBrowserServiceCompat() {
         // Free ExoPlayer resources.
         exoPlayer.removeListener(playerListener)
         exoPlayer.release()
+
+        // Stop listening for route changes.
+        mediaRouter.removeCallback(mediaRouterCallback)
     }
 
     /**
@@ -648,6 +671,21 @@ open class MusicService : MediaBrowserServiceCompat() {
                 message,
                 Toast.LENGTH_LONG
             ).show()
+        }
+    }
+
+    inner class MediaRouterCallback : MediaRouter.Callback() {
+        override fun onRouteSelected(
+            router: MediaRouter,
+            route: MediaRouter.RouteInfo,
+            reason: Int
+        ) {
+            if (reason == MediaRouter.UNSELECT_REASON_ROUTE_CHANGED) {
+                Log.d(TAG, "Unselected because route changed, continue playback")
+            } else if (reason == MediaRouter.UNSELECT_REASON_STOPPED) {
+                Log.d(TAG, "Unselected because route was stopped, stop playback")
+                currentPlayer.stop()
+            }
         }
     }
 }
